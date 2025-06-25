@@ -98,7 +98,7 @@ export function NowPlayingBar() {
               className={`w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center transition-all ${
                 isPlaying
                   ? 'bg-accent-yellow text-radio-black'
-                  : 'bg-vdu-green text-radio-black hover:bg-vdu-green-bright'
+                  : 'bg-radio-dark border-2 border-vdu-green text-vdu-green hover:bg-vdu-green hover:text-radio-black'
               }`}
             >
               {isPlaying ? (

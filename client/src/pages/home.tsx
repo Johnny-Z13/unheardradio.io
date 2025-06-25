@@ -9,6 +9,7 @@ import { AudioPlayer } from '@/components/audio-player';
 export default function Home() {
   const [filters, setFilters] = useState<SearchFilters>({});
   const [totalStations] = useState(47283); // This would be fetched from API in real app
+  const [activeTab, setActiveTab] = useState<'discover' | 'search'>('discover');
 
   useEffect(() => {
     document.title = 'Signal Drift - Discover the World\'s Most Obscure Radio Stations';
@@ -51,11 +52,42 @@ export default function Home() {
         </div>
       </header>
 
+      {/* Navigation Tabs */}
+      <div className="bg-radio-dark border-b border-vdu-green-dim sticky top-20 z-30">
+        <div className="container mx-auto px-4">
+          <div className="flex space-x-8">
+            <button
+              onClick={() => setActiveTab('discover')}
+              className={`py-4 px-2 border-b-2 font-bold text-sm md:text-base transition-colors ${
+                activeTab === 'discover'
+                  ? 'border-vdu-green text-vdu-green'
+                  : 'border-transparent text-muted hover:text-vdu-green-dim'
+              }`}
+            >
+              DISCOVER STATIONS
+            </button>
+            <button
+              onClick={() => setActiveTab('search')}
+              className={`py-4 px-2 border-b-2 font-bold text-sm md:text-base transition-colors ${
+                activeTab === 'search'
+                  ? 'border-vdu-green text-vdu-green'
+                  : 'border-transparent text-muted hover:text-vdu-green-dim'
+              }`}
+            >
+              SEARCH & FILTER
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div className="flex flex-1 relative overflow-hidden">
-        <SearchSidebar
-          onFiltersChange={setFilters}
-          totalStations={totalStations}
-        />
+        {/* Conditional Sidebar */}
+        {activeTab === 'search' && (
+          <SearchSidebar
+            onFiltersChange={setFilters}
+            totalStations={totalStations}
+          />
+        )}
         
         <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
           <StationList filters={filters} />

@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { fetchCountries, fetchGenres } from '@/lib/radio-api';
-import { SearchFilters } from '@/types/radio';
+import { SearchFilters, Country, Genre } from '@/types/radio';
 import { useBookmarks } from '@/hooks/use-bookmarks';
 
 interface SearchSidebarProps {
@@ -22,21 +22,23 @@ export function SearchSidebar({ onFiltersChange, totalStations }: SearchSidebarP
   
   const { bookmarkCount } = useBookmarks();
   
-  const { data: countries = [] } = useQuery({
+  const { data: countries = [] } = useQuery<Country[]>({
     queryKey: ['/api/countries'],
+    queryFn: () => fetchCountries(),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
   
-  const { data: genres = [] } = useQuery({
+  const { data: genres = [] } = useQuery<Genre[]>({
     queryKey: ['/api/genres'],
+    queryFn: () => fetchGenres(),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   useEffect(() => {
     const filters: SearchFilters = {
       search: search || undefined,
-      country: country || undefined,
-      genre: genre || undefined,
+      country: country === 'all' ? undefined : country || undefined,
+      genre: genre === 'all' ? undefined : genre || undefined,
       limit: 50,
       offset: 0,
     };
@@ -98,8 +100,8 @@ export function SearchSidebar({ onFiltersChange, totalStations }: SearchSidebarP
               <SelectValue placeholder="All Countries" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Countries</SelectItem>
-              {countries.map((c: any) => (
+              <SelectItem value="all">All Countries</SelectItem>
+              {countries.map((c) => (
                 <SelectItem key={c.iso_3166_1} value={c.name}>
                   {c.name} ({c.stationcount})
                 </SelectItem>
@@ -132,8 +134,8 @@ export function SearchSidebar({ onFiltersChange, totalStations }: SearchSidebarP
               <SelectValue placeholder="More genres..." />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Genres</SelectItem>
-              {genres.map((g: any) => (
+              <SelectItem value="all">All Genres</SelectItem>
+              {genres.map((g) => (
                 <SelectItem key={g.name} value={g.name}>
                   {g.name} ({g.stationcount})
                 </SelectItem>

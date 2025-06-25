@@ -48,9 +48,14 @@ export class MemStorage implements IStorage {
   async addBookmark(userId: number, insertBookmark: InsertBookmark): Promise<Bookmark> {
     const id = this.currentBookmarkId++;
     const bookmark: Bookmark = {
-      ...insertBookmark,
       id,
       userId,
+      stationUuid: insertBookmark.stationUuid,
+      stationName: insertBookmark.stationName,
+      stationUrl: insertBookmark.stationUrl,
+      country: insertBookmark.country || null,
+      genre: insertBookmark.genre || null,
+      bitrate: insertBookmark.bitrate || null,
       createdAt: new Date().toISOString(),
     };
     this.bookmarks.set(id, bookmark);

@@ -3,6 +3,11 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Cache for fallback stations
+  let fallbackStations: any[] = [];
+  let lastSuccessfulFetch = 0;
+  const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
   // RadioBrowser API proxy routes
   app.get("/api/stations", async (req, res) => {
     try {
@@ -33,6 +38,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           if (response.ok) {
             stations = await response.json();
+            
+            // Cache successful results for fallback
+            if (stations.length > 0 && !country && !genre && !search) {
+              fallbackStations = [...stations];
+              lastSuccessfulFetch = Date.now();
+            }
             break;
           }
         } catch (err) {
@@ -41,21 +52,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      if (stations.length === 0) {
-        throw lastError || new Error("All RadioBrowser servers unavailable");
+      // If we got stations, sort and return them
+      if (stations.length > 0) {
+        const sortedStations = stations.sort((a: any, b: any) => {
+          const aClicks = parseInt(a.clickcount) || 0;
+          const bClicks = parseInt(b.clickcount) || 0;
+          return aClicks - bClicks;
+        });
+        
+        res.json(sortedStations);
+        return;
       }
       
-      // Sort by reverse popularity (lowest clickcount first)
-      const sortedStations = stations.sort((a: any, b: any) => {
-        const aClicks = parseInt(a.clickcount) || 0;
-        const bClicks = parseInt(b.clickcount) || 0;
-        return aClicks - bClicks;
-      });
+      // Fallback: Return cached stations or generate a diverse set
+      if (fallbackStations.length > 0 && (Date.now() - lastSuccessfulFetch) < CACHE_DURATION) {
+        // Return random selection from cache
+        const shuffled = [...fallbackStations].sort(() => Math.random() - 0.5);
+        res.json(shuffled.slice(0, parseInt(limit as string) || 10));
+        return;
+      }
       
-      res.json(sortedStations);
+      // Final fallback: Try to get ANY stations without filters
+      for (const server of servers) {
+        try {
+          const response = await fetch(`${server}?limit=50&order=random`, {
+            headers: { 'User-Agent': 'SignalDrift/1.0' }
+          });
+          
+          if (response.ok) {
+            const randomStations = await response.json();
+            if (randomStations.length > 0) {
+              fallbackStations = randomStations;
+              lastSuccessfulFetch = Date.now();
+              res.json(randomStations.slice(0, parseInt(limit as string) || 10));
+              return;
+            }
+          }
+        } catch (err) {
+          continue;
+        }
+      }
+      
+      throw lastError || new Error("All RadioBrowser servers unavailable");
+      
     } catch (error) {
       console.error("Error fetching stations:", error);
-      res.status(500).json({ message: "Failed to fetch radio stations" });
+      
+      // Final emergency fallback - return any cached stations we have
+      if (fallbackStations.length > 0) {
+        const shuffled = [...fallbackStations].sort(() => Math.random() - 0.5);
+        res.json(shuffled.slice(0, 10));
+      } else {
+        res.status(500).json({ message: "Failed to fetch radio stations" });
+      }
     }
   });
 

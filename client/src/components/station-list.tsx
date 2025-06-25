@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Shuffle, Loader2 } from 'lucide-react';
 import { RadioStation, SearchFilters } from '@/types/radio';
@@ -22,17 +22,28 @@ export function StationList({ filters }: StationListProps) {
   } = useQuery({
     queryKey: ['/api/stations', { ...filters, limit, offset: page * limit }],
     queryFn: () => fetchStations({ ...filters, limit, offset: page * limit }),
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: 30 * 1000, // 30 seconds for more frequent refreshes
+    refetchOnWindowFocus: true,
   });
+
+  // Always show top 10 random stations when no filters are applied
+  const displayStations = useMemo(() => {
+    if (!filters.search && !filters.country && !filters.genre && stations.length > 10) {
+      // Shuffle and take top 10 for discovery
+      const shuffled = [...stations].sort(() => Math.random() - 0.5);
+      return shuffled.slice(0, 10);
+    }
+    return stations;
+  }, [stations, filters]);
 
   const handleLoadMore = () => {
     setPage(prev => prev + 1);
   };
 
   const handleRandomDrift = () => {
-    if (stations.length > 0) {
-      const randomIndex = Math.floor(Math.random() * stations.length);
-      const randomStation = stations[randomIndex];
+    if (displayStations.length > 0) {
+      const randomIndex = Math.floor(Math.random() * displayStations.length);
+      const randomStation = displayStations[randomIndex];
       // Scroll to the random station
       const element = document.querySelector(`[data-station-id="${randomStation.stationuuid}"]`);
       element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -69,7 +80,10 @@ export function StationList({ filters }: StationListProps) {
         <div className="min-w-0">
           <h2 className="text-lg md:text-xl font-bold text-crt-green font-serif">Ultra-Obscure Transmissions</h2>
           <p className="text-xs md:text-sm text-gray-400 mt-1">
-            Sorted by reverse popularity • {stations.length} stations found
+            {!filters.search && !filters.country && !filters.genre 
+              ? `Top 10 random discoveries • ${displayStations.length} stations`
+              : `Sorted by reverse popularity • ${displayStations.length} stations found`
+            }
           </p>
         </div>
         <div className="flex items-center justify-end">
@@ -87,14 +101,14 @@ export function StationList({ filters }: StationListProps) {
       </div>
 
       <div className="space-y-3 md:space-y-4">
-        {stations.map((station: RadioStation) => (
+        {displayStations.map((station: RadioStation) => (
           <div key={station.stationuuid} data-station-id={station.stationuuid}>
             <StationCard station={station} />
           </div>
         ))}
       </div>
 
-      {stations.length > 0 && (
+      {displayStations.length > 0 && !(!filters.search && !filters.country && !filters.genre) && (
         <div className="text-center py-6 md:py-8">
           <Button
             onClick={handleLoadMore}

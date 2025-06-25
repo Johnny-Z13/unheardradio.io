@@ -18,6 +18,7 @@ export function SearchSidebar({ onFiltersChange, totalStations }: SearchSidebarP
   const [search, setSearch] = useState('');
   const [country, setCountry] = useState('');
   const [genre, setGenre] = useState('');
+  const [listenerFilter, setListenerFilter] = useState<'all' | 'zero' | 'under10' | 'under50'>('all');
   const [obscurity, setObscurity] = useState('rare');
   const [isCollapsed, setIsCollapsed] = useState(false);
   
@@ -40,12 +41,13 @@ export function SearchSidebar({ onFiltersChange, totalStations }: SearchSidebarP
       search: search || undefined,
       country: country === 'all' ? undefined : country || undefined,
       genre: genre === 'all' ? undefined : genre || undefined,
+      listenerFilter: listenerFilter !== 'all' ? listenerFilter : undefined,
       limit: 50,
       offset: 0,
     };
     
     onFiltersChange(filters);
-  }, [search, country, genre, obscurity, onFiltersChange]);
+  }, [search, country, genre, listenerFilter, obscurity, onFiltersChange]);
 
   const popularGenres = [
     'Ambient', 'Experimental', 'Field Recording', 'Drone', 'Numbers Station', 'Lo-Fi'
@@ -143,6 +145,32 @@ export function SearchSidebar({ onFiltersChange, totalStations }: SearchSidebarP
               ))}
             </SelectContent>
           </Select>
+        </div>
+
+        {/* Listener Count Filter */}
+        <div className="mt-6 md:mt-8 pt-4 md:pt-6 border-t border-crt-dim">
+          <h3 className="text-sm font-bold text-crt-green mb-3 md:mb-4 tracking-wide">OBSCURITY LEVEL</h3>
+          
+          <RadioGroup value={listenerFilter} onValueChange={(value) => setListenerFilter(value as any)}>
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="all" id="all" className="border-crt-dim text-crt-green" />
+                <Label htmlFor="all" className="text-xs text-muted cursor-pointer">All stations</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="zero" id="zero" className="border-crt-dim text-crt-green" />
+                <Label htmlFor="zero" className="text-xs text-crt-green cursor-pointer font-medium">Zero listeners only</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="under10" id="under10" className="border-crt-dim text-crt-green" />
+                <Label htmlFor="under10" className="text-xs text-muted cursor-pointer">Under 10 listeners</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="under50" id="under50" className="border-crt-dim text-crt-green" />
+                <Label htmlFor="under50" className="text-xs text-muted cursor-pointer">Under 50 listeners</Label>
+              </div>
+            </div>
+          </RadioGroup>
         </div>
 
         {/* Bookmarks */}

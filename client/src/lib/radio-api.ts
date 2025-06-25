@@ -6,6 +6,7 @@ export async function fetchStations(filters: SearchFilters = {}): Promise<RadioS
   if (filters.search) params.append('search', filters.search);
   if (filters.country) params.append('country', filters.country);
   if (filters.genre) params.append('genre', filters.genre);
+  if (filters.listenerFilter) params.append('listenerFilter', filters.listenerFilter);
   if (filters.limit) params.append('limit', filters.limit.toString());
   if (filters.offset) params.append('offset', filters.offset.toString());
   

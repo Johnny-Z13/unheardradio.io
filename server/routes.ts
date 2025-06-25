@@ -11,7 +11,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // RadioBrowser API proxy routes
   app.get("/api/stations", async (req, res) => {
     try {
-      const { limit = 50, offset = 0, country, genre, search } = req.query;
+      const { limit = 50, offset = 0, country, genre, search, listenerFilter } = req.query;
       
       // Try multiple RadioBrowser API servers for better reliability
       const servers = [

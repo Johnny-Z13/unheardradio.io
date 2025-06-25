@@ -66,16 +66,16 @@ export function StationCard({ station }: StationCardProps) {
   };
 
   return (
-    <div className="border border-crt-dim bg-radio-gray p-4 hover:border-crt-green transition-colors group relative">
+    <div className="border border-crt-dim bg-radio-gray p-3 md:p-4 hover:border-crt-green transition-colors group relative">
       <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-crt-green to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
       
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
+      <div className="flex flex-col md:flex-row md:items-start md:justify-between space-y-3 md:space-y-0">
+        <div className="flex-1 min-w-0">
           <div className="flex items-center space-x-3 mb-2">
             <button
               onClick={handlePlay}
               disabled={isCurrentlyLoading}
-              className={`w-8 h-8 border ${
+              className={`w-8 h-8 md:w-10 md:h-10 border flex-shrink-0 ${
                 isCurrentlyPlaying
                   ? 'border-amber text-amber hover:bg-amber'
                   : 'border-crt-green text-crt-green hover:bg-crt-green'
@@ -86,39 +86,48 @@ export function StationCard({ station }: StationCardProps) {
               {isCurrentlyLoading ? (
                 <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
               ) : isCurrentlyPlaying ? (
-                <Pause className="w-3 h-3" />
+                <Pause className="w-3 h-3 md:w-4 md:h-4" />
               ) : (
-                <Play className="w-3 h-3" />
+                <Play className="w-3 h-3 md:w-4 md:h-4" />
               )}
             </button>
             
-            <div>
-              <h3 className="font-semibold text-crt-green">{station.name}</h3>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-crt-green text-sm md:text-base truncate">{station.name}</h3>
               <p className="text-xs text-gray-400">{station.country}</p>
             </div>
             
             {isCurrentStation && (
-              <span className="px-2 py-1 bg-amber text-radio-black text-xs font-bold animate-static">
+              <span className="px-2 py-1 bg-amber text-radio-black text-xs font-bold animate-static flex-shrink-0 hidden md:inline">
                 NOW PLAYING
               </span>
             )}
           </div>
           
-          <div className="flex items-center space-x-4 text-xs text-gray-500">
-            <span>{station.bitrate ? `${station.bitrate} kbps` : 'Unknown bitrate'}</span>
-            <span>{station.clickcount || 0} listeners</span>
-            <span>{station.tags || 'Unknown genre'}</span>
-            <span className={`px-2 py-1 bg-${obscurityBadge.color} text-radio-black font-bold`}>
+          {/* Mobile Now Playing Indicator */}
+          {isCurrentStation && (
+            <div className="mb-2 md:hidden">
+              <span className="px-2 py-1 bg-amber text-radio-black text-xs font-bold animate-static">
+                NOW PLAYING
+              </span>
+            </div>
+          )}
+          
+          <div className="flex flex-wrap items-center gap-2 md:gap-4 text-xs text-gray-500 mb-2">
+            <span className="flex-shrink-0">{station.bitrate ? `${station.bitrate} kbps` : 'Unknown bitrate'}</span>
+            <span className="flex-shrink-0">{station.clickcount || 0} listeners</span>
+            <span className="truncate">{station.tags || 'Unknown genre'}</span>
+            <span className={`px-2 py-1 bg-${obscurityBadge.color} text-radio-black font-bold flex-shrink-0`}>
               {obscurityBadge.text}
             </span>
           </div>
           
-          <p className="text-sm text-gray-400 mt-2 font-serif italic">
+          <p className="text-xs md:text-sm text-gray-400 font-serif italic line-clamp-2">
             "{description}"
           </p>
         </div>
         
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center justify-end space-x-3 md:space-x-2 md:flex-col md:space-y-2 md:space-x-0 flex-shrink-0">
           <button
             onClick={handleBookmark}
             className={`transition-colors ${

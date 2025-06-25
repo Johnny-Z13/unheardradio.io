@@ -64,28 +64,29 @@ export function StationList({ filters }: StationListProps) {
   }
 
   return (
-    <div className="flex-1 p-6">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-bold text-crt-green font-serif">Ultra-Obscure Transmissions</h2>
-          <p className="text-sm text-gray-400 mt-1">
+    <div className="flex-1 p-3 md:p-6 overflow-y-auto">
+      <div className="mb-4 md:mb-6 flex flex-col md:flex-row md:items-center md:justify-between space-y-3 md:space-y-0">
+        <div className="min-w-0">
+          <h2 className="text-lg md:text-xl font-bold text-crt-green font-serif">Ultra-Obscure Transmissions</h2>
+          <p className="text-xs md:text-sm text-gray-400 mt-1">
             Sorted by reverse popularity • {stations.length} stations found
           </p>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center justify-end">
           <Button
             onClick={handleRandomDrift}
             variant="outline"
             size="sm"
-            className="border-crt-dim text-crt-green hover:bg-crt-green hover:text-radio-black"
+            className="border-crt-dim text-crt-green hover:bg-crt-green hover:text-radio-black text-xs md:text-sm"
           >
-            <Shuffle className="w-4 h-4 mr-1" />
-            Random Drift
+            <Shuffle className="w-3 h-3 md:w-4 md:h-4 mr-1" />
+            <span className="hidden md:inline">Random Drift</span>
+            <span className="md:hidden">Random</span>
           </Button>
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3 md:space-y-4">
         {stations.map((station: RadioStation) => (
           <div key={station.stationuuid} data-station-id={station.stationuuid}>
             <StationCard station={station} />
@@ -94,21 +95,25 @@ export function StationList({ filters }: StationListProps) {
       </div>
 
       {stations.length > 0 && (
-        <div className="text-center py-8">
+        <div className="text-center py-6 md:py-8">
           <Button
             onClick={handleLoadMore}
             disabled={isFetching}
             variant="outline"
-            className="px-6 py-3 border-crt-dim text-crt-green hover:border-crt-green hover:bg-crt-green hover:text-radio-black relative group"
+            className="px-4 md:px-6 py-2 md:py-3 border-crt-dim text-crt-green hover:border-crt-green hover:bg-crt-green hover:text-radio-black relative group text-sm"
           >
             {isFetching ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                Scanning Airwaves...
+                <span className="hidden md:inline">Scanning Airwaves...</span>
+                <span className="md:hidden">Scanning...</span>
               </>
             ) : (
               <>
-                <span className="relative z-10">Scan for More Signals</span>
+                <span className="relative z-10">
+                  <span className="hidden md:inline">Scan for More Signals</span>
+                  <span className="md:hidden">Load More</span>
+                </span>
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-crt-green to-transparent opacity-0 group-hover:opacity-20 animate-scan"></div>
               </>
             )}

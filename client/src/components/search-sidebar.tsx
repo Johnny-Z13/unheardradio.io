@@ -19,6 +19,7 @@ export function SearchSidebar({ onFiltersChange, totalStations }: SearchSidebarP
   const [country, setCountry] = useState('');
   const [genre, setGenre] = useState('');
   const [obscurity, setObscurity] = useState('rare');
+  const [isCollapsed, setIsCollapsed] = useState(false);
   
   const { bookmarkCount } = useBookmarks();
   
@@ -51,11 +52,22 @@ export function SearchSidebar({ onFiltersChange, totalStations }: SearchSidebarP
   ];
 
   return (
-    <aside className="w-full md:w-80 bg-radio-gray border-r border-crt-dim p-6 space-y-6 md:sticky md:top-0 md:max-h-screen md:overflow-y-auto">
-      <div className="space-y-4">
+    <aside className={`${
+      isCollapsed ? 'w-0 md:w-0' : 'w-full md:w-80'
+    } bg-radio-gray border-r border-crt-dim transition-all duration-300 overflow-hidden md:sticky md:top-16 md:h-[calc(100vh-4rem)] md:overflow-y-auto flex-shrink-0`}>
+      
+      {/* Mobile Toggle Button */}
+      <button
+        onClick={() => setIsCollapsed(!isCollapsed)}
+        className="md:hidden fixed top-20 left-4 z-50 w-10 h-10 bg-radio-gray border border-crt-green text-crt-green flex items-center justify-center"
+      >
+        <Search className="w-4 h-4" />
+      </button>
+
+      <div className={`${isCollapsed ? 'hidden' : 'block'} p-4 md:p-6 space-y-4 md:space-y-6`}>
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-crt-green font-serif">Signal Scanner</h2>
-          <div className="text-right">
+          <h2 className="text-base md:text-lg font-bold text-crt-green font-serif">Signal Scanner</h2>
+          <div className="text-right hidden md:block">
             <div className="text-xs text-gray-400">Stations Indexed</div>
             <div className="text-lg text-crt-green font-bold">{totalStations.toLocaleString()}</div>
           </div>
@@ -75,28 +87,28 @@ export function SearchSidebar({ onFiltersChange, totalStations }: SearchSidebarP
 
         {/* Obscurity Filters */}
         <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-amber uppercase tracking-wide">Obscurity Index</h3>
+          <h3 className="text-xs md:text-sm font-semibold text-amber uppercase tracking-wide">Obscurity Index</h3>
           <RadioGroup value={obscurity} onValueChange={setObscurity}>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="ultra" id="ultra" className="border-crt-green text-crt-green" />
-              <Label htmlFor="ultra" className="text-sm">Ultra Rare (&lt;5 listeners)</Label>
+              <Label htmlFor="ultra" className="text-xs md:text-sm">Ultra Rare (&lt;5 listeners)</Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="rare" id="rare" className="border-crt-green text-crt-green" />
-              <Label htmlFor="rare" className="text-sm">Rare (&lt;50 listeners)</Label>
+              <Label htmlFor="rare" className="text-xs md:text-sm">Rare (&lt;50 listeners)</Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="hidden" id="hidden" className="border-crt-green text-crt-green" />
-              <Label htmlFor="hidden" className="text-sm">Hidden Gems (&lt;500 listeners)</Label>
+              <Label htmlFor="hidden" className="text-xs md:text-sm">Hidden Gems (&lt;500 listeners)</Label>
             </div>
           </RadioGroup>
         </div>
 
         {/* Location Filter */}
         <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-amber uppercase tracking-wide">Signal Origin</h3>
+          <h3 className="text-xs md:text-sm font-semibold text-amber uppercase tracking-wide">Signal Origin</h3>
           <Select value={country} onValueChange={setCountry}>
-            <SelectTrigger className="w-full bg-radio-black border-crt-dim text-crt-green focus:border-crt-green">
+            <SelectTrigger className="w-full bg-radio-black border-crt-dim text-crt-green focus:border-crt-green text-sm">
               <SelectValue placeholder="All Countries" />
             </SelectTrigger>
             <SelectContent>
@@ -112,13 +124,13 @@ export function SearchSidebar({ onFiltersChange, totalStations }: SearchSidebarP
 
         {/* Genre Filter */}
         <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-amber uppercase tracking-wide">Genre</h3>
-          <div className="flex flex-wrap gap-2">
+          <h3 className="text-xs md:text-sm font-semibold text-amber uppercase tracking-wide">Genre</h3>
+          <div className="grid grid-cols-2 md:flex md:flex-wrap gap-1 md:gap-2">
             {popularGenres.map((g) => (
               <button
                 key={g}
                 onClick={() => setGenre(genre === g ? 'all' : g)}
-                className={`px-3 py-1 text-xs border transition-colors ${
+                className={`px-2 md:px-3 py-1 text-xs border transition-colors ${
                   genre === g
                     ? 'border-crt-green text-crt-green bg-crt-green bg-opacity-20'
                     : 'border-crt-dim hover:border-crt-green hover:text-crt-green'
@@ -130,7 +142,7 @@ export function SearchSidebar({ onFiltersChange, totalStations }: SearchSidebarP
           </div>
           
           <Select value={genre} onValueChange={setGenre}>
-            <SelectTrigger className="w-full bg-radio-black border-crt-dim text-crt-green focus:border-crt-green">
+            <SelectTrigger className="w-full bg-radio-black border-crt-dim text-crt-green focus:border-crt-green text-sm">
               <SelectValue placeholder="More genres..." />
             </SelectTrigger>
             <SelectContent>
@@ -145,20 +157,20 @@ export function SearchSidebar({ onFiltersChange, totalStations }: SearchSidebarP
         </div>
 
         {/* Bookmarks */}
-        <div className="mt-8 pt-6 border-t border-crt-dim">
-          <button className="w-full px-4 py-2 border border-crt-dim text-crt-green hover:bg-crt-green hover:text-radio-black transition-all duration-200 relative group">
+        <div className="mt-6 md:mt-8 pt-4 md:pt-6 border-t border-crt-dim">
+          <button className="w-full px-3 md:px-4 py-2 border border-crt-dim text-crt-green hover:bg-crt-green hover:text-radio-black transition-all duration-200 relative group text-sm">
             <Radio className="inline-block w-4 h-4 mr-2" />
             <span>{bookmarkCount} Saved</span>
             <div className="absolute inset-0 bg-crt-green opacity-0 group-hover:opacity-20 transition-opacity"></div>
           </button>
         </div>
 
-        {/* Vintage radio imagery */}
-        <div className="mt-8 space-y-4">
+        {/* Vintage radio imagery - hidden on mobile */}
+        <div className="mt-6 md:mt-8 space-y-4 hidden md:block">
           <img
             src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300"
             alt="Vintage radio control panel"
-            className="w-full h-32 object-cover opacity-60 border border-crt-dim"
+            className="w-full h-24 md:h-32 object-cover opacity-60 border border-crt-dim"
           />
           <div className="text-xs text-gray-500 font-serif italic">
             "Discovering hidden frequencies from around the world..."

@@ -58,57 +58,57 @@ export function NowPlayingBar() {
   };
 
   return (
-    <div className="border-t border-crt-dim bg-radio-gray p-4 sticky bottom-0">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+    <div className="border-t border-crt-dim bg-radio-gray p-3 md:p-4 sticky bottom-0 z-30">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-3 md:space-y-0">
+        <div className="flex items-center space-x-3 md:space-x-4 min-w-0 flex-1">
           <img
             src="https://images.unsplash.com/photo-1484704849700-f032a568e944?ixlib=rb-4.0.3&auto=format&fit=crop&w=80&h=80"
             alt="Vintage radio equipment"
-            className="w-12 h-12 object-cover border border-crt-dim opacity-80"
+            className="w-10 h-10 md:w-12 md:h-12 object-cover border border-crt-dim opacity-80 flex-shrink-0"
           />
-          <div>
-            <h4 className="font-semibold text-amber">{currentStation.name}</h4>
-            <p className="text-sm text-gray-400">
+          <div className="min-w-0 flex-1">
+            <h4 className="font-semibold text-amber text-sm md:text-base truncate">{currentStation.name}</h4>
+            <p className="text-xs md:text-sm text-gray-400 truncate">
               {currentStation.tags || 'Unknown genre'} • {currentStation.country}
             </p>
             <div className="flex items-center space-x-2 mt-1">
               <div className="w-2 h-2 bg-crt-green rounded-full animate-pulse"></div>
               <span className="text-xs text-crt-green">LIVE</span>
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-gray-500 hidden md:inline">
                 {currentStation.bitrate ? `${currentStation.bitrate} kbps` : 'Unknown bitrate'} • {currentStation.clickcount || 0} listeners
               </span>
             </div>
             {error && (
-              <p className="text-xs text-red-400 mt-1">{error}</p>
+              <p className="text-xs text-red-400 mt-1 truncate">{error}</p>
             )}
           </div>
         </div>
 
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center justify-between md:justify-end space-x-3 md:space-x-4">
           {/* Player Controls */}
           <div className="flex items-center space-x-2">
-            <button className="w-10 h-10 border border-crt-green text-crt-green hover:bg-crt-green hover:text-radio-black transition-all flex items-center justify-center">
-              <SkipBack className="w-4 h-4" />
+            <button className="w-8 h-8 md:w-10 md:h-10 border border-crt-green text-crt-green hover:bg-crt-green hover:text-radio-black transition-all flex items-center justify-center">
+              <SkipBack className="w-3 h-3 md:w-4 md:h-4" />
             </button>
             
             <button
               onClick={togglePlay}
-              className="w-12 h-12 border-2 border-amber text-amber hover:bg-amber hover:text-radio-black transition-all flex items-center justify-center animate-pulse-glow"
+              className="w-10 h-10 md:w-12 md:h-12 border-2 border-amber text-amber hover:bg-amber hover:text-radio-black transition-all flex items-center justify-center animate-pulse-glow"
             >
               {isPlaying ? (
-                <Pause className="w-5 h-5" />
+                <Pause className="w-4 h-4 md:w-5 md:h-5" />
               ) : (
-                <Play className="w-5 h-5" />
+                <Play className="w-4 h-4 md:w-5 md:h-5" />
               )}
             </button>
             
-            <button className="w-10 h-10 border border-crt-green text-crt-green hover:bg-crt-green hover:text-radio-black transition-all flex items-center justify-center">
-              <SkipForward className="w-4 h-4" />
+            <button className="w-8 h-8 md:w-10 md:h-10 border border-crt-green text-crt-green hover:bg-crt-green hover:text-radio-black transition-all flex items-center justify-center">
+              <SkipForward className="w-3 h-3 md:w-4 md:h-4" />
             </button>
           </div>
 
-          {/* Volume Control */}
-          <div className="flex items-center space-x-2">
+          {/* Volume Control - Hidden on mobile */}
+          <div className="hidden md:flex items-center space-x-2">
             <Volume2 className="w-4 h-4 text-gray-400" />
             <Slider
               value={[volume * 100]}
@@ -139,16 +139,16 @@ export function NowPlayingBar() {
               <Share2 className="w-4 h-4" />
             </button>
             
-            <button className="text-gray-400 hover:text-crt-green transition-colors">
+            <button className="hidden md:block text-gray-400 hover:text-crt-green transition-colors">
               <ChevronDown className="w-4 h-4" />
             </button>
           </div>
         </div>
       </div>
 
-      {/* Waveform Visualization */}
-      <div className="mt-3 flex items-center space-x-1 h-8">
-        {Array.from({ length: 50 }, (_, i) => (
+      {/* Waveform Visualization - Responsive */}
+      <div className="mt-3 flex items-center space-x-1 h-6 md:h-8">
+        {Array.from({ length: window.innerWidth < 768 ? 30 : 50 }, (_, i) => (
           <div
             key={i}
             className={`w-1 animate-pulse ${

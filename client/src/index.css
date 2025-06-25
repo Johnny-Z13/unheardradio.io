@@ -157,6 +157,13 @@
     animation: pulse-glow 2s ease-in-out infinite alternate;
   }
   
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  
   .text-crt-green {
     color: var(--crt-green);
   }

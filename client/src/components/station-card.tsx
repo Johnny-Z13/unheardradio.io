@@ -70,7 +70,7 @@ export function StationCard({ station, onMaximize }: StationCardProps) {
   };
 
   return (
-    <div className="bg-radio-dark rounded-2xl p-4 md:p-6 hover:bg-opacity-80 transition-all group relative overflow-hidden border border-vdu-green-dim hover:border-vdu-green">
+    <div className="bg-radio-dark rounded-xl p-2 md:p-3 hover:bg-opacity-80 transition-all group relative overflow-hidden border border-vdu-green-dim hover:border-vdu-green">
       {/* Background pattern overlay */}
       <div className="absolute inset-0 opacity-5">
         <div className="w-full h-full" style={{
@@ -80,31 +80,31 @@ export function StationCard({ station, onMaximize }: StationCardProps) {
       
       <div className="relative z-10">
         {/* Header with play button and title */}
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center space-x-4 flex-1 min-w-0">
+        <div className="flex items-start justify-between mb-2">
+          <div className="flex items-center space-x-2 flex-1 min-w-0">
             <button
               onClick={handlePlay}
               disabled={isCurrentlyLoading}
-              className={`w-12 h-12 md:w-14 md:h-14 rounded-full flex-shrink-0 flex items-center justify-center transition-all ${
+              className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex-shrink-0 flex items-center justify-center transition-all ${
                 isCurrentlyPlaying
                   ? 'bg-accent-yellow text-radio-black'
                   : 'bg-radio-dark border-2 border-vdu-green text-vdu-green hover:bg-vdu-green hover:text-radio-black'
               } ${isCurrentlyLoading ? 'animate-pulse' : ''}`}
             >
               {isCurrentlyLoading ? (
-                <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
               ) : isCurrentlyPlaying ? (
-                <Pause className="w-5 h-5 md:w-6 md:h-6" />
+                <Pause className="w-3 h-3 md:w-4 md:h-4" />
               ) : (
-                <Play className="w-5 h-5 md:w-6 md:h-6 ml-1" />
+                <Play className="w-3 h-3 md:w-4 md:h-4 ml-1" />
               )}
             </button>
             
             <div className="flex-1 min-w-0">
-              <h3 className="text-lg md:text-xl font-black text-vdu-green tracking-tight truncate mb-1">
+              <h3 className="text-sm md:text-base font-black text-vdu-green tracking-tight truncate mb-1">
                 {station.name.toUpperCase()}
               </h3>
-              <p className="text-sm md:text-base text-muted font-medium">
+              <p className="text-xs md:text-sm text-muted font-medium">
                 BY {station.country}
               </p>
             </div>
@@ -114,16 +114,16 @@ export function StationCard({ station, onMaximize }: StationCardProps) {
             {onMaximize && (
               <button
                 onClick={onMaximize}
-                className="w-10 h-10 rounded-full border-2 border-vdu-green-dim text-vdu-green-dim hover:border-vdu-green hover:text-vdu-green transition-all flex items-center justify-center"
+                className="w-7 h-7 rounded-full border border-vdu-green-dim text-vdu-green-dim hover:border-vdu-green hover:text-vdu-green transition-all flex items-center justify-center"
                 title="Fullscreen view"
               >
-                <Maximize2 className="w-4 h-4" />
+                <Maximize2 className="w-3 h-3" />
               </button>
             )}
             
             <button
               onClick={handleBookmark}
-              className={`w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all ${
+              className={`w-7 h-7 rounded-full border flex items-center justify-center transition-all ${
                 isBookmarked(station.stationuuid)
                   ? 'border-vdu-green bg-vdu-green text-radio-black'
                   : 'border-vdu-green-dim text-vdu-green-dim hover:border-vdu-green hover:text-vdu-green'
@@ -134,30 +134,25 @@ export function StationCard({ station, onMaximize }: StationCardProps) {
             
             <button
               onClick={handleShare}
-              className="w-10 h-10 rounded-full border-2 border-vdu-green-dim text-vdu-green-dim hover:border-vdu-green hover:text-vdu-green transition-all flex items-center justify-center"
+              className="w-7 h-7 rounded-full border border-vdu-green-dim text-vdu-green-dim hover:border-vdu-green hover:text-vdu-green transition-all flex items-center justify-center"
             >
-              <Share2 className="w-4 h-4" />
+              <Share2 className="w-3 h-3" />
             </button>
           </div>
         </div>
 
         {/* Now Playing indicator */}
         {isCurrentStation && (
-          <div className="mb-4">
-            <div className="inline-flex items-center space-x-2 px-3 py-1 bg-accent-yellow text-radio-black rounded-full text-xs font-black">
-              <div className="w-2 h-2 bg-radio-black rounded-full animate-pulse" />
-              <span>NOW PLAYING</span>
+          <div className="mb-2">
+            <div className="inline-flex items-center space-x-1 px-2 py-1 bg-accent-yellow text-radio-black rounded-full text-xs font-black">
+              <div className="w-1 h-1 bg-radio-black rounded-full animate-pulse" />
+              <span>LIVE</span>
             </div>
           </div>
         )}
 
-        {/* Description */}
-        <p className="text-sm md:text-base text-muted font-medium mb-4 line-clamp-2">
-          {description}
-        </p>
-
-        {/* Enhanced Metadata */}
-        <div className="space-y-3 mb-4">
+        {/* Minimal metadata */}
+        <div className="flex items-center justify-between text-xs text-muted">
           {/* Primary metadata row */}
           <div className="flex flex-wrap items-center gap-3 text-xs md:text-sm">
             <span className="px-2 py-1 bg-vdu-green-dim text-radio-black rounded font-bold">

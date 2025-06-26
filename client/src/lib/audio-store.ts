@@ -57,6 +57,7 @@ export const useAudioStore = create<AudioStore>((set, get) => ({
     });
     
     audio.addEventListener('error', (e) => {
+      console.error('Audio error:', e);
       const errorMessage = 'Failed to load radio stream. This station may be offline.';
       set({ error: errorMessage, isLoading: false, isPlaying: false });
     });

@@ -10,9 +10,11 @@ interface AudioVisualizerProps {
 export function AudioVisualizer({ height = 32, barCount = 40, compact = false }: AudioVisualizerProps) {
   const { isPlaying, volume, currentStation } = useAudioStore();
   const [audioData, setAudioData] = useState<number[]>([]);
+  const [peaks, setPeaks] = useState<number[]>([]);
   const animationFrameRef = useRef<number>();
   const analyserRef = useRef<AnalyserNode | null>(null);
   const dataArrayRef = useRef<Uint8Array | null>(null);
+  const lastUpdateTime = useRef<number>(0);
 
   // Initialize audio context and analyser
   useEffect(() => {
@@ -27,8 +29,8 @@ export function AudioVisualizer({ height = 32, barCount = 40, compact = false }:
           const source = audioContext.createMediaElementSource(activeAudio);
           const analyser = audioContext.createAnalyser();
           
-          analyser.fftSize = 256;
-          analyser.smoothingTimeConstant = 0.8;
+          analyser.fftSize = 512;
+          analyser.smoothingTimeConstant = 0.3;
           
           source.connect(analyser);
           analyser.connect(audioContext.destination);
@@ -49,51 +51,107 @@ export function AudioVisualizer({ height = 32, barCount = 40, compact = false }:
     };
   }, [isPlaying, currentStation]);
 
-  // Animation loop for real-time audio analysis
+  // Enhanced animation loop for EQ-style visualization
   useEffect(() => {
-    const animate = () => {
+    const animate = (currentTime: number) => {
+      const deltaTime = currentTime - lastUpdateTime.current;
+      lastUpdateTime.current = currentTime;
+
       if (analyserRef.current && dataArrayRef.current && isPlaying) {
         analyserRef.current.getByteFrequencyData(dataArrayRef.current);
         
-        // Process frequency data into bar heights
+        // Create EQ bands with logarithmic frequency distribution
         const bars: number[] = [];
-        const step = Math.floor(dataArrayRef.current.length / barCount);
+        const newPeaks: number[] = [];
         
         for (let i = 0; i < barCount; i++) {
-          const start = i * step;
-          const end = start + step;
-          let sum = 0;
-          for (let j = start; j < end && j < dataArrayRef.current.length; j++) {
-            sum += dataArrayRef.current[j];
+          // Logarithmic frequency mapping for realistic EQ bands
+          const freq = Math.pow(2, (i / barCount) * 10) - 1;
+          const freqIndex = Math.floor(freq * dataArrayRef.current.length / 1023);
+          
+          // Get frequency magnitude and apply dynamic scaling
+          let magnitude = dataArrayRef.current[freqIndex] || 0;
+          
+          // Enhanced frequency response with bass/mid/treble emphasis
+          if (i < barCount * 0.2) {
+            // Bass frequencies - more pronounced
+            magnitude *= 1.8;
+          } else if (i < barCount * 0.6) {
+            // Mid frequencies - natural
+            magnitude *= 1.3;
+          } else {
+            // Treble frequencies - slightly enhanced
+            magnitude *= 1.1;
           }
-          const average = sum / step;
-          bars.push(average / 255); // Normalize to 0-1
+          
+          // Normalize and apply dynamic range compression
+          let normalizedValue = Math.pow(magnitude / 255, 0.7); // Gamma correction for better visibility
+          normalizedValue = Math.min(normalizedValue * 1.2, 1.0); // Boost with ceiling
+          
+          // Peak hold and decay
+          const currentPeak = peaks[i] || 0;
+          const newPeak = Math.max(normalizedValue, currentPeak * 0.92); // Peak decay
+          
+          bars.push(normalizedValue);
+          newPeaks.push(newPeak);
         }
         
         setAudioData(bars);
+        setPeaks(newPeaks);
+        
       } else if (isPlaying) {
-        // Fallback animated visualization
+        // Enhanced fallback with realistic EQ behavior
         const bars: number[] = [];
+        const newPeaks: number[] = [];
+        const time = currentTime * 0.003;
+        
         for (let i = 0; i < barCount; i++) {
-          const baseHeight = 0.1 + Math.sin(Date.now() * 0.005 + i * 0.2) * 0.3;
-          const randomVariation = Math.random() * 0.4;
-          bars.push(Math.max(0.05, baseHeight + randomVariation) * volume);
+          // Simulate realistic frequency spectrum
+          let intensity = 0;
+          
+          if (i < barCount * 0.15) {
+            // Bass - slower, deeper movements
+            intensity = 0.3 + Math.sin(time * 0.8 + i * 0.3) * 0.4;
+          } else if (i < barCount * 0.4) {
+            // Low-mid - moderate movement
+            intensity = 0.25 + Math.sin(time * 1.2 + i * 0.4) * 0.35;
+          } else if (i < barCount * 0.7) {
+            // High-mid - more active
+            intensity = 0.2 + Math.sin(time * 1.6 + i * 0.5) * 0.45;
+          } else {
+            // Treble - quick, sparkly movement
+            intensity = 0.15 + Math.sin(time * 2.4 + i * 0.8) * 0.4;
+          }
+          
+          // Add some randomness for realism
+          intensity += (Math.random() - 0.5) * 0.15;
+          intensity = Math.max(0.05, Math.min(intensity * volume, 1.0));
+          
+          const currentPeak = peaks[i] || 0;
+          const newPeak = Math.max(intensity, currentPeak * 0.95);
+          
+          bars.push(intensity);
+          newPeaks.push(newPeak);
         }
+        
         setAudioData(bars);
+        setPeaks(newPeaks);
       } else {
-        // Silent state
-        setAudioData(new Array(barCount).fill(0.05));
+        // Decay to silence
+        const bars = audioData.map(val => val * 0.9);
+        const newPeaks = peaks.map(val => val * 0.85);
+        
+        setAudioData(bars);
+        setPeaks(newPeaks);
       }
       
-      if (isPlaying) {
+      if (isPlaying || audioData.some(val => val > 0.02)) {
         animationFrameRef.current = requestAnimationFrame(animate);
       }
     };
 
-    if (isPlaying) {
-      animate();
-    } else {
-      setAudioData(new Array(barCount).fill(0.05));
+    if (isPlaying || audioData.some(val => val > 0.02)) {
+      animationFrameRef.current = requestAnimationFrame(animate);
     }
 
     return () => {
@@ -101,31 +159,52 @@ export function AudioVisualizer({ height = 32, barCount = 40, compact = false }:
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [isPlaying, volume, barCount]);
+  }, [isPlaying, volume, barCount, audioData, peaks]);
 
   return (
     <div 
-      className={`flex items-end justify-center space-x-1 ${compact ? 'space-x-0.5' : 'space-x-1'}`}
+      className={`flex items-end justify-center ${compact ? 'space-x-0.5' : 'space-x-1'}`}
       style={{ height }}
     >
-      {audioData.map((intensity, i) => (
-        <div
-          key={i}
-          className={`${compact ? 'w-1' : 'w-1.5'} rounded-full transition-all duration-100 ${
-            isPlaying
-              ? intensity > 0.6
-                ? 'bg-vdu-green-bright'
-                : intensity > 0.3
-                ? 'bg-vdu-green'
-                : 'bg-vdu-green-dim'
-              : 'bg-radio-dark opacity-50'
-          }`}
-          style={{
-            height: `${Math.max(4, intensity * height)}px`,
-            transition: isPlaying ? 'height 0.1s ease-out' : 'height 0.3s ease-out'
-          }}
-        />
-      ))}
+      {audioData.map((intensity, i) => {
+        const barHeight = Math.max(2, intensity * height);
+        const peakHeight = Math.max(2, (peaks[i] || 0) * height);
+        
+        return (
+          <div key={i} className="relative flex flex-col justify-end" style={{ height }}>
+            {/* Peak indicator */}
+            {peaks[i] > intensity + 0.1 && (
+              <div
+                className={`${compact ? 'w-1' : 'w-1.5'} h-0.5 rounded-full bg-accent-cyan absolute`}
+                style={{
+                  bottom: `${peakHeight - 2}px`,
+                  transition: 'bottom 0.05s ease-out'
+                }}
+              />
+            )}
+            
+            {/* Main frequency bar */}
+            <div
+              className={`${compact ? 'w-1' : 'w-1.5'} rounded-sm ${
+                isPlaying
+                  ? intensity > 0.7
+                    ? 'bg-gradient-to-t from-vdu-green to-accent-cyan'
+                    : intensity > 0.4
+                    ? 'bg-vdu-green'
+                    : intensity > 0.1
+                    ? 'bg-vdu-green-dim'
+                    : 'bg-vdu-green-dim opacity-30'
+                  : 'bg-radio-dark opacity-20'
+              }`}
+              style={{
+                height: `${barHeight}px`,
+                transition: isPlaying ? 'height 0.05s ease-out' : 'height 0.2s ease-out',
+                boxShadow: intensity > 0.5 ? '0 0 4px rgba(0, 255, 255, 0.3)' : 'none'
+              }}
+            />
+          </div>
+        );
+      })}
     </div>
   );
 }

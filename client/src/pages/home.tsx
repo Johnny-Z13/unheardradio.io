@@ -158,19 +158,21 @@ export default function Home() {
       <div className="flex flex-1 relative overflow-hidden">
         {/* Conditional Sidebar */}
         {activeTab === 'search' && (
-          <SearchSidebar
-            onFiltersChange={setFilters}
-            totalStations={totalStations}
-          />
+          <div className="w-full md:w-72 lg:w-80 flex-shrink-0 md:border-r md:border-vdu-green-dim">
+            <SearchSidebar
+              onFiltersChange={setFilters}
+              totalStations={totalStations}
+            />
+          </div>
         )}
         
         <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
           {activeTab === 'bookmarks' ? (
             <div className="flex-1 overflow-y-auto">
-              <div className="container mx-auto px-4 py-6">
-                <div className="mb-6">
-                  <h2 className="text-2xl font-black text-vdu-green mb-2">YOUR BOOKMARKS</h2>
-                  <p className="text-muted text-sm">
+              <div className="container mx-auto px-3 py-4 md:px-4 md:py-6">
+                <div className="mb-4 md:mb-6">
+                  <h2 className="text-xl md:text-2xl font-black text-vdu-green mb-2">YOUR BOOKMARKS</h2>
+                  <p className="text-muted text-xs md:text-sm">
                     {bookmarks.length === 0 
                       ? 'No bookmarked stations yet. Click the bookmark icon on any station to save it here.'
                       : `${bookmarks.length} bookmarked station${bookmarks.length !== 1 ? 's' : ''}`
@@ -179,9 +181,9 @@ export default function Home() {
                 </div>
                 
                 {bookmarks.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
                     {bookmarks.map((bookmark) => (
-                      <div key={bookmark.stationuuid} className="bg-radio-dark rounded-xl p-4 border border-vdu-green-dim hover:border-vdu-green transition-all group">
+                      <div key={bookmark.stationuuid} className="bg-radio-dark rounded-xl p-3 md:p-4 border border-vdu-green-dim hover:border-vdu-green transition-all group">
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex-1 min-w-0">
                             <h3 className="text-vdu-green font-bold text-sm mb-1 line-clamp-2 group-hover:text-accent-cyan transition-colors">

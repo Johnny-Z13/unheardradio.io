@@ -54,13 +54,13 @@ export function SearchSidebar({ onFiltersChange, totalStations }: SearchSidebarP
   ];
 
   return (
-    <aside className="w-80 bg-radio-dark border-r border-vdu-green-dim overflow-y-auto flex-shrink-0 h-full">
-      <div className="p-6 space-y-6">
+    <aside className="w-full md:w-80 bg-radio-dark md:border-r border-b md:border-b-0 border-vdu-green-dim overflow-y-auto flex-shrink-0 h-auto md:h-full">
+      <div className="p-3 md:p-6 space-y-4 md:space-y-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-black text-vdu-green tracking-tight">FILTERS</h2>
+          <h2 className="text-lg md:text-xl font-black text-vdu-green tracking-tight">FILTERS</h2>
           <div className="text-right">
             <div className="text-xs text-muted font-medium">INDEXED</div>
-            <div className="text-lg text-vdu-green font-black">{totalStations.toLocaleString()}</div>
+            <div className="text-sm md:text-lg text-vdu-green font-black">{totalStations.toLocaleString()}</div>
           </div>
         </div>
         

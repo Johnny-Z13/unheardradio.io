@@ -70,7 +70,7 @@ export function StationCard({ station, onMaximize }: StationCardProps) {
   };
 
   return (
-    <div className="bg-radio-dark rounded-xl p-2 md:p-3 hover:bg-opacity-80 transition-all group relative overflow-hidden border border-vdu-green-dim hover:border-vdu-green">
+    <div className="bg-radio-dark rounded-xl p-3 md:p-4 hover:bg-opacity-80 transition-all group relative overflow-hidden border border-vdu-green-dim hover:border-vdu-green">
       {/* Background pattern overlay */}
       <div className="absolute inset-0 opacity-5">
         <div className="w-full h-full" style={{
@@ -81,13 +81,13 @@ export function StationCard({ station, onMaximize }: StationCardProps) {
       <div className="relative z-10">
         {/* Header with play button and title */}
         <div className="flex items-start justify-between mb-2">
-          <div className="flex items-center space-x-2 flex-1 min-w-0">
+          <div className="flex items-center space-x-2 md:space-x-3 flex-1 min-w-0">
             <button
               onClick={handlePlay}
               disabled={isCurrentlyLoading}
               className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex-shrink-0 flex items-center justify-center transition-all ${
                 isCurrentlyPlaying
-                  ? 'bg-accent-yellow text-radio-black'
+                  ? 'bg-accent-cyan text-radio-black'
                   : 'bg-radio-dark border-2 border-vdu-green text-vdu-green hover:bg-vdu-green hover:text-radio-black'
               } ${isCurrentlyLoading ? 'animate-pulse' : ''}`}
             >

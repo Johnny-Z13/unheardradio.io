@@ -133,6 +133,13 @@ Changelog:
   - Added random button that instantly finds and plays zero-listener stations
   - Removed hero image and quote from both main interface and search sidebar
   - Enhanced audio error handling with fallback URL support for better stream reliability
+- June 26, 2025. Audio visualizer improvements and bug fixes
+  - Fixed Web Audio API connection to properly analyze real audio streams
+  - Implemented proper frequency bin grouping and amplification for visibility
+  - Added audio context initialization on first play with user interaction
+  - Fixed station list persistence issue when switching between tabs
+  - Enhanced frequency analysis with triple amplification and peak tracking
+  - Optimized FFT settings for real-time responsive visualization
 ```
 
 ## User Preferences

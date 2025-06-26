@@ -97,6 +97,9 @@ export const useAudioStore = create<AudioStore>((set, get) => ({
       // Set new station
       set({ currentStation: station });
       
+      // Initialize audio context for visualizer on first play
+      get().initializeAudioContext();
+      
       // Track click for RadioBrowser
       await trackStationClick(station.stationuuid);
       
@@ -152,5 +155,21 @@ export const useAudioStore = create<AudioStore>((set, get) => ({
       audio.currentTime = 0;
     }
     set({ currentStation: null, isPlaying: false });
+  },
+
+  initializeAudioContext: () => {
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      set({ audioContext });
+      
+      // Resume context if suspended
+      if (audioContext.state === 'suspended') {
+        audioContext.resume();
+      }
+      
+      console.log('Audio context initialized for visualizer');
+    } catch (error) {
+      console.log('Failed to initialize audio context:', error);
+    }
   },
 }));

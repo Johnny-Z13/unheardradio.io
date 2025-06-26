@@ -18,47 +18,47 @@ export function AudioVisualizer({ height = 32, barCount = 40, compact = false }:
 
   // Initialize audio context and analyser
   useEffect(() => {
-    if (isPlaying && currentStation) {
-      try {
-        // Get the main audio player element by ID
-        const activeAudio = document.getElementById('main-audio-player') as HTMLAudioElement;
-        
-        if (activeAudio && !analyserRef.current) {
-          const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    let timeoutId: NodeJS.Timeout;
+    
+    if (isPlaying && currentStation && !analyserRef.current) {
+      // Small delay to ensure audio element is ready
+      timeoutId = setTimeout(() => {
+        try {
+          const activeAudio = document.getElementById('main-audio-player') as HTMLAudioElement;
           
-          // Resume audio context if suspended (browser policy)
-          if (audioContext.state === 'suspended') {
-            audioContext.resume();
+          if (activeAudio && activeAudio.src && !activeAudio.paused) {
+            const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+            
+            // Ensure audio context is running
+            if (audioContext.state === 'suspended') {
+              audioContext.resume();
+            }
+            
+            const source = audioContext.createMediaElementSource(activeAudio);
+            const analyser = audioContext.createAnalyser();
+            
+            // Optimized settings for real-time visualization
+            analyser.fftSize = 256;
+            analyser.smoothingTimeConstant = 0.1;
+            analyser.minDecibels = -80;
+            analyser.maxDecibels = -20;
+            
+            source.connect(analyser);
+            analyser.connect(audioContext.destination);
+            
+            analyserRef.current = analyser;
+            dataArrayRef.current = new Uint8Array(analyser.frequencyBinCount);
+            
+            console.log('Audio visualizer connected to stream');
           }
-          
-          const source = audioContext.createMediaElementSource(activeAudio);
-          const analyser = audioContext.createAnalyser();
-          
-          analyser.fftSize = 1024;
-          analyser.smoothingTimeConstant = 0.2;
-          analyser.minDecibels = -90;
-          analyser.maxDecibels = -10;
-          
-          source.connect(analyser);
-          analyser.connect(audioContext.destination);
-          
-          analyserRef.current = analyser;
-          dataArrayRef.current = new Uint8Array(analyser.frequencyBinCount);
-          
-          console.log('Audio visualizer connected to real audio stream');
+        } catch (error) {
+          console.log('Web Audio API setup failed:', error);
         }
-      } catch (error) {
-        console.log('Web Audio API connection failed:', error);
-        analyserRef.current = null;
-        dataArrayRef.current = null;
-      }
-    } else {
-      // Reset analyser when not playing
-      analyserRef.current = null;
-      dataArrayRef.current = null;
+      }, 500);
     }
 
     return () => {
+      if (timeoutId) clearTimeout(timeoutId);
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
@@ -74,22 +74,32 @@ export function AudioVisualizer({ height = 32, barCount = 40, compact = false }:
       if (analyserRef.current && dataArrayRef.current && isPlaying) {
         analyserRef.current.getByteFrequencyData(dataArrayRef.current);
         
-        // Create EQ bands with logarithmic frequency distribution
         const bars: number[] = [];
         const newPeaks: number[] = [];
+        const dataLength = dataArrayRef.current.length;
         
         for (let i = 0; i < barCount; i++) {
-          // Simple linear frequency mapping with better distribution
-          const binIndex = Math.floor((i / barCount) * dataArrayRef.current.length);
-          let magnitude = dataArrayRef.current[binIndex] || 0;
+          // Group frequency bins for each bar
+          const binStart = Math.floor((i / barCount) * dataLength);
+          const binEnd = Math.floor(((i + 1) / barCount) * dataLength);
           
-          // Simple normalization with boost for visibility
-          let normalizedValue = (magnitude / 255) * 2; // Double the amplitude
-          normalizedValue = Math.min(normalizedValue, 1.0); // Cap at 1.0
+          // Average the frequency data for this bar
+          let sum = 0;
+          for (let j = binStart; j < binEnd; j++) {
+            sum += dataArrayRef.current[j];
+          }
+          const average = sum / (binEnd - binStart);
           
-          // Peak hold and decay
+          // Normalize to 0-1 range with amplification for visibility
+          let normalizedValue = (average / 255) * 3; // Triple amplification
+          normalizedValue = Math.min(normalizedValue, 1.0);
+          
+          // Ensure minimum visibility when audio is playing
+          normalizedValue = Math.max(normalizedValue, 0.02);
+          
+          // Peak tracking
           const currentPeak = peaks[i] || 0;
-          const newPeak = Math.max(normalizedValue, currentPeak * 0.9); // Faster peak decay
+          const newPeak = Math.max(normalizedValue, currentPeak * 0.88);
           
           bars.push(normalizedValue);
           newPeaks.push(newPeak);

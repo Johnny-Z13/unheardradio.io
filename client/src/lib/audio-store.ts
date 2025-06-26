@@ -102,9 +102,23 @@ export const useAudioStore = create<AudioStore>((set, get) => ({
       audio.volume = get().volume;
       
       await audio.play();
+      set({ isLoading: false });
       
     } catch (error) {
       console.error('Error playing station:', error);
+      
+      // Try fallback URL if available and different
+      if (station.url_resolved && station.url_resolved !== station.url) {
+        try {
+          audio.src = station.url;
+          await audio.play();
+          set({ isLoading: false });
+          return;
+        } catch (fallbackError) {
+          console.error('Fallback URL also failed:', fallbackError);
+        }
+      }
+      
       set({ 
         error: 'Failed to play station. This stream may be unavailable.',
         isLoading: false,

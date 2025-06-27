@@ -56,6 +56,7 @@ export function StationList({ filters }: StationListProps) {
     isLoading,
     error,
     isFetching,
+    refetch,
   } = useQuery({
     queryKey: ['/api/stations', { ...filters, limit, offset }],
     queryFn: () => fetchStations({ ...filters, limit, offset }),
@@ -69,29 +70,25 @@ export function StationList({ filters }: StationListProps) {
   
 
 
-  // Update allStations when new data comes in (but not for bookmark mode)
-  useEffect(() => {
-    if (!filters.bookmarkedOnly && stations.length > 0) {
-      if (offset === 0) {
-        setAllStations(stations);
-      } else {
-        setAllStations(prev => [...prev, ...stations]);
-      }
-    }
-  }, [stations, offset, filters.bookmarkedOnly]);
-
-  // For bookmark mode, always use fresh bookmark data
+  // Main state management effect
   useEffect(() => {
     if (filters.bookmarkedOnly) {
+      // Bookmark mode: use bookmark data directly 
       setAllStations(bookmarkStations);
       setOffset(0);
-    } else if (filters.bookmarkedOnly === false && allStations.length === 0) {
-      // When switching away from bookmark mode, clear and fetch fresh data
-      setOffset(0);
+    } else {
+      // API mode: use fetched station data
+      if (stations.length > 0) {
+        if (offset === 0) {
+          setAllStations(stations);
+        } else {
+          setAllStations(prev => [...prev, ...stations]);
+        }
+      }
     }
-  }, [filters.bookmarkedOnly, bookmarkStations]);
+  }, [filters.bookmarkedOnly, bookmarkStations, stations, offset]);
 
-  // Reset offset when filters change 
+  // Reset when filters change
   useEffect(() => {
     setOffset(0);
     if (!filters.bookmarkedOnly) {

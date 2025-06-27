@@ -1,0 +1,60 @@
+# Privacy Policy for unheardradio.io
+
+_Last updated: June 27, 2025_
+
+At **unheardradio.io**, we take your privacy seriously. This Privacy Policy outlines the types of information we may collect, how we use it, and the choices you have regarding your data.
+
+---
+
+## 1. Information We Collect
+
+We may collect the following types of information:
+
+- **Usage Data**: When you visit our site, we may automatically collect information such as your IP address, browser type, device, pages visited, and the time spent on the site.
+- **Cookies**: We use cookies and similar tracking technologies to enhance your browsing experience and to show relevant content and ads.
+- **Analytics**: We may use services like Google Analytics to understand how users engage with our website.
+- **Advertising**: Third-party vendors, including Google, use cookies to serve ads based on your prior visits to this or other websites. Google’s use of advertising cookies enables it and its partners to serve ads based on your visit to unheardradio.io and/or other sites on the internet.
+
+---
+
+## 2. How We Use Your Information
+
+We use collected information to:
+
+- Improve the performance and content of unheardradio.io
+- Provide relevant advertising through services like Google AdSense
+- Monitor usage patterns to better understand our visitors
+
+We do **not** sell, rent, or trade your personal information.
+
+---
+
+## 3. Your Privacy Choices
+
+You have the right to:
+
+- **Opt out of personalized ads**: Visit [www.aboutads.info](https://www.aboutads.info) to manage your preferences.
+- **Manage cookies**: Most browsers allow you to control cookies through their settings.
+
+To learn more about how Google uses your data, visit: [How Google uses information from sites or apps that use our services](https://policies.google.com/technologies/partner-sites)
+
+---
+
+## 4. External Links
+
+Our website may include links to third-party radio stations or services. We are not responsible for the privacy practices or content of these external sites.
+
+---
+
+## 5. Changes to This Policy
+
+We may update this Privacy Policy from time to time. Changes will be posted on this page with an updated date at the top.
+
+---
+
+## 6. Contact Us
+
+If you have any questions about this Privacy Policy, feel free to contact us at:
+
+📧 **hello@unheardradio.io**  
+🌐 [https://unheardradio.io](https://unheardradio.io)

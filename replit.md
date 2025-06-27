@@ -186,6 +186,13 @@ Changelog:
   - Added appropriate empty state messaging for no saved stations
   - Optimized for iPhone with consistent list layout and bookmark toggle functionality
   - Saved section now acts as simple filter to hide unbookmarked items
+- June 27, 2025. Fixed bookmark functionality with separate component architecture
+  - Created dedicated BookmarkList component for saved stations with direct bookmark data access
+  - Created separate DiscoveryList component for discovery/search with clean API state management
+  - Eliminated complex state conflicts between bookmark and API modes
+  - Fixed discovery feed loading issue when switching from saved tab
+  - Reduced toast notification duration to 2 seconds for better UX
+  - Ensured real-time bookmark updates and proper tab switching behavior
 ```
 
 ## User Preferences

@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Radar, Search, Bookmark, MapPin } from 'lucide-react';
 import { SearchFilters } from '@/types/radio';
 import { SearchSidebar } from '@/components/search-sidebar';
-import { StationList } from '@/components/station-list';
+import { DiscoveryList } from '@/components/discovery-list';
+import { BookmarkList } from '@/components/bookmark-list';
 import { StationMap } from '@/components/station-map';
 import { NowPlayingBar } from '@/components/now-playing-bar';
 import { FullscreenStation } from '@/components/fullscreen-station';
@@ -92,11 +93,11 @@ export default function Home() {
           
           <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
             {activeTab === 'saved' ? (
-              <StationList filters={{ bookmarkedOnly: true }} />
+              <BookmarkList />
             ) : activeTab === 'discover' ? (
-              <StationList filters={filters} />
+              <DiscoveryList filters={filters} />
             ) : activeTab === 'search' ? (
-              <StationList filters={filters} />
+              <DiscoveryList filters={filters} />
             ) : activeTab === 'map' ? (
               <StationMap />
             ) : null}

@@ -27,17 +27,8 @@ export function useBookmarks() {
   }, []);
 
   const saveBookmarks = (newBookmarks: BookmarkedStation[]) => {
-    console.log('Saving bookmarks to localStorage:', newBookmarks.length, 'items');
     setBookmarks(newBookmarks);
-    try {
-      localStorage.setItem('unheard-radio-bookmarks', JSON.stringify(newBookmarks));
-      console.log('Successfully saved to localStorage');
-      // Verify it was saved
-      const verified = localStorage.getItem('unheard-radio-bookmarks');
-      console.log('Verification - localStorage now contains:', verified ? JSON.parse(verified).length + ' items' : 'null');
-    } catch (error) {
-      console.error('Error saving to localStorage:', error);
-    }
+    localStorage.setItem('unheard-radio-bookmarks', JSON.stringify(newBookmarks));
   };
 
   const isBookmarked = (stationUuid: string): boolean => {
@@ -66,19 +57,11 @@ export function useBookmarks() {
   };
 
   const toggleBookmark = (station: RadioStation) => {
-    console.log('Toggling bookmark for station:', station.name, station.stationuuid);
-    console.log('Current bookmarks count:', bookmarks.length);
-    console.log('Is currently bookmarked:', isBookmarked(station.stationuuid));
-    
     if (isBookmarked(station.stationuuid)) {
-      console.log('Removing bookmark');
       removeBookmark(station.stationuuid);
     } else {
-      console.log('Adding bookmark');
       addBookmark(station);
     }
-    
-    console.log('Bookmarks after toggle:', bookmarks.length);
   };
 
   const clearBookmarks = () => {

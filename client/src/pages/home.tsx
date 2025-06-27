@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Radio, Bookmark, Shuffle, MapPin } from 'lucide-react';
+import { Radio, Bookmark, Shuffle, MapPin, Search, Radar } from 'lucide-react';
 import { SearchFilters, RadioStation } from '@/types/radio';
 import { SearchSidebar } from '@/components/search-sidebar';
 import { StationList } from '@/components/station-list';
@@ -111,45 +111,53 @@ export default function Home() {
           <div className="flex space-x-3 md:space-x-8 overflow-x-auto scrollbar-hide">
             <button
               onClick={() => setActiveTab('discover')}
-              className={`py-2 md:py-3 px-1 md:px-2 border-b-2 font-bold text-xs md:text-sm lg:text-base transition-colors whitespace-nowrap ${
+              className={`py-2 md:py-3 px-3 md:px-4 border-b-2 font-bold transition-colors flex items-center space-x-2 ${
                 activeTab === 'discover'
                   ? 'border-vdu-green text-vdu-green'
                   : 'border-transparent text-muted hover:text-vdu-green-dim'
               }`}
+              title="Discover obscure stations"
             >
-              DISCOVER
+              <Radar className="w-4 h-4 md:w-5 md:h-5" />
+              <span className="hidden sm:inline text-xs md:text-sm font-mono">DISCOVER</span>
             </button>
             <button
               onClick={() => setActiveTab('search')}
-              className={`py-2 md:py-3 px-1 md:px-2 border-b-2 font-bold text-xs md:text-sm lg:text-base transition-colors whitespace-nowrap ${
+              className={`py-2 md:py-3 px-3 md:px-4 border-b-2 font-bold transition-colors flex items-center space-x-2 ${
                 activeTab === 'search'
                   ? 'border-vdu-green text-vdu-green'
                   : 'border-transparent text-muted hover:text-vdu-green-dim'
               }`}
+              title="Filter stations"
             >
-              FILTER
+              <Search className="w-4 h-4 md:w-5 md:h-5" />
+              <span className="hidden sm:inline text-xs md:text-sm font-mono">FILTER</span>
             </button>
             <button
               onClick={() => setActiveTab('bookmarks')}
-              className={`py-2 md:py-3 px-1 md:px-2 border-b-2 font-bold text-xs md:text-sm lg:text-base transition-colors whitespace-nowrap ${
+              className={`py-2 md:py-3 px-3 md:px-4 border-b-2 font-bold transition-colors flex items-center space-x-2 ${
                 activeTab === 'bookmarks'
                   ? 'border-vdu-green text-vdu-green'
                   : 'border-transparent text-muted hover:text-vdu-green-dim'
               }`}
+              title="Saved stations"
             >
-              BOOKMARKS {bookmarks.length > 0 && (
-                <span className="ml-1">({bookmarks.length})</span>
-              )}
+              <Bookmark className="w-4 h-4 md:w-5 md:h-5" />
+              <span className="hidden sm:inline text-xs md:text-sm font-mono">
+                SAVED {bookmarks.length > 0 && `(${bookmarks.length})`}
+              </span>
             </button>
             <button
               onClick={() => setActiveTab('locations')}
-              className={`py-2 md:py-3 px-1 md:px-2 border-b-2 font-bold text-xs md:text-sm lg:text-base transition-colors whitespace-nowrap ${
+              className={`py-2 md:py-3 px-3 md:px-4 border-b-2 font-bold transition-colors flex items-center space-x-2 ${
                 activeTab === 'locations'
                   ? 'border-vdu-green text-vdu-green'
                   : 'border-transparent text-muted hover:text-vdu-green-dim'
               }`}
+              title="Global station map"
             >
-              LOCATIONS
+              <MapPin className="w-4 h-4 md:w-5 md:h-5" />
+              <span className="hidden sm:inline text-xs md:text-sm font-mono">MAP</span>
             </button>
           </div>
         </div>

@@ -161,6 +161,12 @@ Changelog:
   - Updated bookmark localStorage key from 'signal-drift-bookmarks' to 'unheard-radio-bookmarks'
   - Fixed bookmark screen display functionality with proper station conversion
   - Ensured bookmark notifications appear in safe zones on mobile and desktop
+- June 27, 2025. Enhanced navigation with CRT-themed icon interface
+  - Replaced text navigation with icon-based tabs: Radar (Discover), Search (Filter), Bookmark (Saved), MapPin (Map)
+  - Added hover tooltips for icon navigation accessibility
+  - Implemented responsive design: icons only on mobile, icons + text on larger screens
+  - Used monospace font for navigation text to enhance terminal aesthetic
+  - Maintained bookmark count display in navigation for user feedback
 ```
 
 ## User Preferences

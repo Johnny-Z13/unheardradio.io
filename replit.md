@@ -209,6 +209,12 @@ Changelog:
   - Removed duplicate About link from header to maintain clean interface
   - About tab functions as external link while maintaining navigation consistency
   - Navigation flow: Discover/Filter/Saved/Map/About tabs in single horizontal bar
+- June 27, 2025. Updated About page with new underground radio aesthetic copy
+  - Replaced technical mission statement with edgy, underground radio messaging
+  - New tagline: "your portal to the strange side of sound"
+  - Emphasized anti-algorithm, weird, overlooked content focus
+  - Copy highlights glitchy transmissions, ghost signals, offbeat gems
+  - Maintains "Anti-algorithm radio. Always live. Never normal." brand positioning
 ```
 
 ## User Preferences

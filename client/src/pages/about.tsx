@@ -26,21 +26,25 @@ export default function About() {
         {/* Mission Section */}
         <Card className="bg-gray-900 border-green-400/20 mb-8">
           <CardContent className="p-6">
-            <h2 className="text-xl font-bold mb-4 text-cyan-400">Our Mission</h2>
-            <div className="space-y-4 text-green-300">
-              <p>
-                Unheard Radio exists to surface the world's most obscure and overlooked radio stations through innovative reverse popularity ranking. 
-                While most platforms prioritize the most popular content, we deliberately champion the least-played, most under-the-radar stations from around the globe.
-              </p>
-              <p>
-                Our unique algorithm sorts stations by their obscurity level, bringing hidden gems and experimental broadcasts to the forefront. 
-                We believe every voice deserves to be heard, especially those broadcasting from the margins of the radio spectrum.
-              </p>
-              <p>
-                By making these rare frequencies more discoverable, we're preserving audio diversity and connecting curious listeners with 
-                broadcasts they never knew existed. From remote community stations to experimental art radio, Unheard Radio is your gateway 
-                to the planet's most fascinating undiscovered audio content.
-              </p>
+            <div className="space-y-6 text-green-300">
+              <div className="text-center">
+                <p className="text-2xl font-bold text-cyan-400 mb-6">
+                  Unheardradio.io is your portal to the strange side of sound.
+                </p>
+              </div>
+              
+              <div className="space-y-4 text-lg leading-relaxed">
+                <p>
+                  No algorithms. No charts. Just a handpicked mess of the world's most obscure radio — 
+                  glitchy transmissions, ghost signals, and offbeat gems.
+                </p>
+                <p>
+                  We spotlight the weird. We elevate the overlooked.
+                </p>
+                <p className="text-cyan-400 font-semibold">
+                  Anti-algorithm radio. Always live. Never normal.
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>

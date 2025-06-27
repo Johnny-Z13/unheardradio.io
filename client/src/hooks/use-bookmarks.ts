@@ -29,7 +29,28 @@ export function useBookmarks() {
   const saveBookmarks = (newBookmarks: BookmarkedStation[]) => {
     setBookmarks(newBookmarks);
     localStorage.setItem('unheard-radio-bookmarks', JSON.stringify(newBookmarks));
+    // Trigger storage event for cross-component updates
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: 'unheard-radio-bookmarks',
+      newValue: JSON.stringify(newBookmarks)
+    }));
   };
+
+  // Listen for storage changes from other components
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'unheard-radio-bookmarks' && e.newValue) {
+        try {
+          setBookmarks(JSON.parse(e.newValue));
+        } catch (error) {
+          console.error('Error parsing bookmark update:', error);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   const isBookmarked = (stationUuid: string): boolean => {
     return bookmarks.some(bookmark => bookmark.stationuuid === stationUuid);

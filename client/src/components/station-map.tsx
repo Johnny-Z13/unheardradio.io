@@ -80,7 +80,7 @@ function ProgressiveStationLoader({ onStationsChange }: { onStationsChange: (sta
 
   useEffect(() => {
     onStationsChange(stations);
-  }, [stations, onStationsChange]);
+  }, [stations]);
 
   return null;
 }
@@ -92,6 +92,9 @@ export function StationMap({ onStationSelect }: StationMapProps) {
   const handleStationsChange = useCallback((newStations: RadioStation[]) => {
     setStations(newStations);
   }, []);
+
+  // Memoize the callback to prevent infinite loops
+  const memoizedCallback = useCallback(handleStationsChange, []);
 
   // Filter stations with valid coordinates
   const validStations = stations.filter(station => 

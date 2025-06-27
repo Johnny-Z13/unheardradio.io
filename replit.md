@@ -199,6 +199,11 @@ Changelog:
   - Included Unheard Radio's mission to reverse-rank obscure stations and make them discoverable
   - Added privacy policy link, Z13labs attribution, and contact email (hello@z13labs.com)
   - Maintained VDU green aesthetic with responsive design and clear navigation back to radio interface
+- June 27, 2025. Added dedicated Privacy Policy page with complete legal documentation
+  - Created /privacy route with full privacy policy content including data collection, usage, and user rights
+  - Linked privacy policy page from About page footer for proper navigation flow
+  - Included contact information (hello@unheardradio.io) and external policy links
+  - Maintained consistent VDU green styling and responsive design across all pages
 ```
 
 ## User Preferences

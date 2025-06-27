@@ -73,12 +73,11 @@ export default function About() {
         {/* Footer Links */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-8 border-t border-green-400/20">
           <div className="flex items-center gap-6 text-sm">
-            <a 
-              href="#" 
-              className="text-green-400 hover:text-cyan-400 transition-colors flex items-center gap-1"
-            >
-              Privacy Policy <ExternalLink className="h-3 w-3" />
-            </a>
+            <Link href="/privacy">
+              <a className="text-green-400 hover:text-cyan-400 transition-colors flex items-center gap-1">
+                Privacy Policy <ExternalLink className="h-3 w-3" />
+              </a>
+            </Link>
             <a 
               href="mailto:hello@z13labs.com" 
               className="text-green-400 hover:text-cyan-400 transition-colors flex items-center gap-1"

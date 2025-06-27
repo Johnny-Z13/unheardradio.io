@@ -165,25 +165,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Function to convert long country names to shorter versions
       const getShortCountryName = (name: string): string => {
         const nameMap: { [key: string]: string } = {
+          'The United Kingdom Of Great Britain And Northern Ireland': 'UK',
           'United Kingdom': 'UK',
-          'United Kingdom of Great Britain and Northern Ireland': 'UK',
           'Great Britain': 'UK',
+          'The United States Of America': 'USA',
           'United States of America': 'USA',
           'United States': 'USA',
+          'The Russian Federation': 'Russia',
           'Russian Federation': 'Russia',
+          'Islamic Republic Of Iran': 'Iran',
           'Iran (Islamic Republic of)': 'Iran',
+          'Republic Of Korea': 'South Korea',
           'Korea (Republic of)': 'South Korea',
+          'Democratic People\'s Republic Of Korea': 'North Korea',
           'Korea (Democratic People\'s Republic of)': 'North Korea',
+          'Bolivarian Republic Of Venezuela': 'Venezuela',
           'Venezuela (Bolivarian Republic of)': 'Venezuela',
+          'Plurinational State Of Bolivia': 'Bolivia',
           'Bolivia (Plurinational State of)': 'Bolivia',
+          'Taiwan, Republic Of China': 'Taiwan',
           'Taiwan (Province of China)': 'Taiwan',
+          'Republic Of North Macedonia': 'North Macedonia',
           'Macedonia (the former Yugoslav Republic of)': 'North Macedonia',
+          'The Republic Of Moldova': 'Moldova',
           'Moldova (Republic of)': 'Moldova',
+          'Democratic Republic Of The Congo': 'DR Congo',
           'Congo (Democratic Republic of the)': 'DR Congo',
+          'United Republic Of Tanzania': 'Tanzania',
           'Tanzania (United Republic of)': 'Tanzania',
+          'State Of Palestine': 'Palestine',
           'Palestine (State of)': 'Palestine',
-          'Virgin Islands (British)': 'British Virgin Islands',
-          'Virgin Islands (U.S.)': 'US Virgin Islands',
+          'The Netherlands': 'Netherlands',
+          'Kingdom of the Netherlands': 'Netherlands',
+          'The Philippines': 'Philippines',
+          'Syrian Arab Republic': 'Syria',
           'Czech Republic': 'Czechia',
           'Slovak Republic': 'Slovakia',
           'Republic of South Africa': 'South Africa',
@@ -193,6 +208,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           'Kingdom of Spain': 'Spain',
           'Republic of Poland': 'Poland',
           'Republic of Turkey': 'Turkey',
+          'Türkiye': 'Turkey',
           'Federative Republic of Brazil': 'Brazil',
           'Argentine Republic': 'Argentina',
           'Republic of India': 'India',
@@ -201,14 +217,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           'Commonwealth of Australia': 'Australia',
           'Dominion of Canada': 'Canada',
           'United Mexican States': 'Mexico',
-          'Kingdom of the Netherlands': 'Netherlands',
           'Kingdom of Belgium': 'Belgium',
           'Swiss Confederation': 'Switzerland',
           'Republic of Austria': 'Austria',
           'Kingdom of Sweden': 'Sweden',
           'Kingdom of Norway': 'Norway',
           'Republic of Finland': 'Finland',
-          'Kingdom of Denmark': 'Denmark'
+          'Kingdom of Denmark': 'Denmark',
+          'The Holy See': 'Vatican'
         };
         
         return nameMap[name] || name;
@@ -217,14 +233,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Sort by country name and filter out countries with very few stations
       const filteredCountries = countries
         .filter((country: any) => country.stationcount > 5)
-        .map((country: any) => {
-          const shortName = getShortCountryName(country.name);
-          console.log(`Country mapping: "${country.name}" -> "${shortName}"`);
-          return {
-            ...country,
-            name: shortName
-          };
-        })
+        .map((country: any) => ({
+          ...country,
+          name: getShortCountryName(country.name)
+        }))
         .sort((a: any, b: any) => a.name.localeCompare(b.name));
       
       res.json(filteredCountries);

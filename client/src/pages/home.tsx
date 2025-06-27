@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Radar, Search, Bookmark, MapPin } from 'lucide-react';
+import { Radar, Search, Bookmark, MapPin, Info } from 'lucide-react';
+import { Link } from 'wouter';
 import { SearchFilters } from '@/types/radio';
 import { SearchSidebar } from '@/components/search-sidebar';
 import { DiscoveryList } from '@/components/discovery-list';
@@ -47,8 +48,16 @@ export default function Home() {
               </div>
             </div>
             
-            <div className="text-right text-xs md:text-sm text-muted flex-shrink-0">
-              <p>Stations live on air: {totalStations.toLocaleString()}</p>
+            <div className="flex items-center gap-4">
+              <Link href="/about">
+                <button className="flex items-center gap-1 text-xs md:text-sm text-muted hover:text-vdu-green transition-colors">
+                  <Info className="h-3 w-3 md:h-4 md:w-4" />
+                  <span className="hidden sm:inline">About</span>
+                </button>
+              </Link>
+              <div className="text-right text-xs md:text-sm text-muted flex-shrink-0">
+                <p>Stations live on air: {totalStations.toLocaleString()}</p>
+              </div>
             </div>
           </div>
         </header>

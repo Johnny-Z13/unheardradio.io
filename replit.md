@@ -193,6 +193,12 @@ Changelog:
   - Fixed discovery feed loading issue when switching from saved tab
   - Reduced toast notification duration to 2 seconds for better UX
   - Ensured real-time bookmark updates and proper tab switching behavior
+  - Removed bookmark toast notifications - icon on/off state provides sufficient visual feedback
+- June 27, 2025. Added About page with mission statement and contact information
+  - Created dedicated About page accessible from header navigation with info icon
+  - Included Unheard Radio's mission to reverse-rank obscure stations and make them discoverable
+  - Added privacy policy link, Z13labs attribution, and contact email (hello@z13labs.com)
+  - Maintained VDU green aesthetic with responsive design and clear navigation back to radio interface
 ```
 
 ## User Preferences

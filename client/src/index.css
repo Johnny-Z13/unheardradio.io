@@ -280,6 +280,29 @@
     display: none;
   }
   
+  /* Force consistent scrollbar behavior */
+  .scrollbar-stable {
+    overflow-y: scroll;
+    scrollbar-gutter: stable;
+  }
+  
+  .scrollbar-stable::-webkit-scrollbar {
+    width: 12px;
+  }
+  
+  .scrollbar-stable::-webkit-scrollbar-track {
+    background: var(--radio-dark);
+  }
+  
+  .scrollbar-stable::-webkit-scrollbar-thumb {
+    background: var(--vdu-green-dim);
+    border-radius: 6px;
+  }
+  
+  .scrollbar-stable::-webkit-scrollbar-thumb:hover {
+    background: var(--vdu-green);
+  }
+  
   /* Touch scrolling for mobile */
   .touch-scroll {
     -webkit-overflow-scrolling: touch;

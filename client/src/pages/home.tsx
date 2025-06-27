@@ -147,8 +147,8 @@ export default function Home() {
         
         <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
           {activeTab === 'bookmarks' ? (
-            <div className="flex-1 overflow-y-auto h-full">
-              <div className="container mx-auto px-3 py-4 md:px-4 md:py-6 h-full">
+            <div className="flex-1 scrollbar-stable h-full">
+              <div className="container mx-auto px-3 py-4 md:px-4 md:py-6">
                 <div className="mb-4 md:mb-6">
                   <h2 className="text-xl md:text-2xl font-black text-vdu-green mb-2">YOUR BOOKMARKS</h2>
                   <p className="text-muted text-xs md:text-sm">
@@ -276,7 +276,7 @@ export default function Home() {
               </div>
             </div>
           ) : activeTab === 'locations' ? (
-            <div className="flex-1 h-full">
+            <div className="flex-1 scrollbar-stable h-full">
               <StationMap onStationSelect={setFullscreenStation} />
             </div>
           ) : (
@@ -293,7 +293,7 @@ export default function Home() {
                   </button>
                 </div>
               )}
-              <div className="flex-1 overflow-hidden">
+              <div className="flex-1 scrollbar-stable">
                 <StationList filters={filters} />
               </div>
             </div>

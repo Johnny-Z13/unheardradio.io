@@ -170,6 +170,8 @@ Changelog:
   - Removed duplicate RANDOM and BOOKMARKS buttons from header for cleaner interface
   - Moved random station functionality to discover tab content area
   - Streamlined header to focus on branding and live station count
+  - Fixed UI shifting between tabs by implementing consistent scrollbar behavior across all tabs
+  - Added custom VDU green scrollbar styling to match terminal aesthetic
 ```
 
 ## User Preferences

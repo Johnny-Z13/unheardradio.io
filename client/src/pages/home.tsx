@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Radar, Search, Bookmark, MapPin, Info } from 'lucide-react';
+import { Radar, Search, Bookmark, MapPin, Info, Mail, ExternalLink } from 'lucide-react';
 import { Link } from 'wouter';
 import { SearchFilters } from '@/types/radio';
 import { SearchSidebar } from '@/components/search-sidebar';
@@ -10,8 +10,65 @@ import { NowPlayingBar } from '@/components/now-playing-bar';
 import { FullscreenStation } from '@/components/fullscreen-station';
 import { useAudioStore } from '@/lib/audio-store';
 import { RadioStation } from '@/types/radio';
+import { Card, CardContent } from '@/components/ui/card';
 
 type Tab = 'discover' | 'search' | 'saved' | 'map' | 'about';
+
+// About component content
+function AboutContent() {
+  return (
+    <div className="flex-1 p-4 md:p-6 overflow-y-auto">
+      <div className="max-w-4xl mx-auto">
+        {/* Mission Section */}
+        <Card className="bg-radio-dark border-vdu-green-dim mb-8">
+          <CardContent className="p-6">
+            <div className="space-y-6 text-vdu-green">
+              <div className="text-center">
+                <p className="text-2xl font-bold text-cyan-400 mb-6">
+                  Unheardradio.io is your portal to the strange side of sound.
+                </p>
+              </div>
+              
+              <div className="space-y-4 text-lg leading-relaxed">
+                <p>
+                  No algorithms. No charts. Just a handpicked mess of the world's most obscure radio — 
+                  glitchy transmissions, ghost signals, and offbeat gems.
+                </p>
+                <p>
+                  We spotlight the weird. We elevate the overlooked.
+                </p>
+                <p className="text-cyan-400 font-semibold">
+                  Anti-algorithm radio. Always live. Never normal.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Footer Links */}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-8 border-t border-vdu-green-dim">
+          <div className="flex items-center gap-6 text-sm">
+            <Link href="/privacy">
+              <button className="text-vdu-green hover:text-cyan-400 transition-colors flex items-center gap-1">
+                Privacy Policy <ExternalLink className="h-3 w-3" />
+              </button>
+            </Link>
+            <a 
+              href="mailto:hello@z13labs.com" 
+              className="text-vdu-green hover:text-cyan-400 transition-colors flex items-center gap-1"
+            >
+              <Mail className="h-3 w-3" />
+              Contact Us
+            </a>
+          </div>
+          <div className="text-sm text-vdu-green/70">
+            Made by <span className="text-cyan-400 font-semibold">Z13labs</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<Tab>('discover');
@@ -26,7 +83,7 @@ export default function Home() {
     { id: 'search' as Tab, label: 'Filter', icon: Search },
     { id: 'saved' as Tab, label: 'Saved', icon: Bookmark },
     { id: 'map' as Tab, label: 'Map', icon: MapPin },
-    { id: 'about' as Tab, label: 'About', icon: Info, isExternal: true, href: '/about' },
+    { id: 'about' as Tab, label: 'About', icon: Info },
   ];
 
   return (
@@ -61,20 +118,6 @@ export default function Home() {
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
-              
-              if (tab.isExternal) {
-                return (
-                  <Link key={tab.id} href={tab.href}>
-                    <button
-                      className="flex items-center space-x-1 md:space-x-2 px-3 md:px-4 py-2 rounded-lg transition-all whitespace-nowrap text-xs md:text-sm font-mono group relative text-vdu-green-dim hover:text-vdu-green hover:bg-radio-black"
-                      title={tab.label}
-                    >
-                      <Icon className="w-4 h-4 flex-shrink-0" />
-                      <span className="hidden md:inline font-mono">{tab.label.toUpperCase()}</span>
-                    </button>
-                  </Link>
-                );
-              }
               
               return (
                 <button
@@ -116,6 +159,8 @@ export default function Home() {
               <DiscoveryList filters={filters} />
             ) : activeTab === 'map' ? (
               <StationMap />
+            ) : activeTab === 'about' ? (
+              <AboutContent />
             ) : null}
           </main>
         </div>

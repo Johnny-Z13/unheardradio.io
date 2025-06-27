@@ -66,6 +66,14 @@ export function StationList({ filters }: StationListProps) {
   
   // Use bookmark stations if bookmarkedOnly filter is active
   const displayStations = filters.bookmarkedOnly ? bookmarkStations : stations;
+  
+  // Debug logging for bookmarks
+  useEffect(() => {
+    if (filters.bookmarkedOnly) {
+      console.log('Bookmarks mode - found bookmarks:', bookmarks.length);
+      console.log('Bookmark stations:', bookmarkStations.length);
+    }
+  }, [filters.bookmarkedOnly, bookmarks.length, bookmarkStations.length]);
 
   // Update allStations when new data comes in (but not for bookmark mode)
   useEffect(() => {

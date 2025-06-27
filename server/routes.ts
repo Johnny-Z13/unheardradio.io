@@ -165,7 +165,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Function to convert long country names to shorter versions
       const getShortCountryName = (name: string): string => {
         const nameMap: { [key: string]: string } = {
+          'United Kingdom': 'UK',
           'United Kingdom of Great Britain and Northern Ireland': 'UK',
+          'Great Britain': 'UK',
           'United States of America': 'USA',
           'United States': 'USA',
           'Russian Federation': 'Russia',
@@ -181,7 +183,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
           'Tanzania (United Republic of)': 'Tanzania',
           'Palestine (State of)': 'Palestine',
           'Virgin Islands (British)': 'British Virgin Islands',
-          'Virgin Islands (U.S.)': 'US Virgin Islands'
+          'Virgin Islands (U.S.)': 'US Virgin Islands',
+          'Czech Republic': 'Czechia',
+          'Slovak Republic': 'Slovakia',
+          'Republic of South Africa': 'South Africa',
+          'Federal Republic of Germany': 'Germany',
+          'French Republic': 'France',
+          'Italian Republic': 'Italy',
+          'Kingdom of Spain': 'Spain',
+          'Republic of Poland': 'Poland',
+          'Republic of Turkey': 'Turkey',
+          'Federative Republic of Brazil': 'Brazil',
+          'Argentine Republic': 'Argentina',
+          'Republic of India': 'India',
+          'People\'s Republic of China': 'China',
+          'State of Japan': 'Japan',
+          'Commonwealth of Australia': 'Australia',
+          'Dominion of Canada': 'Canada',
+          'United Mexican States': 'Mexico',
+          'Kingdom of the Netherlands': 'Netherlands',
+          'Kingdom of Belgium': 'Belgium',
+          'Swiss Confederation': 'Switzerland',
+          'Republic of Austria': 'Austria',
+          'Kingdom of Sweden': 'Sweden',
+          'Kingdom of Norway': 'Norway',
+          'Republic of Finland': 'Finland',
+          'Kingdom of Denmark': 'Denmark'
         };
         
         return nameMap[name] || name;
@@ -190,10 +217,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Sort by country name and filter out countries with very few stations
       const filteredCountries = countries
         .filter((country: any) => country.stationcount > 5)
-        .map((country: any) => ({
-          ...country,
-          name: getShortCountryName(country.name)
-        }))
+        .map((country: any) => {
+          const shortName = getShortCountryName(country.name);
+          console.log(`Country mapping: "${country.name}" -> "${shortName}"`);
+          return {
+            ...country,
+            name: shortName
+          };
+        })
         .sort((a: any, b: any) => a.name.localeCompare(b.name));
       
       res.json(filteredCountries);

@@ -89,6 +89,14 @@ export function StationMap({ onStationSelect }: StationMapProps) {
     Math.abs(station.geo_long) <= 180
   );
 
+  // Debug logging
+  console.log('Map Debug:', {
+    totalStations: stations.length,
+    validStations: validStations.length,
+    sampleStation: stations[0],
+    sampleValidStation: validStations[0]
+  });
+
   const handlePlayStation = async (station: RadioStation) => {
     try {
       await playStation(station);

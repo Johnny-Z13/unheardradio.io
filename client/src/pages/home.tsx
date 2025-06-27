@@ -146,75 +146,33 @@ export default function Home() {
         )}
         
         <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
-          {activeTab === 'bookmarks' ? (
-            <div className="flex-1 overflow-y-auto scrollbar-hide h-full">
-              <div className="container mx-auto px-3 py-4 md:px-4 md:py-6">
-                <div className="mb-4 md:mb-6">
-                  <h2 className="text-xl md:text-2xl font-black text-vdu-green mb-2">YOUR BOOKMARKS</h2>
-                  <p className="text-muted text-xs md:text-sm">
-                    {bookmarks.length === 0 
-                      ? 'No bookmarked stations yet. Click the bookmark icon on any station to save it here.'
-                      : `${bookmarks.length} bookmarked station${bookmarks.length !== 1 ? 's' : ''}`
-                    }
-                  </p>
-                </div>
-                
-                {bookmarks.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
-                    {bookmarks.map((bookmark) => {
-                      const isCurrentStation = currentStation?.stationuuid === bookmark.stationuuid;
-                      const isCurrentlyPlaying = isCurrentStation && isPlaying;
-                      const isCurrentlyLoading = isCurrentStation && isLoading;
-                      
-                      return (
-                        <div key={bookmark.stationuuid} className={`bg-radio-dark rounded-xl p-3 md:p-4 border transition-all group ${isCurrentStation ? 'border-accent-cyan' : 'border-vdu-green-dim hover:border-vdu-green'}`}>
-                          <div className="flex items-start justify-between mb-3">
-                            <div className="flex-1 min-w-0">
-                              <h3 className={`font-bold text-sm mb-1 line-clamp-2 transition-colors ${isCurrentStation ? 'text-accent-cyan' : 'text-vdu-green group-hover:text-accent-cyan'}`}>
-                                {bookmark.name}
-                              </h3>
-                              <p className="text-xs text-muted">
-                                {bookmark.country} • {bookmark.genre}
-                              </p>
-                            </div>
-                          </div>
+          {activeTab === 'saved' ? (
+            <StationList filters={{ bookmarkedOnly: true }} />
+          ) : activeTab === 'discover' ? (
+            <StationList filters={filters} />
+          ) : activeTab === 'search' ? (
+            <StationList filters={filters} />
+          ) : activeTab === 'map' ? (
+            <StationMap />
+          ) : null}
+        </main>
 
-                          {/* Current Playing Indicator */}
-                          {isCurrentStation && (
-                            <div className="mb-2">
-                              <div className="inline-flex items-center space-x-1 px-2 py-1 bg-accent-cyan text-radio-black rounded-full text-xs font-black">
-                                <div className="w-1 h-1 bg-radio-black rounded-full animate-pulse" />
-                                <span>LIVE</span>
-                              </div>
-                            </div>
-                          )}
-                          
-                          <div className="flex items-center justify-between">
-                            <div className="text-xs text-muted">
-                              {bookmark.bitrate > 0 && `${bookmark.bitrate} kbps`}
-                            </div>
-                            
-                            <div className="flex items-center space-x-2">
-                              <button
-                                onClick={() => {
-                                  const station: RadioStation = {
-                                    stationuuid: bookmark.stationuuid,
-                                    name: bookmark.name,
-                                    country: bookmark.country,
-                                    tags: bookmark.genre,
-                                    bitrate: bookmark.bitrate,
-                                    url: bookmark.url,
-                                    url_resolved: bookmark.url,
-                                    homepage: '',
-                                    favicon: '',
-                                    countrycode: '',
-                                    state: '',
-                                    language: '',
-                                    votes: 0,
-                                    lastchangetime: '',
-                                    codec: '',
-                                    hls: 0,
-                                    lastcheckok: 1,
+        {/* Now Playing Bar */}
+        {currentStation && (
+          <NowPlayingBar onMaximize={() => setFullscreenStation(currentStation)} />
+        )}
+
+        {/* Fullscreen Station View */}
+        {fullscreenStation && (
+          <FullscreenStation 
+            station={fullscreenStation} 
+            onClose={() => setFullscreenStation(null)} 
+          />
+        )}
+      </div>
+    </div>
+  );
+}
                                     lastchecktime: '',
                                     lastcheckoktime: '',
                                     lastlocalchecktime: '',

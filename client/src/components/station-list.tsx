@@ -154,56 +154,70 @@ export function StationList({ filters }: StationListProps) {
             }
           </p>
         </div>
-        <div className="flex items-center justify-end">
-          <Button
-            onClick={handleRandomDrift}
-            variant="outline"
-            size="sm"
-            className="border-crt-dim text-crt-green hover:bg-crt-green hover:text-radio-black text-xs md:text-sm"
-          >
-            <Shuffle className="w-3 h-3 md:w-4 md:h-4 mr-1" />
-            <span className="hidden md:inline">Random Drift</span>
-            <span className="md:hidden">Random</span>
-          </Button>
-        </div>
-      </div>
-
-      <div className="space-y-3 md:space-y-4">
-        {allStations.map((station: RadioStation) => (
-          <div key={station.stationuuid} data-station-id={station.stationuuid}>
-            <StationCard 
-              station={station} 
-              onMaximize={() => setFullscreenStation(station)}
-            />
+        {!filters.bookmarkedOnly && (
+          <div className="flex items-center justify-end">
+            <Button
+              onClick={handleRandomDrift}
+              variant="outline"
+              size="sm"
+              className="border-vdu-green-dim text-vdu-green hover:bg-vdu-green hover:text-radio-black text-xs md:text-sm"
+            >
+              <Shuffle className="w-3 h-3 md:w-4 md:h-4 mr-1" />
+              <span className="hidden md:inline">Random Drift</span>
+              <span className="md:hidden">Random</span>
+            </Button>
           </div>
-        ))}
+        )}
       </div>
 
-      {allStations.length > 0 && stations.length === limit && (
-        <div className="text-center py-6 md:py-8">
-          <Button
-            onClick={handleLoadMore}
-            disabled={isFetching}
-            variant="outline"
-            className="px-4 md:px-6 py-2 md:py-3 border-crt-dim text-crt-green hover:border-crt-green hover:bg-crt-green hover:text-radio-black relative group text-sm"
-          >
-            {isFetching ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                <span className="hidden md:inline">Scanning Airwaves...</span>
-                <span className="md:hidden">Scanning...</span>
-              </>
-            ) : (
-              <>
-                <span className="relative z-10">
-                  <span className="hidden md:inline">Scan for More Signals</span>
-                  <span className="md:hidden">Load More</span>
-                </span>
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-crt-green to-transparent opacity-0 group-hover:opacity-20 animate-scan"></div>
-              </>
-            )}
-          </Button>
+      {allStations.length === 0 && filters.bookmarkedOnly ? (
+        <div className="text-center py-12">
+          <Bookmark className="w-16 h-16 text-vdu-green-dim mx-auto mb-4" />
+          <p className="text-vdu-green text-lg mb-2">No saved stations</p>
+          <p className="text-sm text-muted max-w-md mx-auto">
+            Bookmark stations from the discover feed to keep them here for quick access.
+          </p>
         </div>
+      ) : (
+        <>
+          <div className="space-y-3 md:space-y-4">
+            {allStations.map((station: RadioStation) => (
+              <div key={station.stationuuid} data-station-id={station.stationuuid}>
+                <StationCard 
+                  station={station} 
+                  onMaximize={() => setFullscreenStation(station)}
+                />
+              </div>
+            ))}
+          </div>
+
+          {allStations.length > 0 && !filters.bookmarkedOnly && stations.length === limit && (
+            <div className="text-center py-6 md:py-8">
+              <Button
+                onClick={handleLoadMore}
+                disabled={isFetching}
+                variant="outline"
+                className="px-4 md:px-6 py-2 md:py-3 border-vdu-green-dim text-vdu-green hover:border-vdu-green hover:bg-vdu-green hover:text-radio-black relative group text-sm"
+              >
+                {isFetching ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    <span className="hidden md:inline">Scanning Airwaves...</span>
+                    <span className="md:hidden">Scanning...</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="relative z-10">
+                      <span className="hidden md:inline">Scan for More Signals</span>
+                      <span className="md:hidden">Load More</span>
+                    </span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-vdu-green to-transparent opacity-0 group-hover:opacity-20 animate-scan"></div>
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
+        </>
       )}
 
       {/* Fullscreen Station View */}

@@ -40,23 +40,29 @@ export function SearchSidebar({ onFiltersChange, onRefreshToDiscovery, totalStat
 
   // Filter and sort genres to show music categories, not technical specs
   const genres = useMemo(() => {
+    console.log('Raw genres count:', rawGenres.length);
+    
     const musicGenres = rawGenres.filter(genre => {
       const name = genre.name.toLowerCase();
       
-      // Include recognizable music genres and exclude technical/frequency data
-      const isMusicGenre = /^[a-zA-Z]/.test(genre.name) && // Starts with letter
-        !name.includes('fm') && !name.includes('am') && // No frequency data
-        !name.includes('kbit') && !name.includes('kbps') && // No bitrate data
-        !/^\d/.test(name) && // No numbers at start (decades/years)
-        !name.includes('http') && // No URLs
-        genre.name.length <= 20 && // Reasonable length
-        genre.stationcount >= 5; // Has decent station count
+      // Exclude obvious technical/frequency data but keep music genres
+      const isNotTechnical = !name.includes('kbit') && 
+        !name.includes('kbps') && 
+        !name.includes('http') &&
+        !name.match(/^\d+\.\d+ fm$/) && // Exact frequency like "101.3 fm"
+        !name.match(/^\d+ am$/) && // Exact frequency like "570 am"
+        genre.stationcount >= 3; // Has some station count
       
-      return isMusicGenre;
+      return isNotTechnical;
     });
     
+    console.log('Filtered genres count:', musicGenres.length);
+    
     // Sort by station count descending
-    return musicGenres.sort((a, b) => b.stationcount - a.stationcount).slice(0, 50);
+    const sortedGenres = musicGenres.sort((a, b) => b.stationcount - a.stationcount).slice(0, 100);
+    console.log('Top 5 genres:', sortedGenres.slice(0, 5).map(g => g.name));
+    
+    return sortedGenres;
   }, [rawGenres]);
 
   // Debounce search input to prevent excessive API calls

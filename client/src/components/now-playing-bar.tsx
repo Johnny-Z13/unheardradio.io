@@ -38,16 +38,8 @@ export function NowPlayingBar({ onMaximize }: { onMaximize?: () => void }) {
     } else {
       try {
         await navigator.clipboard.writeText(url);
-        toast({
-          title: "Link copied",
-          description: "Station link copied to clipboard",
-        });
       } catch (error) {
-        toast({
-          title: "Failed to copy link",
-          description: "Unable to copy to clipboard",
-          variant: "destructive",
-        });
+        // Clipboard write failed
       }
     }
   };

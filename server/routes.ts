@@ -13,8 +13,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const countryMap: { [key: string]: string } = {
       'United Kingdom': 'UK',
       'United Kingdom of Great Britain and Northern Ireland': 'UK',
+      'The United Kingdom Of Great Britain And Northern Ireland': 'UK',
       'United States': 'USA',
       'United States of America': 'USA',
+      'The United States Of America': 'USA',
+      'USA': 'USA',
+      'US': 'USA',
       'Russian Federation': 'Russia',
       'Korea, Republic of': 'South Korea',
       'Korea, Democratic People\'s Republic of': 'North Korea',

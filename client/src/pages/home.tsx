@@ -74,7 +74,15 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<Tab>('discover');
   const [filters, setFilters] = useState<SearchFilters>({});
   const [fullscreenStation, setFullscreenStation] = useState<RadioStation | null>(null);
-  const { currentStation } = useAudioStore();
+  const { currentStation, cleanup } = useAudioStore();
+
+  // Cleanup on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      // Clear any pending timeouts and cleanup audio resources
+      cleanup();
+    };
+  }, [cleanup]);
 
   const totalStations = 47283;
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Search, Radio } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
@@ -36,17 +36,22 @@ export function SearchSidebar({ onFiltersChange, totalStations }: SearchSidebarP
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
+  // Debounce search input to prevent excessive API calls
   useEffect(() => {
-    const filters: SearchFilters = {
-      search: search || undefined,
-      country: country === 'all' ? undefined : country || undefined,
-      genre: genre === 'all' ? undefined : genre || undefined,
-      listenerFilter: listenerFilter !== 'all' ? listenerFilter : undefined,
-      limit: 50,
-      offset: 0,
-    };
-    
-    onFiltersChange(filters);
+    const timeoutId = setTimeout(() => {
+      const filters: SearchFilters = {
+        search: search || undefined,
+        country: country === 'all' ? undefined : country || undefined,
+        genre: genre === 'all' ? undefined : genre || undefined,
+        listenerFilter: listenerFilter !== 'all' ? listenerFilter : undefined,
+        limit: 50,
+        offset: 0,
+      };
+      
+      onFiltersChange(filters);
+    }, search ? 500 : 0); // Debounce search by 500ms, immediate for other filters
+
+    return () => clearTimeout(timeoutId);
   }, [search, country, genre, listenerFilter, obscurity, onFiltersChange]);
 
   const popularGenres = [

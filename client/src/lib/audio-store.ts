@@ -15,6 +15,7 @@ interface AudioStore extends AudioState {
   stop: () => void;
   initializeAudio: () => void;
   initializeAudioContext: () => void;
+  cleanup: () => void;
 }
 
 export const useAudioStore = create<AudioStore>((set, get) => ({
@@ -171,5 +172,36 @@ export const useAudioStore = create<AudioStore>((set, get) => ({
     } catch (error) {
       console.log('Failed to initialize audio context:', error);
     }
+  },
+
+  cleanup: () => {
+    const { audio, audioContext } = get();
+    
+    // Clean up audio element and all its event listeners
+    if (audio) {
+      audio.pause();
+      audio.removeAttribute('src');
+      audio.load(); // This removes all event listeners
+      audio.remove();
+    }
+    
+    // Clean up audio context
+    if (audioContext && audioContext.state !== 'closed') {
+      try {
+        audioContext.close();
+      } catch (error) {
+        console.log('Error closing audio context:', error);
+      }
+    }
+    
+    // Reset all state
+    set({
+      audio: null,
+      audioContext: null,
+      currentStation: null,
+      isPlaying: false,
+      isLoading: false,
+      error: null
+    });
   },
 }));

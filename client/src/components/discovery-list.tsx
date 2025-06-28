@@ -28,7 +28,6 @@ export function DiscoveryList({ filters }: DiscoveryListProps) {
     staleTime: 2 * 60 * 1000, // 2 minutes cache
     gcTime: 5 * 60 * 1000, // Garbage collect after 5 minutes
     refetchOnWindowFocus: false, // Prevent unnecessary refetches on tab switch
-    keepPreviousData: true, // Prevent UI flashing when switching
   });
 
   // Reset offset when filters change

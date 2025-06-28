@@ -114,10 +114,10 @@ export function SearchSidebar({ onFiltersChange, onRefreshToDiscovery, totalStat
             </SelectTrigger>
             <SelectContent className="bg-radio-black border-vdu-green-dim">
               <SelectItem value="all" className="text-vdu-green hover:bg-vdu-green hover:bg-opacity-20 text-xs">All stations</SelectItem>
-              <SelectItem value="zero" className="text-vdu-green hover:bg-vdu-green hover:bg-opacity-20 text-xs font-bold">0 listeners only</SelectItem>
-              <SelectItem value="one" className="text-vdu-green hover:bg-vdu-green hover:bg-opacity-20 text-xs font-bold">Exactly 1 listener</SelectItem>
-              <SelectItem value="2-10" className="text-vdu-green hover:bg-vdu-green hover:bg-opacity-20 text-xs">2-10 listeners</SelectItem>
-              <SelectItem value="under100" className="text-vdu-green hover:bg-vdu-green hover:bg-opacity-20 text-xs">Under 100 listeners</SelectItem>
+              <SelectItem value="zero" className="text-vdu-green hover:bg-vdu-green hover:bg-opacity-20 text-xs font-bold">0 listeners ✓</SelectItem>
+              <SelectItem value="under100" className="text-vdu-green hover:bg-vdu-green hover:bg-opacity-20 text-xs">Under 100 listeners ✓</SelectItem>
+              <SelectItem value="one" className="text-gray-500 hover:bg-gray-700 hover:bg-opacity-20 text-xs">Exactly 1 listener (no data)</SelectItem>
+              <SelectItem value="2-10" className="text-gray-500 hover:bg-gray-700 hover:bg-opacity-20 text-xs">2-10 listeners (no data)</SelectItem>
             </SelectContent>
           </Select>
         </div>

@@ -237,6 +237,14 @@ Changelog:
   - Added quick filter buttons for instant access to zero and 1-listener stations
   - Updated backend filtering logic to handle precise listener ranges and country name mapping
   - Streamlined filter interface focused on discovering the most obscure broadcasts by exact audience size
+- June 28, 2025. Performance optimization and map popup enhancements
+  - Fixed infinite re-render issue causing "Maximum update depth exceeded" errors
+  - Implemented comprehensive memory leak prevention with cleanup functions and debouncing
+  - Added map popup auto-close functionality - popups disappear when play button is clicked
+  - Optimized map performance with 1000 marker limit and throttled updates
+  - Updated map display to show "{number} stations mapped by location" without globe icon
+  - Enhanced dark mode popup styling - removed white borders, green close button with hover effects
+  - Added React Query garbage collection (5-10 minute cache limits) to prevent memory buildup
 ```
 
 ## User Preferences

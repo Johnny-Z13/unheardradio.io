@@ -204,11 +204,11 @@ export function StationMap({ onStationSelect }: StationMapProps) {
   return (
     <div className="flex-1 flex flex-col h-full">
       {/* Map Header */}
-      <div className="p-3 md:p-4 bg-radio-black border-b border-vdu-green-dim">
+      <div className="px-3 py-2 bg-radio-black border-b border-vdu-green-dim">
         <div className="flex items-center justify-between">
-          <div className="min-w-0 flex-1">
-            <h2 className="text-lg md:text-xl font-bold text-vdu-green font-serif truncate">Global Radio Map</h2>
-            <p className="text-xs md:text-sm text-gray-400 mt-1">
+          <div className="flex items-center space-x-3 min-w-0 flex-1">
+            <h2 className="text-sm md:text-base font-bold text-vdu-green font-serif">Global Radio Map</h2>
+            <span className="text-xs text-gray-400">
               {isLoadingStations ? (
                 <span className="flex items-center">
                   <Loader2 className="w-3 h-3 mr-1 animate-spin" />
@@ -217,9 +217,7 @@ export function StationMap({ onStationSelect }: StationMapProps) {
               ) : (
                 `${validStations.length} stations mapped by location`
               )}
-            </p>
-          </div>
-          <div className="flex items-center space-x-1 md:space-x-2 text-xs text-gray-400 flex-shrink-0">
+            </span>
           </div>
         </div>
       </div>

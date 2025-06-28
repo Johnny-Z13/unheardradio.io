@@ -345,12 +345,12 @@ export function FullscreenStation({ station, onClose }: FullscreenStationProps) 
             </div>
 
             {/* Historical Data */}
-            <div className="bg-radio-dark rounded-lg p-3 border border-vdu-green-dim">
-              <div className="flex items-center space-x-2 mb-2">
-                <Clock className="w-4 h-4 text-vdu-green" />
-                <h3 className="text-sm font-black text-vdu-green">HISTORY</h3>
+            <div className="bg-radio-dark rounded-lg p-2 border border-vdu-green-dim">
+              <div className="flex items-center space-x-1 mb-1">
+                <Clock className="w-3 h-3 text-vdu-green" />
+                <h3 className="text-xs font-black text-vdu-green">HISTORY</h3>
               </div>
-              <div className="space-y-1 text-xs">
+              <div className="space-y-0.5 text-xs">
                 {station.lastchangetime && (
                   <div>
                     <span className="text-vdu-green-dim font-bold">Last Updated:</span>
@@ -381,12 +381,12 @@ export function FullscreenStation({ station, onClose }: FullscreenStationProps) 
             </div>
 
             {/* Content & Tags */}
-            <div className="bg-radio-dark rounded-lg p-3 border border-vdu-green-dim">
-              <div className="flex items-center space-x-2 mb-2">
-                <Headphones className="w-4 h-4 text-vdu-green" />
-                <h3 className="text-sm font-black text-vdu-green">CONTENT</h3>
+            <div className="bg-radio-dark rounded-lg p-2 border border-vdu-green-dim">
+              <div className="flex items-center space-x-1 mb-1">
+                <Headphones className="w-3 h-3 text-vdu-green" />
+                <h3 className="text-xs font-black text-vdu-green">CONTENT</h3>
               </div>
-              <div className="space-y-1 text-xs">
+              <div className="space-y-0.5 text-xs">
                 <div>
                   <span className="text-vdu-green-dim font-bold">Primary Genre:</span>
                   <span className="ml-2 text-muted">
@@ -414,12 +414,12 @@ export function FullscreenStation({ station, onClose }: FullscreenStationProps) 
             </div>
 
             {/* Stream Details */}
-            <div className="bg-radio-dark rounded-lg p-3 border border-vdu-green-dim">
-              <div className="flex items-center space-x-2 mb-2">
-                <Signal className="w-4 h-4 text-vdu-green" />
-                <h3 className="text-sm font-black text-vdu-green">STREAM</h3>
+            <div className="bg-radio-dark rounded-lg p-2 border border-vdu-green-dim">
+              <div className="flex items-center space-x-1 mb-1">
+                <Signal className="w-3 h-3 text-vdu-green" />
+                <h3 className="text-xs font-black text-vdu-green">STREAM</h3>
               </div>
-              <div className="space-y-1 text-xs">
+              <div className="space-y-0.5 text-xs">
                 <div>
                   <span className="text-vdu-green-dim font-bold">Protocol:</span>
                   <span className="ml-2 text-muted">
@@ -447,24 +447,24 @@ export function FullscreenStation({ station, onClose }: FullscreenStationProps) 
           </div>
 
           {/* Action buttons */}
-          <div className="flex items-center justify-center space-x-3">
+          <div className="flex items-center justify-center space-x-2 mt-1">
             <button
               onClick={handleBookmark}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg border font-bold text-xs transition-all ${
+              className={`flex items-center space-x-1 px-3 py-1 rounded-lg border font-bold text-xs transition-all ${
                 isBookmarked(station.stationuuid)
                   ? 'border-vdu-green bg-vdu-green text-radio-black'
                   : 'border-vdu-green-dim text-vdu-green-dim hover:border-vdu-green hover:text-vdu-green'
               }`}
             >
-              <Bookmark className={`w-4 h-4 ${isBookmarked(station.stationuuid) ? 'fill-current' : ''}`} />
-              <span>{isBookmarked(station.stationuuid) ? 'BOOKMARKED' : 'BOOKMARK'}</span>
+              <Bookmark className={`w-3 h-3 ${isBookmarked(station.stationuuid) ? 'fill-current' : ''}`} />
+              <span>{isBookmarked(station.stationuuid) ? 'SAVED' : 'SAVE'}</span>
             </button>
             
             <button
               onClick={handleShare}
-              className="flex items-center space-x-2 px-4 py-2 rounded-lg border border-vdu-green-dim text-vdu-green-dim hover:border-vdu-green hover:text-vdu-green transition-all font-bold text-xs"
+              className="flex items-center space-x-1 px-3 py-1 rounded-lg border border-vdu-green-dim text-vdu-green-dim hover:border-vdu-green hover:text-vdu-green transition-all font-bold text-xs"
             >
-              <Share2 className="w-4 h-4" />
+              <Share2 className="w-3 h-3" />
               <span>SHARE</span>
             </button>
 
@@ -473,10 +473,10 @@ export function FullscreenStation({ station, onClose }: FullscreenStationProps) 
                 href={station.homepage}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center space-x-2 px-4 py-2 rounded-lg border border-vdu-green-dim text-vdu-green-dim hover:border-vdu-green hover:text-vdu-green transition-all font-bold text-xs"
+                className="flex items-center space-x-1 px-3 py-1 rounded-lg border border-vdu-green-dim text-vdu-green-dim hover:border-vdu-green hover:text-vdu-green transition-all font-bold text-xs"
               >
-                <Globe className="w-4 h-4" />
-                <span>WEBSITE</span>
+                <Globe className="w-3 h-3" />
+                <span>SITE</span>
               </a>
             )}
           </div>

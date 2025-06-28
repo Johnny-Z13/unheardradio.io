@@ -32,11 +32,32 @@ export function SearchSidebar({ onFiltersChange, onRefreshToDiscovery, totalStat
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
   
-  const { data: genres = [] } = useQuery<Genre[]>({
+  const { data: rawGenres = [] } = useQuery<Genre[]>({
     queryKey: ['/api/genres'],
     queryFn: () => fetchGenres(),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
+
+  // Filter and sort genres to show music categories, not technical specs
+  const genres = useMemo(() => {
+    const musicGenres = rawGenres.filter(genre => {
+      const name = genre.name.toLowerCase();
+      
+      // Include recognizable music genres and exclude technical/frequency data
+      const isMusicGenre = /^[a-zA-Z]/.test(genre.name) && // Starts with letter
+        !name.includes('fm') && !name.includes('am') && // No frequency data
+        !name.includes('kbit') && !name.includes('kbps') && // No bitrate data
+        !/^\d/.test(name) && // No numbers at start (decades/years)
+        !name.includes('http') && // No URLs
+        genre.name.length <= 20 && // Reasonable length
+        genre.stationcount >= 5; // Has decent station count
+      
+      return isMusicGenre;
+    });
+    
+    // Sort by station count descending
+    return musicGenres.sort((a, b) => b.stationcount - a.stationcount).slice(0, 50);
+  }, [rawGenres]);
 
   // Debounce search input to prevent excessive API calls
   useEffect(() => {

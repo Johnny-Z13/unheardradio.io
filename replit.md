@@ -245,6 +245,12 @@ Changelog:
   - Updated map display to show "{number} stations mapped by location" without globe icon
   - Enhanced dark mode popup styling - removed white borders, green close button with hover effects
   - Added React Query garbage collection (5-10 minute cache limits) to prevent memory buildup
+- June 28, 2025. Enhanced filter system with better genre categorization
+  - Improved genre dropdown to show actual music categories (Rock, Pop, Jazz, etc.) instead of frequency/technical data
+  - Added smart filtering to exclude frequency identifiers, bitrates, and technical specs from genre list
+  - Implemented genre sorting by station count to prioritize popular categories
+  - Added empty state messaging with helpful filter guidance when no results found
+  - Updated listener filter options with visual indicators for available data (✓ markers)
 ```
 
 ## User Preferences

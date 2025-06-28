@@ -30,18 +30,11 @@ export function DiscoveryList({ filters }: DiscoveryListProps) {
     refetchOnWindowFocus: false, // Prevent unnecessary refetches on tab switch
   });
 
-  // Reset offset when filters change (memoize filters to prevent unnecessary resets)
-  const stableFiltersString = JSON.stringify({
-    search: filters.search || '',
-    country: filters.country || '',
-    genre: filters.genre || '',
-    listenerFilter: filters.listenerFilter || 'all'
-  });
-
+  // Reset offset when filters change
   useEffect(() => {
     setOffset(0);
     setAllStations([]);
-  }, [stableFiltersString]);
+  }, [filters.search, filters.country, filters.genre, filters.listenerFilter]);
 
   // Update allStations when new data comes in
   useEffect(() => {
@@ -56,11 +49,9 @@ export function DiscoveryList({ filters }: DiscoveryListProps) {
           return [...prev, ...newStations];
         });
       }
-    } else if (offset === 0 && !isLoading && !isFetching) {
-      // Only clear if we're at offset 0 and not loading/fetching
-      setAllStations([]);
     }
-  }, [stations, offset, isLoading, isFetching]);
+    // Note: Removed the else condition that was causing infinite renders
+  }, [stations, offset]);
 
   const handleLoadMore = () => {
     setOffset(prev => prev + limit);

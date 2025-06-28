@@ -25,8 +25,10 @@ export function DiscoveryList({ filters }: DiscoveryListProps) {
   } = useQuery({
     queryKey: ['/api/stations', { ...filters, limit, offset }],
     queryFn: () => fetchStations({ ...filters, limit, offset }),
-    staleTime: 30 * 1000,
-    refetchOnWindowFocus: true,
+    staleTime: 2 * 60 * 1000, // 2 minutes cache
+    gcTime: 5 * 60 * 1000, // Garbage collect after 5 minutes
+    refetchOnWindowFocus: false, // Prevent unnecessary refetches on tab switch
+    keepPreviousData: true, // Prevent UI flashing when switching
   });
 
   // Reset offset when filters change

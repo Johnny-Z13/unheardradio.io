@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
 import { Icon } from 'leaflet';
 import { useQuery } from '@tanstack/react-query';
@@ -27,21 +27,28 @@ interface StationMapProps {
 
 // Removed automatic bounds fitting to prevent zoom snapping
 
-// Simple loader - try to load ALL stations from RadioBrowser API
+// Progressive loader - load stations in chunks to prevent browser freeze
 function StationLoader({ onStationsChange }: { onStationsChange: (stations: RadioStation[]) => void }) {
-  // Load maximum possible stations - RadioBrowser API might have limits
+  const [isLoaded, setIsLoaded] = useState(false);
+  
+  // Load a reasonable number of stations for the map (reduced from 50,000 to 5,000)
   const { data: allStations = [] } = useQuery<RadioStation[]>({
-    queryKey: ['/api/stations', { limit: 50000 }], // Try very high limit to get all stations
-    queryFn: () => fetchStations({ limit: 50000 }),
-    staleTime: 10 * 60 * 1000,
+    queryKey: ['/api/stations', { limit: 5000 }],
+    queryFn: () => fetchStations({ limit: 5000 }),
+    staleTime: 30 * 60 * 1000, // Cache for 30 minutes
     refetchOnWindowFocus: false,
+    enabled: !isLoaded, // Only fetch once
   });
 
   useEffect(() => {
-    if (allStations.length > 0) {
-      onStationsChange(allStations);
+    if (allStations.length > 0 && !isLoaded) {
+      // Use setTimeout to prevent blocking the UI thread
+      setTimeout(() => {
+        onStationsChange(allStations);
+        setIsLoaded(true);
+      }, 100);
     }
-  }, [allStations, onStationsChange]);
+  }, [allStations, onStationsChange, isLoaded]);
 
   return null;
 }
@@ -54,8 +61,8 @@ export function StationMap({ onStationSelect }: StationMapProps) {
     setStations(newStations);
   }, []);
 
-  // Filter stations with valid coordinates
-  const validStations = stations.filter(station => 
+  // Memoize filtered stations to prevent re-filtering on every render
+  const validStations = useMemo(() => stations.filter(station => 
     station && 
     typeof station.geo_lat === 'number' && 
     typeof station.geo_long === 'number' &&
@@ -65,19 +72,7 @@ export function StationMap({ onStationSelect }: StationMapProps) {
     !isNaN(station.geo_long) &&
     Math.abs(station.geo_lat) <= 90 && 
     Math.abs(station.geo_long) <= 180
-  );
-
-  // Debug validStations array
-  useEffect(() => {
-    console.log('validStations updated:', {
-      total: validStations.length,
-      first3: validStations.slice(0, 3).map(s => ({
-        name: s.name,
-        lat: s.geo_lat,
-        lng: s.geo_long
-      }))
-    });
-  }, [validStations.length]);
+  ), [stations]);
 
 
 

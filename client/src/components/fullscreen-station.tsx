@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Minimize2, Share2, Bookmark, Radio, Signal, Globe, Clock, Users, Headphones } from 'lucide-react';
+import { Minimize2, Share2, Bookmark, Radio, Signal, Globe, Clock, Users, Headphones } from 'lucide-react';
 import { RadioStation } from '@/types/radio';
 import { useAudioStore } from '@/lib/audio-store';
 import { useBookmarks } from '@/hooks/use-bookmarks';
@@ -24,7 +24,6 @@ export function FullscreenStation({ station, onClose }: FullscreenStationProps) 
   
   const { isBookmarked, toggleBookmark } = useBookmarks();
   const { toast } = useToast();
-  const [showVolumeViz, setShowVolumeViz] = useState(true);
 
   const isCurrentStation = currentStation?.stationuuid === station.stationuuid;
   const isCurrentlyPlaying = isCurrentStation && isPlaying;
@@ -86,7 +85,7 @@ export function FullscreenStation({ station, onClose }: FullscreenStationProps) 
   };
 
   return (
-    <div className="fixed inset-0 bg-radio-black z-[9999] overflow-hidden">
+    <div className="fixed inset-0 bg-radio-black z-[9999] overflow-hidden w-screen h-screen">
       {/* Animated background grid */}
       <div className="absolute inset-0 opacity-10">
         <div 
@@ -123,29 +122,17 @@ export function FullscreenStation({ station, onClose }: FullscreenStationProps) 
         
         <div className="flex items-center space-x-4">
           <button
-            onClick={() => setShowVolumeViz(!showVolumeViz)}
-            className="px-4 py-2 bg-vdu-green-dim text-radio-black rounded-lg font-bold text-sm hover:bg-vdu-green transition-colors"
-          >
-            {showVolumeViz ? 'HIDE VIZ' : 'SHOW VIZ'}
-          </button>
-          <button
             onClick={onClose}
             className="w-12 h-12 bg-radio-dark border-2 border-vdu-green-dim text-vdu-green hover:border-vdu-green hover:text-vdu-green-bright rounded-lg flex items-center justify-center transition-colors"
           >
             <Minimize2 className="w-6 h-6" />
           </button>
-          <button
-            onClick={onClose}
-            className="w-12 h-12 bg-radio-dark border-2 border-vdu-green-dim text-vdu-green hover:border-vdu-green hover:text-vdu-green-bright rounded-lg flex items-center justify-center transition-colors"
-          >
-            <X className="w-6 h-6" />
-          </button>
         </div>
       </div>
 
       {/* Main content */}
-      <div className="relative z-10 flex-1 p-4 overflow-y-auto">
-        <div className="max-w-6xl mx-auto">
+      <div className="relative z-10 flex-1 p-4 overflow-y-auto overflow-x-hidden">
+        <div className="max-w-6xl mx-auto w-full">
           {/* Station info header */}
           <div className="text-center mb-6">
             <h2 className="text-3xl md:text-5xl font-black text-vdu-green tracking-tight mb-2 uppercase">
@@ -175,14 +162,12 @@ export function FullscreenStation({ station, onClose }: FullscreenStationProps) 
           </div>
 
           {/* Enhanced Audio Visualizer */}
-          {showVolumeViz && (
-            <div className="mb-6">
-              <AudioVisualizer height={48} barCount={60} compact={false} />
-            </div>
-          )}
+          <div className="mb-6">
+            <AudioVisualizer height={48} barCount={60} compact={false} />
+          </div>
 
           {/* Comprehensive metadata grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4 w-full">
             {/* Location & Broadcasting */}
             <div className="bg-radio-dark rounded-lg p-3 border border-vdu-green-dim">
               <div className="flex items-center space-x-2 mb-2">

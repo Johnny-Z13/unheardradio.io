@@ -25,8 +25,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       for (const server of servers) {
         try {
-          // Build API URL
-          let apiUrl = `${server}?limit=${limit}&offset=${offset}&order=clickcount&reverse=false`;
+          // Build API URL - adjust ordering based on listener filter
+          let apiUrl;
+          if (listenerFilter === 'high-to-low') {
+            apiUrl = `${server}?limit=${limit}&offset=${offset}&order=clickcount&reverse=true`;
+          } else if (listenerFilter === 'low-to-high' || listenerFilter === 'zero') {
+            apiUrl = `${server}?limit=${limit}&offset=${offset}&order=clickcount&reverse=false`;
+          } else {
+            // For other filters, get a broader range then filter
+            apiUrl = `${server}?limit=${Math.max(parseInt(limit as string) * 3, 100)}&offset=${offset}&order=random`;
+          }
           
           if (country) apiUrl += `&country=${encodeURIComponent(country as string)}`;
           if (genre) apiUrl += `&tag=${encodeURIComponent(genre as string)}`;
@@ -69,9 +77,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
               filteredStations = stations.filter((station: any) => {
                 const clicks = parseInt(station.clickcount) || 0;
                 return clicks > 0;
+              }).sort((a: any, b: any) => {
+                const aClicks = parseInt(a.clickcount) || 0;
+                const bClicks = parseInt(b.clickcount) || 0;
+                return aClicks - bClicks; // Low to high for obscurity focus
               });
               break;
             case 'high-to-low':
+              // Already sorted by API call, but ensure proper order
               filteredStations = [...stations].sort((a: any, b: any) => {
                 const aClicks = parseInt(a.clickcount) || 0;
                 const bClicks = parseInt(b.clickcount) || 0;
@@ -79,6 +92,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               });
               break;
             case 'low-to-high':
+              // Already sorted by API call, but ensure proper order
               filteredStations = [...stations].sort((a: any, b: any) => {
                 const aClicks = parseInt(a.clickcount) || 0;
                 const bClicks = parseInt(b.clickcount) || 0;
@@ -102,7 +116,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
         
-        const sortedStations = filteredStations;
+        // Trim to requested limit after filtering
+        const sortedStations = filteredStations.slice(0, parseInt(limit as string) || 50);
         
         res.json(sortedStations);
         return;

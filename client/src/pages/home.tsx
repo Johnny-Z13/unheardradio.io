@@ -86,17 +86,12 @@ export default function Home() {
 
   const totalStations = 47283;
 
-  // Reset filters when switching to discover tab (only if filters are set)
-  useEffect(() => {
-    if (activeTab === 'discover' && Object.keys(filters).length > 0) {
-      setFilters({});
-    }
-  }, [activeTab]);
-
   // Handle refresh from filters to discovery feed
   const handleRefreshToDiscovery = (appliedFilters: SearchFilters) => {
+    console.log('Home: received filters from search sidebar:', appliedFilters);
     setFilters(appliedFilters);
     setActiveTab('discover');
+    console.log('Home: switched to discover tab with filters');
   };
 
   const tabs = [

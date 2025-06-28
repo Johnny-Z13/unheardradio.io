@@ -69,6 +69,8 @@ export function SearchSidebar({ onFiltersChange, onRefreshToDiscovery, totalStat
       limit: 50,
       offset: 0,
     };
+    console.log('SearchSidebar applying filters:', currentFilters);
+    console.log('Raw filter values:', { search, country, genre, listenerFilter });
     onRefreshToDiscovery(currentFilters);
   };
 

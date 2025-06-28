@@ -24,7 +24,10 @@ export function DiscoveryList({ filters }: DiscoveryListProps) {
     isFetching,
   } = useQuery({
     queryKey: ['/api/stations', { ...filters, limit, offset }],
-    queryFn: () => fetchStations({ ...filters, limit, offset }),
+    queryFn: () => {
+      console.log('DiscoveryList fetchStations with filters:', { ...filters, limit, offset });
+      return fetchStations({ ...filters, limit, offset });
+    },
     staleTime: 2 * 60 * 1000, // 2 minutes cache
     gcTime: 5 * 60 * 1000, // Garbage collect after 5 minutes
     refetchOnWindowFocus: false, // Prevent unnecessary refetches on tab switch

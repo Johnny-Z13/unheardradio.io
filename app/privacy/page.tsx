@@ -87,8 +87,8 @@ export default function Privacy() {
               <div className="space-y-2">
                 <p>If you have any questions about this Privacy Policy, feel free to contact us at:</p>
                 <div className="text-vdu-green-dim">
-                  <p>📧 <strong>hello@unheardradio.io</strong></p>
-                  <p>🌐 <a href="https://unheardradio.io" className="text-vdu-green hover:text-vdu-green-dim underline">https://unheardradio.io</a></p>
+                  <p><strong>hello@z13labs.com</strong></p>
+                  <p><a href="https://unheardradio.io" className="text-vdu-green hover:text-vdu-green-dim underline">https://unheardradio.io</a></p>
                 </div>
               </div>
             </div>

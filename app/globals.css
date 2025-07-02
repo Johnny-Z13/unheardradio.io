@@ -1,0 +1,93 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 0 0% 0%;
+  --foreground: 120 100% 50%;
+  --card: 0 0% 5%;
+  --card-foreground: 120 100% 50%;
+  --popover: 0 0% 5%;
+  --popover-foreground: 120 100% 50%;
+  --primary: 120 100% 50%;
+  --primary-foreground: 0 0% 0%;
+  --secondary: 0 0% 10%;
+  --secondary-foreground: 120 100% 50%;
+  --muted: 0 0% 15%;
+  --muted-foreground: 120 50% 70%;
+  --accent: 180 100% 70%;
+  --accent-foreground: 0 0% 0%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 0 0% 15%;
+  --input: 0 0% 15%;
+  --ring: 120 100% 50%;
+  --radius: 0.5rem;
+  --vdu-green: 120 100% 50%;
+  --vdu-green-dim: 120 100% 35%;
+  --vdu-glow: 120 100% 50%;
+}
+
+* {
+  border-color: hsl(var(--border));
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.vdu-green {
+  color: hsl(var(--vdu-green));
+}
+
+.vdu-green-dim {
+  color: hsl(var(--vdu-green-dim));
+}
+
+.text-vdu-green {
+  color: hsl(var(--vdu-green));
+}
+
+.bg-vdu-green {
+  background-color: hsl(var(--vdu-green));
+}
+
+.border-vdu-green {
+  border-color: hsl(var(--vdu-green));
+}
+
+.glow {
+  text-shadow: 0 0 10px hsl(var(--vdu-glow));
+}
+
+/* Mobile-first responsive utilities */
+@media (max-width: 640px) {
+  .mobile-padding {
+    padding: 0.75rem;
+  }
+  
+  .mobile-text {
+    font-size: 0.875rem;
+  }
+}
+
+/* Custom scrollbar for VDU aesthetic */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--vdu-green));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--vdu-green-dim));
+}

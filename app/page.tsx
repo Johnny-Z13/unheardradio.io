@@ -84,13 +84,7 @@ export default function Home() {
             return (
               <button
                 key={tab.id}
-                onClick={() => {
-                  if (tab.id === 'about') {
-                    window.location.href = '/about'
-                  } else {
-                    setActiveTab(tab.id)
-                  }
-                }}
+                onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-3 border-r border-vdu-green/20 transition-colors font-mono text-xs sm:text-sm whitespace-nowrap ${
                   activeTab === tab.id
                     ? 'bg-vdu-green/10 text-vdu-green glow'
@@ -134,6 +128,52 @@ export default function Home() {
           
           {activeTab === 'map' && (
             <StationMap />
+          )}
+          
+          {activeTab === 'about' && (
+            <div className="flex-1 p-6 overflow-y-auto">
+              <div className="max-w-2xl mx-auto space-y-8">
+                <div>
+                  <h1 className="text-3xl font-bold mb-4 glow">UNHEARD RADIO</h1>
+                  <p className="text-xl text-vdu-green-dim mb-6">
+                    your portal to the strange side of sound
+                  </p>
+                </div>
+                
+                <div className="space-y-6">
+                  <p className="text-lg leading-relaxed">
+                    Welcome to the underground. While everyone else feeds you the same popular frequencies, 
+                    we dig deeper into the weird, wonderful, and completely overlooked corners of global radio.
+                  </p>
+                  
+                  <p className="leading-relaxed">
+                    Our reverse-algorithm doesn't chase listeners—it finds the stations nobody else bothers with. 
+                    The glitchy transmissions. The ghost signals. The offbeat gems broadcasting to empty rooms 
+                    at 3 AM.
+                  </p>
+                  
+                  <p className="leading-relaxed">
+                    This is anti-algorithm radio. Always live. Never normal.
+                  </p>
+                  
+                  <p className="leading-relaxed">
+                    Every station here is real, broadcasting right now from some forgotten corner of the world. 
+                    No playlists. No recommendations. Just pure, unfiltered discovery of sounds you never 
+                    knew existed.
+                  </p>
+                </div>
+                
+                <div className="border-t border-vdu-green/20 pt-6 mt-8">
+                  <div className="text-sm text-vdu-green-dim space-y-2">
+                    <p>Built by Z13labs</p>
+                    <p>Contact: hello@z13labs.com</p>
+                    <a href="/privacy" className="block text-vdu-green hover:text-vdu-green-dim underline">
+                      Privacy Policy
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
           
           {activeTab === 'search' && (

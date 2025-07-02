@@ -1,0 +1,56 @@
+[09:02:46.653] Running build in Washington, D.C., USA (East) – iad1
+[09:02:46.653] Build machine configuration: 2 cores, 8 GB
+[09:02:46.668] Cloning github.com/Johnny-Z13/Unheardradio.io (Branch: main, Commit: 6104f25)
+[09:02:46.869] Previous build caches not available
+[09:02:47.869] Cloning completed: 1.201s
+[09:02:48.172] Running "vercel build"
+[09:02:48.617] Vercel CLI 43.3.0
+[09:02:48.980] Running "install" command: `npm install`...
+[09:02:54.090] npm warn deprecated @esbuild-kit/esm-loader@2.6.5: Merged into tsx: https://tsx.is
+[09:02:54.130] npm warn deprecated @esbuild-kit/core-utils@3.3.2: Merged into tsx: https://tsx.is
+[09:03:07.533] 
+[09:03:07.534] added 526 packages, and audited 527 packages in 18s
+[09:03:07.535] 
+[09:03:07.535] 72 packages are looking for funding
+[09:03:07.535]   run `npm fund` for details
+[09:03:07.585] 
+[09:03:07.585] 9 vulnerabilities (1 low, 8 moderate)
+[09:03:07.585] 
+[09:03:07.585] To address issues that do not require attention, run:
+[09:03:07.585]   npm audit fix
+[09:03:07.586] 
+[09:03:07.586] To address all issues (including breaking changes), run:
+[09:03:07.586]   npm audit fix --force
+[09:03:07.586] 
+[09:03:07.586] Run `npm audit` for details.
+[09:03:07.854] Detected Next.js version: 15.3.4
+[09:03:07.857] Running "npm run build"
+[09:03:08.223] 
+[09:03:08.223] > rest-express@1.0.0 build
+[09:03:08.224] > vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+[09:03:08.224] 
+[09:03:09.101] [36mvite v5.4.19 [32mbuilding for production...[36m[39m
+[09:03:09.214] transforming...
+[09:03:09.486] Browserslist: browsers data (caniuse-lite) is 9 months old. Please run:
+[09:03:09.487]   npx update-browserslist-db@latest
+[09:03:09.487]   Why you should do it regularly: https://github.com/browserslist/update-db#readme
+[09:03:14.058] [32m✓[39m 1766 modules transformed.
+[09:03:14.387] rendering chunks...
+[09:03:14.396] computing gzip size...
+[09:03:14.415] [2m../dist/public/[22m[32mindex.html                 [39m[1m[2m  0.63 kB[22m[1m[22m[2m │ gzip:   0.38 kB[22m
+[09:03:14.416] [2m../dist/public/[22m[2massets/[22m[35mindex-Dy1PQy_j.css  [39m[1m[2m 81.42 kB[22m[1m[22m[2m │ gzip:  18.31 kB[22m
+[09:03:14.416] [2m../dist/public/[22m[2massets/[22m[36mindex-DshdVdtZ.js   [39m[1m[33m531.28 kB[39m[22m[2m │ gzip: 162.27 kB[22m
+[09:03:14.417] [33m
+[09:03:14.417] (!) Some chunks are larger than 500 kB after minification. Consider:
+[09:03:14.417] - Using dynamic import() to code-split the application
+[09:03:14.418] - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+[09:03:14.418] - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[39m
+[09:03:14.418] [32m✓ built in 5.29s[39m
+[09:03:14.453] 
+[09:03:14.453]   dist/index.js  16.6kb
+[09:03:14.453] 
+[09:03:14.453] ⚡ Done in 6ms
+[09:03:14.468] Error: The file "/vercel/path0/.next/routes-manifest.json" couldn't be found. This is often caused by a misconfiguration in your project.
+[09:03:14.468] Learn More: https://err.sh/vercel/vercel/now-next-routes-manifest
+[09:03:14.687] 
+[09:03:17.174] Exiting build container

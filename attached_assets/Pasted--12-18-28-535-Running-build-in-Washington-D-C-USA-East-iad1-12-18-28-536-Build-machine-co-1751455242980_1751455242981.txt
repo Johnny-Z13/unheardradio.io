@@ -1,0 +1,51 @@
+[12:18:28.535] Running build in Washington, D.C., USA (East) – iad1
+[12:18:28.536] Build machine configuration: 2 cores, 8 GB
+[12:18:28.586] Cloning github.com/Johnny-Z13/Unheardradio.io (Branch: main, Commit: 15a2684)
+[12:18:28.804] Previous build caches not available
+[12:18:32.382] Cloning completed: 3.796s
+[12:18:32.861] Running "vercel build"
+[12:18:33.429] Vercel CLI 43.3.0
+[12:18:34.671] WARNING: You should not upload the `.next` directory.
+[12:18:34.677] Running "install" command: `npm install`...
+[12:18:53.040] 
+[12:18:53.040] added 311 packages, and audited 312 packages in 18s
+[12:18:53.041] 
+[12:18:53.041] 51 packages are looking for funding
+[12:18:53.041]   run `npm fund` for details
+[12:18:53.045] 
+[12:18:53.045] 1 low severity vulnerability
+[12:18:53.045] 
+[12:18:53.045] To address all issues, run:
+[12:18:53.045]   npm audit fix
+[12:18:53.045] 
+[12:18:53.045] Run `npm audit` for details.
+[12:18:53.123] Detected Next.js version: 15.3.4
+[12:18:53.124] Running "npm run build"
+[12:18:53.273] 
+[12:18:53.274] > unheard-radio@1.0.0 build
+[12:18:53.274] > next build
+[12:18:53.274] 
+[12:18:54.145]    ▲ Next.js 15.3.4
+[12:18:54.145] 
+[12:18:54.236]    Creating an optimized production build ...
+[12:19:06.214] Browserslist: browsers data (caniuse-lite) is 9 months old. Please run:
+[12:19:06.215]   npx update-browserslist-db@latest
+[12:19:06.215]   Why you should do it regularly: https://github.com/browserslist/update-db#readme
+[12:19:12.524]  ✓ Compiled successfully in 14.0s
+[12:19:12.530]    Linting and checking validity of types ...
+[12:19:24.240] Failed to compile.
+[12:19:24.240] 
+[12:19:24.241] ./components/station-map-broken.tsx:57:10
+[12:19:24.241] Type error: Duplicate function implementation.
+[12:19:24.241] 
+[12:19:24.241] [0m [90m 55 |[39m[0m
+[12:19:24.241] [0m [90m 56 |[39m [90m// Separate component for station markers to handle popup closing[39m[0m
+[12:19:24.241] [0m[31m[1m>[22m[39m[90m 57 |[39m [36mfunction[39m [33mStationMarker[39m({ [0m
+[12:19:24.242] [0m [90m    |[39m          [31m[1m^[22m[39m[0m
+[12:19:24.242] [0m [90m 58 |[39m   station[33m,[39m [0m
+[12:19:24.242] [0m [90m 59 |[39m   position[33m,[39m [0m
+[12:19:24.242] [0m [90m 60 |[39m   obscurityBadge[33m,[39m [0m
+[12:19:24.273] Next.js build worker exited with code: 1 and signal: null
+[12:19:24.297] Error: Command "npm run build" exited with 1
+[12:19:24.554] 
+[12:19:27.895] Exiting build container

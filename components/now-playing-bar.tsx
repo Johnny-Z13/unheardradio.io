@@ -1,92 +1,85 @@
-import { Play, Pause, Bookmark, Maximize2 } from 'lucide-react';
 import { useAudioStore } from '@/lib/audio-store';
 import { useBookmarks } from '@/hooks/use-bookmarks';
 import { AudioVisualizer } from '@/components/audio-visualizer';
 import { ShareMenu } from './share-menu';
+import { Stop, Play, Log, LogOn, Send, Inspect } from './icons';
+import { getBand, getStationId, getCoords } from '@/lib/station-format';
 
 export function NowPlayingBar({ onMaximize }: { onMaximize?: () => void }) {
   const { currentStation, isPlaying, togglePlay, error } = useAudioStore();
   const { isBookmarked, toggleBookmark } = useBookmarks();
 
   if (!currentStation) return null;
-
-  const handleBookmark = () => {
-    toggleBookmark(currentStation);
-  };
+  const bookmarked = isBookmarked(currentStation.stationuuid);
 
   return (
-    <div className="border-t border-vdu-green-dim bg-black p-2 md:p-3 sticky bottom-0 z-30">
-      <div className="flex items-center justify-between space-x-3">
-        <div className="flex items-center space-x-2 min-w-0 flex-1">
-          <div className="w-8 h-8 bg-vdu-green text-radio-black rounded-lg flex items-center justify-center font-black text-sm flex-shrink-0">
-            S
-          </div>
-          <div className="min-w-0 flex-1">
-            <h4 className="font-black text-vdu-green text-sm truncate tracking-tight">
-              {currentStation.name.toUpperCase()}
-            </h4>
-            <div className="flex items-center space-x-2">
-              <div className="inline-flex items-center space-x-1 px-2 py-0.5 bg-accent-cyan text-radio-black rounded-full text-xs font-black">
-                <div className="w-1 h-1 bg-radio-black rounded-full animate-pulse"></div>
-                <span>LIVE</span>
-              </div>
-              <span className="text-xs text-muted truncate">
-                {currentStation.country} • {currentStation.clickcount || 0} listeners
-              </span>
-            </div>
-            {error && (
-              <p className="text-xs text-accent-cyan truncate font-medium">⚠ {error}</p>
-            )}
-          </div>
+    <div
+      className="border-t border-vdu-green-dim bg-radio-panel px-3 sm:px-4 py-2 sm:py-3 grid items-center gap-3 sm:gap-4"
+      style={{
+        gridTemplateColumns: 'minmax(0, 1fr) auto auto',
+        boxShadow: '0 -4px 20px hsla(120, 100%, 40%, 0.08)',
+      }}
+    >
+      {/* Info + trace stack */}
+      <div className="min-w-0">
+        <div className="flex items-center gap-2 text-[10px] sm:text-[11px] tracking-[0.08em] uppercase text-vdu-green-dim mb-0.5">
+          <span>► RX</span>
+          <span className="text-accent-cyan">ID&nbsp;{getStationId(currentStation)}</span>
+          <span className="hidden sm:inline">·&nbsp;BAND&nbsp;{getBand(currentStation)}</span>
+          <span className="hidden md:inline">·&nbsp;{getCoords(currentStation)}</span>
+          <span className="ml-auto inline-flex items-center gap-1.5 text-accent-cyan">
+            <span className={`w-1.5 h-1.5 bg-accent-cyan ${isPlaying ? 'animate-pulse' : 'opacity-30'}`} />
+            {isPlaying ? 'LIVE' : 'PAUSED'}
+          </span>
         </div>
-
-        {/* Compact Controls */}
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={togglePlay}
-            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
-              isPlaying
-                ? 'bg-accent-cyan text-radio-black'
-                : 'bg-radio-dark border border-vdu-green text-vdu-green hover:bg-vdu-green hover:text-radio-black'
-            }`}
-          >
-            {isPlaying ? (
-              <Pause className="w-4 h-4" />
-            ) : (
-              <Play className="w-4 h-4 ml-0.5" />
-            )}
-          </button>
-
-          <button
-            onClick={handleBookmark}
-            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
-              isBookmarked(currentStation.stationuuid)
-                ? 'bg-vdu-green text-radio-black'
-                : 'border border-vdu-green-dim text-vdu-green-dim hover:border-vdu-green hover:text-vdu-green'
-            }`}
-          >
-            <Bookmark className={`w-3 h-3 ${isBookmarked(currentStation.stationuuid) ? 'fill-current' : ''}`} />
-          </button>
-
-          <ShareMenu
-            station={currentStation}
-            iconClassName="w-8 h-8 rounded-lg border border-vdu-green-dim text-vdu-green-dim hover:border-vdu-green hover:text-vdu-green transition-all flex items-center justify-center"
-          />
-
-          {onMaximize && (
-            <button
-              onClick={onMaximize}
-              className="w-8 h-8 rounded-lg border border-vdu-green-dim text-vdu-green-dim hover:border-vdu-green hover:text-vdu-green transition-all flex items-center justify-center"
-            >
-              <Maximize2 className="w-3 h-3" />
-            </button>
-          )}
+        <div className="text-vdu-green-bright font-bold text-[13px] sm:text-sm uppercase tracking-wide truncate phosphor">
+          {currentStation.name}
         </div>
+        {error && (
+          <p className="text-[10px] text-accent-cyan truncate mt-0.5">⚠ {error}</p>
+        )}
       </div>
-      
-      {/* Compact Audio Visualizer */}
-      <div className="mt-2">
-        <AudioVisualizer height={16} barCount={50} compact={true} />
+
+      {/* Visualizer (hidden on the smallest screens to keep the strip glanceable) */}
+      <div className="hidden sm:block w-[180px] md:w-[260px] lg:w-[300px]">
+        <AudioVisualizer mode="trace" height={28} />
+      </div>
+
+      {/* Controls */}
+      <div className="flex gap-1.5">
+        <button
+          onClick={togglePlay}
+          aria-label={isPlaying ? 'Stop' : 'Play'}
+          className="w-8 h-8 bg-vdu-green-bright text-radio-black border border-vdu-green-bright flex items-center justify-center"
+          style={{ boxShadow: '0 0 8px hsla(120,100%,55%,0.4)' }}
+        >
+          {isPlaying ? <Stop size={12} /> : <Play size={12} />}
+        </button>
+        <button
+          onClick={() => toggleBookmark(currentStation)}
+          aria-label={bookmarked ? 'Remove from log' : 'Log contact'}
+          className={`w-8 h-8 border flex items-center justify-center transition-colors ${
+            bookmarked
+              ? 'border-vdu-green text-vdu-green-bright bg-vdu-green/10'
+              : 'border-vdu-green-dim text-vdu-green-dim hover:text-vdu-green hover:border-vdu-green'
+          }`}
+        >
+          {bookmarked ? <LogOn size={12} /> : <Log size={12} />}
+        </button>
+        <ShareMenu
+          station={currentStation}
+          iconClassName="w-8 h-8 border border-vdu-green-dim text-vdu-green-dim hover:text-vdu-green hover:border-vdu-green flex items-center justify-center transition-colors"
+          trigger={<Send size={12} />}
+        />
+        {onMaximize && (
+          <button
+            onClick={onMaximize}
+            aria-label="Inspect"
+            className="w-8 h-8 border border-vdu-green-dim text-vdu-green-dim hover:text-vdu-green hover:border-vdu-green flex items-center justify-center transition-colors"
+          >
+            <Inspect size={12} />
+          </button>
+        )}
       </div>
     </div>
   );

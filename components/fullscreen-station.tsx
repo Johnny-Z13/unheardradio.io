@@ -128,7 +128,7 @@ export function FullscreenStation({ station, onClose }: FullscreenStationProps) 
 
           {/* Enhanced Audio Visualizer */}
           <div className="mb-3">
-            <AudioVisualizer height={32} barCount={40} compact={true} />
+            <AudioVisualizer mode="waterfall" height={32} />
           </div>
 
           {/* Comprehensive metadata grid */}

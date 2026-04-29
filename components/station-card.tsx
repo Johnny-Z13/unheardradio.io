@@ -1,8 +1,9 @@
-import { Play, Pause, Bookmark, Maximize2, MapPin } from 'lucide-react';
 import { RadioStation } from '@/types/radio';
 import { useAudioStore } from '@/lib/audio-store';
 import { useBookmarks } from '@/hooks/use-bookmarks';
 import { ShareMenu } from './share-menu';
+import { Play, Stop, Log, LogOn, Inspect, Send } from './icons';
+import { getBand, getStationId, getCoords, getOrigin, getRate, getUptime } from '@/lib/station-format';
 
 interface StationCardProps {
   station: RadioStation;
@@ -13,101 +14,111 @@ export function StationCard({ station, onMaximize }: StationCardProps) {
   const { playStation, currentStation, isPlaying, isLoading } = useAudioStore();
   const { isBookmarked, toggleBookmark } = useBookmarks();
 
-  const isCurrentStation = currentStation?.stationuuid === station.stationuuid;
-  const isCurrentlyPlaying = isCurrentStation && isPlaying;
-  const isCurrentlyLoading = isCurrentStation && isLoading;
+  const isCurrent = currentStation?.stationuuid === station.stationuuid;
+  const isLive = isCurrent && isPlaying;
+  const isBuffering = isCurrent && isLoading;
+  const bookmarked = isBookmarked(station.stationuuid);
 
-  const handlePlay = () => {
-    playStation(station);
-  };
-  
   const handleBookmark = (e: React.MouseEvent) => {
     e.stopPropagation();
     toggleBookmark(station);
   };
 
   return (
-    <div className="bg-radio-dark rounded-xl p-3 md:p-4 hover:bg-opacity-80 transition-all group relative overflow-hidden border border-vdu-green-dim hover:border-vdu-green">
-      {/* Background pattern overlay */}
-      <div className="absolute inset-0 opacity-5">
-        <div className="w-full h-full" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2300ff00' fill-opacity='0.1'%3E%3Ccircle cx='7' cy='7' r='1'/%3E%3Ccircle cx='37' cy='17' r='1'/%3E%3Ccircle cx='47' cy='37' r='1'/%3E%3Ccircle cx='17' cy='47' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-        }} />
+    <div
+      className={`bg-radio-dark border border-hairline border-l-2 p-3 sm:p-4 mb-2.5 transition-colors ${
+        isCurrent
+          ? 'border-l-vdu-green-bright'
+          : 'border-l-vdu-green-dim hover:border-l-vdu-green'
+      }`}
+      style={isCurrent ? {
+        background: 'linear-gradient(90deg, hsla(120, 80%, 35%, 0.08) 0%, transparent 60%)',
+        boxShadow: 'inset 2px 0 12px hsla(120, 100%, 50%, 0.10)',
+      } : undefined}
+    >
+      {/* Row 1: callsign + top metadata */}
+      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-2.5">
+        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+          <h3 className={`font-bold text-sm sm:text-[15px] uppercase tracking-wide truncate ${isCurrent ? 'text-vdu-green-bright phosphor' : 'text-vdu-green-bright'}`}>
+            {station.name}
+          </h3>
+          {isLive && (
+            <span className="inline-flex items-center gap-1.5 border border-accent-cyan/40 bg-accent-cyan/10 px-2 py-0.5 text-[10px] tracking-[0.15em] uppercase text-accent-cyan whitespace-nowrap">
+              <span className="w-1.5 h-1.5 bg-accent-cyan animate-pulse" />
+              RX&nbsp;ACTIVE
+            </span>
+          )}
+        </div>
+        <div className="text-[10px] sm:text-[11px] tracking-[0.08em] uppercase text-vdu-green-dim text-right ml-auto whitespace-nowrap">
+          BAND&nbsp;{getBand(station)}
+          <span className="opacity-50 px-1.5">·</span>
+          ID&nbsp;{getStationId(station)}
+          <span className="hidden sm:inline">
+            <span className="opacity-50 px-1.5">·</span>
+            {getCoords(station)}
+          </span>
+        </div>
       </div>
-      
-      <div className="relative z-10">
-        {/* Header with play button and title */}
-        <div className="flex items-start justify-between mb-2">
-          <div className="flex items-center space-x-2 md:space-x-3 flex-1 min-w-0">
-            <button
-              onClick={handlePlay}
-              disabled={isCurrentlyLoading}
-              className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex-shrink-0 flex items-center justify-center transition-all ${
-                isCurrentlyPlaying
-                  ? 'bg-accent-cyan text-radio-black'
-                  : 'bg-radio-dark border-2 border-vdu-green text-vdu-green hover:bg-vdu-green hover:text-radio-black'
-              } ${isCurrentlyLoading ? 'animate-pulse' : ''}`}
-            >
-              {isCurrentlyLoading ? (
-                <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
-              ) : isCurrentlyPlaying ? (
-                <Pause className="w-3 h-3 md:w-4 md:h-4" />
-              ) : (
-                <Play className="w-3 h-3 md:w-4 md:h-4 ml-1" />
-              )}
-            </button>
-            
-            <div className="flex-1 min-w-0">
-              <h3 className="text-sm md:text-base font-black text-vdu-green tracking-tight truncate mb-1">
-                {station.name.toUpperCase()}
-              </h3>
-              <p className="text-xs md:text-sm text-muted font-medium flex items-center">
-                <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
-                {station.country}
-              </p>
-            </div>
-          </div>
-          
-          <div className="flex items-center space-x-2 flex-shrink-0">
-            {onMaximize && (
-              <button
-                onClick={onMaximize}
-                className="w-7 h-7 rounded-full border border-vdu-green-dim text-vdu-green-dim hover:border-vdu-green hover:text-vdu-green transition-all flex items-center justify-center"
-                title="Fullscreen view"
-              >
-                <Maximize2 className="w-3 h-3" />
-              </button>
-            )}
-            
-            <button
-              onClick={handleBookmark}
-              className={`w-7 h-7 rounded-full border flex items-center justify-center transition-all ${
-                isBookmarked(station.stationuuid)
-                  ? 'border-vdu-green bg-vdu-green text-radio-black'
-                  : 'border-vdu-green-dim text-vdu-green-dim hover:border-vdu-green hover:text-vdu-green'
-              }`}
-            >
-              <Bookmark className={`w-4 h-4 ${isBookmarked(station.stationuuid) ? 'fill-current' : ''}`} />
-            </button>
-            
-            <ShareMenu station={station} />
-          </div>
+
+      {/* Row 2: play + data + actions */}
+      <div className="grid grid-cols-[auto_1fr_auto] gap-3 sm:gap-4 items-center">
+        <button
+          onClick={() => playStation(station)}
+          disabled={isBuffering}
+          aria-label={isLive ? 'Stop' : 'Tune in'}
+          className={`w-9 h-9 sm:w-10 sm:h-10 border flex items-center justify-center transition-colors ${
+            isLive
+              ? 'bg-vdu-green-bright text-radio-black border-vdu-green-bright'
+              : 'border-vdu-green-dim text-vdu-green hover:border-vdu-green-bright hover:text-vdu-green-bright'
+          } ${isBuffering ? 'animate-pulse' : ''}`}
+          style={isLive ? { boxShadow: '0 0 10px hsla(120,100%,55%,0.4)' } : undefined}
+        >
+          {isBuffering ? (
+            <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+          ) : isLive ? (
+            <Stop size={14} />
+          ) : (
+            <Play size={14} />
+          )}
+        </button>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 sm:gap-x-5 gap-y-0.5 text-[11px] tracking-[0.04em] min-w-0">
+          <span className="text-vdu-green-dim uppercase">Origin</span>
+          <span className="text-vdu-green-dim uppercase">RX</span>
+          <span className="text-vdu-green-dim uppercase hidden sm:inline">Rate</span>
+          <span className="text-vdu-green-dim uppercase hidden sm:inline">Uptime</span>
+          <span className="text-vdu-green truncate">{getOrigin(station)}</span>
+          <span className="text-vdu-green">{station.clickcount || 0}</span>
+          <span className="text-vdu-green hidden sm:inline">{getRate(station)}</span>
+          <span className="text-vdu-green hidden sm:inline">{getUptime(station)}</span>
         </div>
 
-        {/* Now Playing indicator */}
-        {isCurrentStation && (
-          <div className="mb-2">
-            <div className="inline-flex items-center space-x-1 px-2 py-1 bg-accent-cyan text-radio-black rounded-full text-xs font-black">
-              <div className="w-1 h-1 bg-radio-black rounded-full animate-pulse" />
-              <span>LIVE</span>
-            </div>
-          </div>
-        )}
-
-        {/* Minimal metadata */}
-        <div className="flex items-center justify-between text-xs text-muted">
-          <span>{station.bitrate ? `${station.bitrate} kbps` : 'Unknown'}</span>
-          <span>{station.clickcount || 0} listeners</span>
+        <div className="flex gap-1.5 flex-shrink-0">
+          <button
+            onClick={handleBookmark}
+            aria-label={bookmarked ? 'Remove from log' : 'Log contact'}
+            className={`w-7 h-7 border flex items-center justify-center transition-colors ${
+              bookmarked
+                ? 'border-vdu-green text-vdu-green-bright bg-vdu-green/10'
+                : 'border-hairline text-vdu-green-dim hover:text-vdu-green hover:border-vdu-green-dim'
+            }`}
+          >
+            {bookmarked ? <LogOn size={12} /> : <Log size={12} />}
+          </button>
+          <ShareMenu
+            station={station}
+            iconClassName="w-7 h-7 border border-hairline text-vdu-green-dim hover:text-vdu-green hover:border-vdu-green-dim flex items-center justify-center"
+            trigger={<Send size={12} />}
+          />
+          {onMaximize && (
+            <button
+              onClick={onMaximize}
+              aria-label="Inspect station"
+              className="w-7 h-7 border border-hairline text-vdu-green-dim hover:text-vdu-green hover:border-vdu-green-dim flex items-center justify-center transition-colors"
+            >
+              <Inspect size={12} />
+            </button>
+          )}
         </div>
       </div>
     </div>

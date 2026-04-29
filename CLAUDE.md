@@ -36,8 +36,16 @@ Unheard Radio is a Next.js 15 app (mixed App Router + Pages Router) that surface
 ### Sharing
 `components/share-menu.tsx` is the single source of truth for sharing. On mobile it triggers `navigator.share` (native share sheet → WhatsApp/Telegram/etc); on desktop or when native share is unavailable, it opens a popover with Copy link / WhatsApp / Telegram / X / Email. Used by `station-card`, `now-playing-bar`, and `fullscreen-station`. Don't reimplement share logic in components — pass the `RadioStation` to `<ShareMenu>` and optionally style via `iconClassName` + `trigger`.
 
-### Styling
-Tailwind + shadcn/ui (style: `new-york`). Terminal aesthetic uses CSS variables `--vdu-green`, `--vdu-green-bright`, `--vdu-green-dim`, `--accent-cyan` defined in `app/globals.css` and exposed as Tailwind colors in `tailwind.config.ts`. Use those tokens rather than raw hex when adding UI. The whole app is mobile-first: header, tabs, cards, sidebar all scale via `sm:`/`md:`/`lg:` breakpoints — match that pattern.
+### Styling — Listening Post design system
+Tailwind + shadcn/ui (style: `new-york`). The app uses a deliberate "SIGINT listening post" treatment defined in `docs/superpowers/specs/2026-04-29-listening-post-ui-design.md`.
+
+Color discipline: `--vdu-green-bright` and `--accent-cyan` are scarce. Bright is reserved for the **active station + primary actions + brand wordmark only**. Cyan is reserved for **live RX pulse, visualizer trace cursor, and waterfall hot-end** — no other use. Most chrome should sit between `--vdu-green-dim` and `--vdu-green`. The fonts are JetBrains Mono (body/data) and VT323 (`.font-display`, used for brand and section headers).
+
+**Iconography:** all icons live in `components/icons.tsx` as 14×14 SVG components with 1.5px stroke and square caps. Do not introduce Lucide icons (the lone exception is `Loader2` as a spinner). If a new glyph is needed, draft it into that file matching the existing style.
+
+**Station data formatting:** all "BAND / ID / COORDS / ORIGIN / RX / RATE / UPTIME" derivations live in `lib/station-format.ts`. Use those helpers from any surface that displays station metadata so the language stays consistent.
+
+The whole app is mobile-first: header, tabs, cards, sidebar all scale via `sm:`/`md:`/`lg:` breakpoints — match that pattern. Channel numbers in nav, coords in card metadata, and the strip visualizer all hide below `sm`.
 
 ### Path aliases
 `@/*` maps to repo root; explicit aliases for `@/components`, `@/lib`, `@/hooks`, `@/types` (see `tsconfig.json`).

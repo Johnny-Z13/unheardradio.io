@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Share2, Link as LinkIcon, Check, MessageCircle, Send, Mail, X } from 'lucide-react'
+import { Send as SendIcon, Close } from '@/components/icons'
 import { RadioStation } from '@/types/radio'
 import { useToast } from '@/hooks/use-toast'
 
@@ -91,31 +91,31 @@ export function ShareMenu({ station, className, iconClassName, trigger }: ShareM
         title="Share"
         className={iconClassName ?? 'w-7 h-7 rounded-full border border-vdu-green-dim text-vdu-green-dim hover:border-vdu-green hover:text-vdu-green transition-all flex items-center justify-center'}
       >
-        {trigger ?? <Share2 className="w-3 h-3" />}
+        {trigger ?? <SendIcon size={12} />}
       </button>
 
       {open && (
         <div
           onClick={stop}
           role="menu"
-          className="absolute right-0 top-full mt-2 z-[60] w-56 rounded-lg border border-vdu-green-dim bg-black/95 backdrop-blur p-1 shadow-xl"
+          className="absolute right-0 top-full mt-2 z-[60] w-56 border border-vdu-green-dim bg-radio-panel p-1 shadow-[0_4px_20px_hsla(120,100%,40%,0.12)]"
         >
-          <div className="flex items-center justify-between px-2 py-1.5 text-xs text-vdu-green-dim">
-            <span>Share station</span>
+          <div className="flex items-center justify-between px-2 py-1.5 text-[10px] tracking-[0.15em] uppercase text-vdu-green-dim border-b border-hairline mb-1">
+            <span>// Send to</span>
             <button
               onClick={() => setOpen(false)}
-              className="text-vdu-green-dim hover:text-vdu-green"
+              className="text-vdu-green-dim hover:text-vdu-green-bright"
               aria-label="Close share menu"
             >
-              <X className="w-3 h-3" />
+              <Close size={10} />
             </button>
           </div>
 
           <button
             onClick={handleCopy}
-            className="w-full flex items-center gap-2 px-2 py-2 text-sm text-vdu-green hover:bg-vdu-green/10 rounded font-mono"
+            className="w-full flex items-center gap-2 px-2 py-2 text-[11px] tracking-[0.05em] uppercase text-vdu-green hover:bg-vdu-green/10 hover:text-vdu-green-bright transition-colors"
           >
-            {copied ? <Check className="w-4 h-4" /> : <LinkIcon className="w-4 h-4" />}
+            {copied ? <span className="font-display text-[14px] leading-none w-4">✓</span> : <span className="font-display text-[14px] leading-none w-4">⎘</span>}
             <span>{copied ? 'Copied!' : 'Copy link'}</span>
           </button>
 
@@ -123,10 +123,10 @@ export function ShareMenu({ station, className, iconClassName, trigger }: ShareM
             href={`https://wa.me/?text=${encodeURIComponent(full)}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full flex items-center gap-2 px-2 py-2 text-sm text-vdu-green hover:bg-vdu-green/10 rounded font-mono"
+            className="w-full flex items-center gap-2 px-2 py-2 text-[11px] tracking-[0.05em] uppercase text-vdu-green hover:bg-vdu-green/10 hover:text-vdu-green-bright transition-colors"
             onClick={() => setOpen(false)}
           >
-            <MessageCircle className="w-4 h-4" />
+            <span className="font-display text-[14px] leading-none w-4">W</span>
             <span>WhatsApp</span>
           </a>
 
@@ -134,10 +134,10 @@ export function ShareMenu({ station, className, iconClassName, trigger }: ShareM
             href={`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full flex items-center gap-2 px-2 py-2 text-sm text-vdu-green hover:bg-vdu-green/10 rounded font-mono"
+            className="w-full flex items-center gap-2 px-2 py-2 text-[11px] tracking-[0.05em] uppercase text-vdu-green hover:bg-vdu-green/10 hover:text-vdu-green-bright transition-colors"
             onClick={() => setOpen(false)}
           >
-            <Send className="w-4 h-4" />
+            <span className="font-display text-[14px] leading-none w-4">T</span>
             <span>Telegram</span>
           </a>
 
@@ -145,19 +145,19 @@ export function ShareMenu({ station, className, iconClassName, trigger }: ShareM
             href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full flex items-center gap-2 px-2 py-2 text-sm text-vdu-green hover:bg-vdu-green/10 rounded font-mono"
+            className="w-full flex items-center gap-2 px-2 py-2 text-[11px] tracking-[0.05em] uppercase text-vdu-green hover:bg-vdu-green/10 hover:text-vdu-green-bright transition-colors"
             onClick={() => setOpen(false)}
           >
-            <X className="w-4 h-4" />
+            <span className="font-display text-[14px] leading-none w-4">X</span>
             <span>X / Twitter</span>
           </a>
 
           <a
             href={`mailto:?subject=${encodeURIComponent(`${station.name} — Unheard Radio`)}&body=${encodeURIComponent(full)}`}
-            className="w-full flex items-center gap-2 px-2 py-2 text-sm text-vdu-green hover:bg-vdu-green/10 rounded font-mono"
+            className="w-full flex items-center gap-2 px-2 py-2 text-[11px] tracking-[0.05em] uppercase text-vdu-green hover:bg-vdu-green/10 hover:text-vdu-green-bright transition-colors"
             onClick={() => setOpen(false)}
           >
-            <Mail className="w-4 h-4" />
+            <span className="font-display text-[14px] leading-none w-4">@</span>
             <span>Email</span>
           </a>
         </div>

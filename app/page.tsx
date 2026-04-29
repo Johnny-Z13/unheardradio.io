@@ -10,7 +10,7 @@ import { NowPlayingBar } from '@/components/now-playing-bar'
 import { FullscreenStation } from '@/components/fullscreen-station'
 import { RadioStation, SearchFilters } from '@/types/radio'
 import { useAudioStore } from '@/lib/audio-store'
-import { Radar, Search, Bookmark, MapPin, Info } from 'lucide-react'
+import { Discover, Filter, Log, MapPin, Info } from '@/components/icons'
 
 type Tab = 'discover' | 'search' | 'saved' | 'map' | 'about'
 
@@ -25,7 +25,7 @@ export default function Home() {
 
   const { currentStation, playStation } = useAudioStore()
 
-  const { data: stats } = useQuery<{ stations: number }>({
+  const { data: stats } = useQuery<{ stations: number; countries: number; languages: number }>({
     queryKey: ['/api/stats'],
     queryFn: async () => {
       const res = await fetch('/api/stats')
@@ -75,47 +75,48 @@ export default function Home() {
   }
 
   const tabs = [
-    { id: 'discover' as Tab, icon: Radar, label: 'Discover', shortLabel: 'Radar' },
-    { id: 'search' as Tab, icon: Search, label: 'Filter', shortLabel: 'Filter' },
-    { id: 'saved' as Tab, icon: Bookmark, label: 'Saved', shortLabel: 'Saved' },
-    { id: 'map' as Tab, icon: MapPin, label: 'Map', shortLabel: 'Map' },
-    { id: 'about' as Tab, icon: Info, label: 'About', shortLabel: 'About' },
+    { id: 'discover' as Tab, icon: Discover, label: 'SCAN', num: '01' },
+    { id: 'search' as Tab, icon: Filter, label: 'FILTER', num: '02' },
+    { id: 'saved' as Tab, icon: Log, label: 'LOG', num: '03' },
+    { id: 'map' as Tab, icon: MapPin, label: 'GRID', num: '04' },
+    { id: 'about' as Tab, icon: Info, label: 'NFO', num: '05' },
   ]
 
   return (
     <div className="min-h-screen bg-black text-vdu-green font-mono">
-      <header className="border-b border-vdu-green/20 p-3 sm:p-4">
-        <div className="flex items-center gap-2 sm:gap-3">
-          <div className="w-6 h-6 sm:w-8 sm:h-8 border border-vdu-green flex items-center justify-center text-xs sm:text-sm font-bold">
-            U
-          </div>
-          <div>
-            <h1 className="text-sm sm:text-lg font-bold glow">UNHEARD RADIO</h1>
-            <p className="text-xs sm:text-sm text-vdu-green-dim">
-              Stations live on air: {stats ? stats.stations.toLocaleString() : '…'}
-            </p>
+      <header className="border-b border-hairline px-3 sm:px-4 py-3 flex items-end justify-between gap-3">
+        <div className="border border-vdu-green-bright px-2.5 py-1 font-display text-[20px] sm:text-[22px] leading-none text-vdu-green-bright phosphor tracking-[0.08em]">
+          UNHEARD&nbsp;//&nbsp;RADIO
+        </div>
+        <div className="text-right text-[10px] tracking-[0.12em] uppercase text-vdu-green-dim leading-relaxed">
+          <div>// Listening Post</div>
+          <div className="hidden sm:block">
+            <span className="text-vdu-green">{stats ? stats.stations.toLocaleString() : '…'}</span> stations
+            <span className="opacity-50 px-1.5">·</span>
+            <span className="text-vdu-green">{stats ? stats.countries : '…'}</span> countries
           </div>
         </div>
       </header>
 
-      <nav className="border-b border-vdu-green/20 overflow-x-auto">
+      <nav className="border-b border-hairline overflow-x-auto">
         <div className="flex min-w-max">
           {tabs.map((tab) => {
             const Icon = tab.icon
+            const active = activeTab === tab.id
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-3 border-r border-vdu-green/20 transition-colors font-mono text-xs sm:text-sm whitespace-nowrap ${
-                  activeTab === tab.id
-                    ? 'bg-vdu-green/10 text-vdu-green glow'
+                className={`flex items-center gap-2 px-3 sm:px-4 py-2.5 sm:py-3 border-r border-hairline transition-colors text-[11px] tracking-[0.12em] uppercase whitespace-nowrap ${
+                  active
+                    ? 'text-vdu-green-bright bg-vdu-green/[0.06] phosphor border-b-2 border-b-vdu-green-bright'
                     : 'text-vdu-green-dim hover:text-vdu-green'
                 }`}
                 title={tab.label}
               >
-                <Icon className="w-4 h-4" />
-                <span className="hidden sm:inline">{tab.label}</span>
-                <span className="sm:hidden">{tab.shortLabel}</span>
+                <Icon size={12} />
+                <span className="hidden sm:inline text-vdu-green-faint text-[9px]">{tab.num}</span>
+                <span>{tab.label}</span>
               </button>
             )
           })}

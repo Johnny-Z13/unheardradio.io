@@ -1,6 +1,9 @@
 node_modules
+.next
 dist
 .DS_Store
-server/public
-vite.config.ts.*
+.env
+.env.local
+.vercel
 *.tar.gz
+.superpowers/

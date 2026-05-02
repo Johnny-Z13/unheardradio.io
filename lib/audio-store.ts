@@ -68,8 +68,7 @@ export const useAudioStore = create<AudioStore>((set, get) => ({
       set({ isPlaying: false });
     });
     
-    audio.addEventListener('error', (e) => {
-      console.warn('Audio stream error:', e);
+    audio.addEventListener('error', () => {
       const errorMessage = 'Failed to load radio stream. This station may be offline.';
       set({ error: errorMessage, isLoading: false, isPlaying: false });
     });
@@ -124,9 +123,7 @@ export const useAudioStore = create<AudioStore>((set, get) => ({
       await audio.play();
       set({ isLoading: false });
       
-    } catch (error) {
-      console.warn('Error playing station:', error);
-      
+    } catch {
       // Try fallback URL if available and different
       if (station.url_resolved && station.url_resolved !== station.url) {
         try {
@@ -134,9 +131,7 @@ export const useAudioStore = create<AudioStore>((set, get) => ({
           await audio.play();
           set({ isLoading: false });
           return;
-        } catch (fallbackError) {
-          console.warn('Fallback URL also failed:', fallbackError);
-        }
+        } catch { /* stream fallback unavailable */ }
       }
       
       set({ 
@@ -154,8 +149,7 @@ export const useAudioStore = create<AudioStore>((set, get) => ({
     if (isPlaying) {
       audio.pause();
     } else {
-      audio.play().catch((error) => {
-        console.warn('Error resuming playback:', error);
+      audio.play().catch(() => {
         set({ error: 'Failed to resume playback', isPlaying: false });
       });
     }

@@ -7,7 +7,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run dev` — Next.js dev server (default port 3000)
 - `npm run build` — production build
 - `npm run start` — run production build
-- `npm run lint` — Next.js ESLint
+- `npm run typecheck` — TypeScript validation without emit
+- `npm run lint` — currently aliases to `typecheck` until ESLint is configured
+- `npm run check` — typecheck + production build
 
 No test runner is configured. Hosted on Vercel at https://unheardradio.io.
 
@@ -27,11 +29,11 @@ Unheard Radio is a Next.js 15 app (mixed App Router + Pages Router) that surface
 ### Data flow
 1. Client calls `/api/...` via helpers in `lib/radio-api.ts`.
 2. API route fans out to RadioBrowser mirrors; returns the first that responds.
-3. Listener-count filtering/sorting (`zero`, `hide-zero`, `low-to-high`, `high-to-low`) is applied server-side after fetch — `order=clickcount` is only set for ascending modes.
+3. Listener-count filtering/sorting (`zero`, `hide-zero`, `low-to-high`, `high-to-low`) is applied server-side after fetch — `order=clickcount` is only set for ascending modes. Default SCAN requests include a `randomSeed`, so the API pulls a wider obscure pool and returns a seeded shuffled page.
 4. React Query (configured in `lib/query-provider.tsx`) caches results: 5-min stale, 10-min GC. Most API routes also set `Cache-Control: s-maxage` so Vercel's edge caches them.
 5. Audio playback is centralized in a Zustand store at `lib/audio-store.ts`. The store owns a single `HTMLAudioElement` plus an `AudioContext` for the visualizer. `playStation` tries `url_resolved` first then falls back to `url`. Same-station re-click pauses.
 6. Bookmarks live entirely in `localStorage` under key `unheard-radio-bookmarks` and sync across components via a manually-dispatched `StorageEvent` (see `hooks/use-bookmarks.ts`).
-7. Deep link `?station=<uuid>` on `/` auto-fetches that station from RadioBrowser and starts playback (handled in `app/page.tsx`).
+7. Deep link `?station=<uuid>` on `/` auto-fetches that station through `/api/stations/[uuid]` and starts playback (handled in `app/page.tsx`).
 
 ### Sharing
 `components/share-menu.tsx` is the single source of truth for sharing. On mobile it triggers `navigator.share` (native share sheet → WhatsApp/Telegram/etc); on desktop or when native share is unavailable, it opens a popover with Copy link / WhatsApp / Telegram / X / Email. Used by `station-card`, `now-playing-bar`, and `fullscreen-station`. Don't reimplement share logic in components — pass the `RadioStation` to `<ShareMenu>` and optionally style via `iconClassName` + `trigger`.

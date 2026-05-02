@@ -82,8 +82,8 @@ export default function Home() {
   ]
 
   return (
-    <div className="min-h-screen bg-black text-vdu-green font-mono">
-      <header className="border-b border-hairline px-3 sm:px-4 py-3 flex items-end justify-between gap-3">
+    <div className="h-dvh overflow-hidden bg-black text-vdu-green font-mono flex flex-col">
+      <header className="shrink-0 border-b border-hairline px-3 sm:px-4 py-3 flex items-end justify-between gap-3">
         <div className="border border-vdu-green-bright px-2.5 py-1 font-display text-[20px] sm:text-[22px] leading-none text-vdu-green-bright phosphor tracking-[0.08em]">
           UNHEARD&nbsp;//&nbsp;RADIO
         </div>
@@ -97,7 +97,7 @@ export default function Home() {
         </div>
       </header>
 
-      <nav className="border-b border-hairline overflow-x-auto">
+      <nav className="shrink-0 border-b border-hairline overflow-x-auto">
         <div className="flex min-w-max">
           {tabs.map((tab) => {
             const Icon = tab.icon
@@ -122,9 +122,9 @@ export default function Home() {
         </div>
       </nav>
 
-      <div className="flex flex-col lg:flex-row h-[calc(100vh-120px)]">
+      <main className="flex flex-1 min-h-0 flex-col lg:flex-row">
         {activeTab === 'search' && (
-          <div className="w-full lg:w-80 border-r border-vdu-green/20 bg-black/50">
+          <div className="w-full lg:w-80 shrink-0 border-b lg:border-b-0 lg:border-r border-vdu-green/20 bg-black/50 max-h-[42vh] lg:max-h-none overflow-y-auto">
             <SearchSidebar
               onRefreshToDiscovery={handleRefreshToDiscovery}
               totalStations={stats?.stations ?? 0}
@@ -132,13 +132,20 @@ export default function Home() {
           </div>
         )}
 
-        <div className="flex-1 relative overflow-hidden">
+        <div className="flex-1 min-h-0 relative overflow-hidden">
           {activeTab === 'discover' && <DiscoveryList filters={searchFilters} />}
           {activeTab === 'saved' && <BookmarkList />}
-          {activeTab === 'map' && <StationMap />}
+          {activeTab === 'map' && (
+            <StationMap
+              onStationSelect={(station) => {
+                playStation(station)
+                setFullscreenStation(station)
+              }}
+            />
+          )}
           {activeTab === 'search' && <DiscoveryList filters={searchFilters} />}
           {activeTab === 'about' && (
-            <div className="flex-1 p-6 overflow-y-auto">
+            <div className="h-full min-h-0 p-4 sm:p-6 overflow-y-auto overscroll-contain pb-28">
               <div className="max-w-2xl mx-auto space-y-8">
                 <div>
                   <h1 className="text-3xl font-bold mb-4 glow">UNHEARD RADIO</h1>
@@ -183,7 +190,7 @@ export default function Home() {
             </div>
           )}
         </div>
-      </div>
+      </main>
 
       {currentStation && (
         <div className="fixed bottom-0 left-0 right-0 z-50">

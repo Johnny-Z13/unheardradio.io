@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { Log } from '@/components/icons';
 import { RadioStation } from '@/types/radio';
 import { StationCard } from './station-card';
@@ -40,7 +40,7 @@ export function BookmarkList() {
   }));
 
   return (
-    <div className="flex-1 p-3 md:p-6 overflow-y-auto">
+    <div className="h-full min-h-0 p-3 md:p-6 overflow-y-auto overscroll-contain pb-28">
       <div className="mb-4 md:mb-6">
         <h2 className="font-display text-[22px] md:text-[28px] leading-none text-vdu-green-bright phosphor tracking-[0.04em]">// LOG / SAVED CONTACTS</h2>
         <p className="text-[10px] tracking-[0.12em] uppercase text-vdu-green-dim mt-1.5">{bookmarkStations.length} saved {bookmarkStations.length === 1 ? 'contact' : 'contacts'}</p>

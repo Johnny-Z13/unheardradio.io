@@ -64,7 +64,7 @@ export function SearchSidebar({ onRefreshToDiscovery, totalStations }: SearchSid
   };
 
   return (
-    <aside className="w-full md:w-80 bg-radio-dark md:border-r border-b md:border-b-0 border-vdu-green-dim overflow-y-auto flex-shrink-0 h-auto md:h-full">
+    <aside className="w-full lg:w-80 bg-radio-dark overflow-y-auto flex-shrink-0 h-auto lg:h-full">
       <div className="p-3 space-y-3">
         {/* Header with refresh button */}
         <div className="flex items-center justify-between">

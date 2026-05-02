@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=VT323&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -47,13 +46,18 @@
 body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   background-image: linear-gradient(rgba(0,0,0,0) 50%, rgba(0,0,0,0.18) 50%);
   background-size: 100% 3px;
+  overflow: hidden;
+}
+
+html {
+  background-color: hsl(var(--background));
 }
 
 .font-display {
-  font-family: 'VT323', monospace;
+  font-family: var(--font-display), var(--font-mono), monospace;
 }
 
 .phosphor {

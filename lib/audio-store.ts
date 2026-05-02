@@ -69,7 +69,7 @@ export const useAudioStore = create<AudioStore>((set, get) => ({
     });
     
     audio.addEventListener('error', (e) => {
-      console.error('Audio error:', e);
+      console.warn('Audio stream error:', e);
       const errorMessage = 'Failed to load radio stream. This station may be offline.';
       set({ error: errorMessage, isLoading: false, isPlaying: false });
     });
@@ -89,7 +89,7 @@ export const useAudioStore = create<AudioStore>((set, get) => ({
       // Get the audio element after initialization
       audio = get().audio;
       if (!audio) {
-        console.error('Failed to initialize audio element');
+        console.warn('Failed to initialize audio element');
         return;
       }
     }
@@ -125,7 +125,7 @@ export const useAudioStore = create<AudioStore>((set, get) => ({
       set({ isLoading: false });
       
     } catch (error) {
-      console.error('Error playing station:', error);
+      console.warn('Error playing station:', error);
       
       // Try fallback URL if available and different
       if (station.url_resolved && station.url_resolved !== station.url) {
@@ -135,7 +135,7 @@ export const useAudioStore = create<AudioStore>((set, get) => ({
           set({ isLoading: false });
           return;
         } catch (fallbackError) {
-          console.error('Fallback URL also failed:', fallbackError);
+          console.warn('Fallback URL also failed:', fallbackError);
         }
       }
       
@@ -155,7 +155,7 @@ export const useAudioStore = create<AudioStore>((set, get) => ({
       audio.pause();
     } else {
       audio.play().catch((error) => {
-        console.error('Error resuming playback:', error);
+        console.warn('Error resuming playback:', error);
         set({ error: 'Failed to resume playback', isPlaying: false });
       });
     }
@@ -243,14 +243,14 @@ export const useAudioStore = create<AudioStore>((set, get) => ({
       audioSource?.disconnect();
       analyser?.disconnect();
     } catch (error) {
-      console.log('Error disconnecting audio graph:', error);
+      console.warn('Error disconnecting audio graph:', error);
     }
 
     if (audioContext && audioContext.state !== 'closed') {
       try {
         audioContext.close();
       } catch (error) {
-        console.log('Error closing audio context:', error);
+        console.warn('Error closing audio context:', error);
       }
     }
     

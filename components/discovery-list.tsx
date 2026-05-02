@@ -73,7 +73,7 @@ export function DiscoveryList({ filters }: DiscoveryListProps) {
 
   if (isLoading && offset === 0) {
     return (
-      <div className="flex-1 p-6 flex items-center justify-center">
+    <div className="h-full p-6 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin text-vdu-green mx-auto mb-4" />
           <p className="text-vdu-green">Scanning airwaves...</p>
@@ -84,7 +84,7 @@ export function DiscoveryList({ filters }: DiscoveryListProps) {
 
   if (error) {
     return (
-      <div className="flex-1 p-6 flex items-center justify-center">
+    <div className="h-full p-6 flex items-center justify-center">
         <div className="text-center">
           <div className="text-red-400 mb-2">Signal Lost</div>
           <p className="text-gray-400">
@@ -96,7 +96,7 @@ export function DiscoveryList({ filters }: DiscoveryListProps) {
   }
 
   return (
-    <div className="flex-1 p-3 md:p-6 overflow-y-auto">
+    <div className="h-full min-h-0 p-3 md:p-6 overflow-y-auto overscroll-contain pb-28">
       <div className="mb-4 md:mb-6 flex flex-col md:flex-row md:items-center md:justify-between space-y-3 md:space-y-0">
         <div className="min-w-0">
           <h2 className="font-display text-[22px] md:text-[28px] leading-none text-vdu-green-bright phosphor tracking-[0.04em]">

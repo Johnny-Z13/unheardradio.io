@@ -39,7 +39,8 @@ interface AtlasState {
   placed: Placed[]
   view: View
   hover: string | null
-  playingUuid: string | null
+  currentUuid: string | null
+  isPlaying: boolean
   sweepStart: number
 }
 
@@ -50,6 +51,8 @@ export default function AtlasMap({ onStationSelect }: { onStationSelect: (s: Rad
   const [selected, setSelected] = useState<Placed | null>(null)
   const [plottedCount, setPlottedCount] = useState(0)
   const currentStation = useAudioStore((s) => s.currentStation)
+  const isPlaying = useAudioStore((s) => s.isPlaying)
+  const tuneStation = useAudioStore((s) => s.tuneStation)
 
   const { data: stations = [], isLoading } = useQuery({
     queryKey: ['/api/stations', 'atlas', seed],
@@ -59,13 +62,23 @@ export default function AtlasMap({ onStationSelect }: { onStationSelect: (s: Rad
 
   // Mutable render inputs — written by React, read by the rAF loop.
   const stateRef = useRef<AtlasState>({
-    placed: [], view: { k: 1, x: 0, y: 0, w: 300, h: 300 }, hover: null, playingUuid: null, sweepStart: -10000,
+    placed: [], view: { k: 1, x: 0, y: 0, w: 300, h: 300 }, hover: null, currentUuid: null, sweepStart: -10000, isPlaying: false,
   })
-  stateRef.current.playingUuid = currentStation?.stationuuid ?? null
+  stateRef.current.currentUuid = currentStation?.stationuuid ?? null
+  stateRef.current.isPlaying = isPlaying
 
   useEffect(() => {
-    stateRef.current.placed = placeStations(stations)
-    setPlottedCount(stateRef.current.placed.length)
+    // The tuned station is always plotted, even when it came from the SCAN
+    // feed or a deep link rather than this sweep's pool.
+    const placed = placeStations(stations)
+    if (currentStation && !placed.some((p) => p.station.stationuuid === currentStation.stationuuid)) {
+      placed.push(...placeStations([currentStation]))
+    }
+    stateRef.current.placed = placed
+    setPlottedCount(placed.length)
+  }, [stations, currentStation])
+
+  useEffect(() => {
     if (stations.length > 0) stateRef.current.sweepStart = performance.now()
   }, [stations])
 
@@ -82,7 +95,9 @@ export default function AtlasMap({ onStationSelect }: { onStationSelect: (s: Rad
         lng: p.lng,
         lat: p.lat,
         approx: p.approx,
-        state: p.station.stationuuid === st.playingUuid ? 'playing' : p.station.stationuuid === st.hover ? 'hover' : 'idle',
+        state: p.station.stationuuid === st.currentUuid
+          ? (st.isPlaying ? 'playing' : 'armed')
+          : p.station.stationuuid === st.hover ? 'hover' : 'idle',
       }))
       renderer.draw(st.view, signals, now, st.sweepStart)
       raf = requestAnimationFrame(loop)
@@ -173,7 +188,11 @@ export default function AtlasMap({ onStationSelect }: { onStationSelect: (s: Rad
       pointers.delete(e.pointerId)
       if (!dragged) {
         const cur = pt(e)
-        setSelected(nearest(cur.x, cur.y))
+        const hit = nearest(cur.x, cur.y)
+        setSelected(hit)
+        // Tapping a node tunes it: it becomes the current (armed) station,
+        // so the player bar's PLAY starts this signal, not the previous one.
+        if (hit) tuneStation(hit.station)
       }
     }
     const onWheel = (e: WheelEvent) => {

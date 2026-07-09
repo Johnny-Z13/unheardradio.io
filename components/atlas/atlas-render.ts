@@ -9,7 +9,7 @@ export interface Signal {
   lng: number
   lat: number
   approx: boolean
-  state: 'idle' | 'hover' | 'playing'
+  state: 'idle' | 'hover' | 'armed' | 'playing'
 }
 
 const topo = worldTopo as unknown as Topology<{ land: GeometryCollection }>
@@ -125,11 +125,18 @@ export function createRenderer(canvas: HTMLCanvasElement) {
         ctx.arc(px, py, 3.5, 0, Math.PI * 2)
         ctx.fillStyle = INK.signal
         ctx.fill()
-      } else if (s.state === 'hover') {
+      } else if (s.state === 'hover' || s.state === 'armed') {
         ctx.beginPath()
         ctx.arc(px, py, 4, 0, Math.PI * 2)
         ctx.fillStyle = INK.signal
         ctx.fill()
+        if (s.state === 'armed') {
+          ctx.beginPath()
+          ctx.arc(px, py, 7, 0, Math.PI * 2)
+          ctx.strokeStyle = 'hsl(36 95% 58% / 0.4)'
+          ctx.lineWidth = 1
+          ctx.stroke()
+        }
       } else {
         ctx.beginPath()
         ctx.arc(px, py, s.approx ? 1.5 : 2, 0, Math.PI * 2)

@@ -61,15 +61,15 @@ export function getObscurityBadge(station: RadioStation): { text: string; color:
   const clicks = station.clickcount || 0;
   
   if (clicks === 0) {
-    return { text: 'PHANTOM', color: 'signal-blue' };
+    return { text: 'PHANTOM', color: 'signal' };
   } else if (clicks < 5) {
-    return { text: 'ULTRA RARE', color: 'crt-green' };
+    return { text: 'ULTRA RARE', color: 'chart-ink-bright' };
   } else if (clicks < 50) {
-    return { text: 'RARE', color: 'crt-green' };
+    return { text: 'RARE', color: 'chart-ink' };
   } else if (clicks < 500) {
-    return { text: 'HIDDEN GEM', color: 'accent-cyan' };
+    return { text: 'HIDDEN GEM', color: 'chart-ink' };
   } else {
-    return { text: 'DISCOVERED', color: 'cyan' };
+    return { text: 'DISCOVERED', color: 'chart-ink-dim' };
   }
 }
 
@@ -129,10 +129,10 @@ export function getStationPopularity(station: RadioStation): string {
 export function getStreamQuality(station: RadioStation): { quality: string; color: string } {
   const bitrate = station.bitrate || 0;
   
-  if (bitrate >= 320) return { quality: 'STUDIO', color: 'vdu-green' };
-  if (bitrate >= 256) return { quality: 'HIGH', color: 'vdu-green' };
-  if (bitrate >= 192) return { quality: 'GOOD', color: 'vdu-green-dim' };
-  if (bitrate >= 128) return { quality: 'STANDARD', color: 'accent-yellow' };
-  if (bitrate > 0) return { quality: 'LOW', color: 'text-muted' };
-  return { quality: 'UNKNOWN', color: 'text-muted' };
+  if (bitrate >= 320) return { quality: 'STUDIO', color: 'chart-ink-bright' };
+  if (bitrate >= 256) return { quality: 'HIGH', color: 'chart-ink' };
+  if (bitrate >= 192) return { quality: 'GOOD', color: 'chart-ink' };
+  if (bitrate >= 128) return { quality: 'STANDARD', color: 'chart-ink-dim' };
+  if (bitrate > 0) return { quality: 'LOW', color: 'chart-ink-dim' };
+  return { quality: 'UNKNOWN', color: 'chart-ink-dim' };
 }

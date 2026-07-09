@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { JetBrains_Mono, VT323 } from 'next/font/google'
+import { JetBrains_Mono } from 'next/font/google'
 import { QueryProvider } from '@/lib/query-provider'
 import { Toaster } from '@/components/ui/toaster'
 import './globals.css'
@@ -7,12 +7,6 @@ import './globals.css'
 const jetBrainsMono = JetBrains_Mono({
   subsets: ['latin'],
   variable: '--font-mono',
-})
-
-const vt323 = VT323({
-  subsets: ['latin'],
-  weight: '400',
-  variable: '--font-display',
 })
 
 export const metadata: Metadata = {
@@ -47,8 +41,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${jetBrainsMono.variable} ${vt323.variable} dark`}>
-      <body className="min-h-screen bg-black text-vdu-green antialiased">
+    <html lang="en" className={`${jetBrainsMono.variable} dark`}>
+      <body className="min-h-screen bg-chart-bg text-chart-ink antialiased">
         <QueryProvider>
           {children}
           <Toaster />

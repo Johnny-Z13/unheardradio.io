@@ -36,20 +36,6 @@
   --input: var(--chart-panel);
   --ring: var(--signal);
   --radius: 0;
-
-  /* Legacy aliases — retargeted so existing classnames render atlas colors.
-     Removed in the final sweep task. */
-  --vdu-green: var(--chart-ink);
-  --vdu-green-dim: var(--chart-ink-dim);
-  --vdu-green-bright: var(--chart-ink-bright);
-  --vdu-green-faint: var(--chart-line);
-  --vdu-glow: var(--chart-ink-bright);
-  --radio-black: var(--chart-bg);
-  --radio-dark: var(--chart-panel);
-  --radio-panel: var(--chart-panel-2);
-  --accent-cyan: var(--signal);
-  --text-muted: var(--chart-ink-dim);
-  --hairline: var(--chart-line);
 }
 
 * {
@@ -84,20 +70,6 @@ html {
 .ink-glow {
   text-shadow: 0 0 6px hsl(var(--chart-ink-bright) / 0.25);
 }
-
-/* Legacy glow aliases (removed in final sweep) */
-.phosphor { text-shadow: 0 0 6px hsl(var(--chart-ink-bright) / 0.25); }
-.glow { text-shadow: 0 0 6px hsl(var(--chart-ink-bright) / 0.25); }
-
-.text-vdu-green { color: hsl(var(--vdu-green)); }
-.text-vdu-green-dim { color: hsl(var(--vdu-green-dim)); }
-.text-vdu-green-bright { color: hsl(var(--vdu-green-bright)); }
-.bg-vdu-green { background-color: hsl(var(--vdu-green)); }
-.bg-radio-dark { background-color: hsl(var(--radio-dark)); }
-.bg-radio-panel { background-color: hsl(var(--radio-panel)); }
-.border-vdu-green { border-color: hsl(var(--vdu-green)); }
-.border-vdu-green-dim { border-color: hsl(var(--vdu-green-dim)); }
-.border-hairline { border-color: hsl(var(--hairline) / 0.35); }
 
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: hsl(var(--chart-bg)); }

@@ -86,10 +86,10 @@ export function AudioVisualizer({ mode = 'trace', height = 28, width }: AudioVis
 
   if (mode === 'dbfs') {
     return (
-      <div className="text-[11px] tracking-[0.08em] uppercase text-vdu-green-dim whitespace-nowrap">
-        Peak <span className="text-vdu-green-bright">{readout.peak.toFixed(1)}</span> dBFS
+      <div className="text-[11px] tracking-[0.08em] uppercase text-chart-ink-dim whitespace-nowrap">
+        Peak <span className="text-chart-ink-bright">{readout.peak.toFixed(1)}</span> dBFS
         <span className="opacity-50 px-1.5">·</span>
-        Avg <span className="text-vdu-green-bright">{readout.avg.toFixed(1)}</span>
+        Avg <span className="text-chart-ink-bright">{readout.avg.toFixed(1)}</span>
       </div>
     )
   }
@@ -101,7 +101,7 @@ export function AudioVisualizer({ mode = 'trace', height = 28, width }: AudioVis
         width={512}
         height={height}
         className="w-full block"
-        style={{ background: 'rgba(0, 18, 0, 0.5)', height }}
+        style={{ background: 'rgba(6,10,18,0.5)', height }}
       />
     )
   }
@@ -109,16 +109,16 @@ export function AudioVisualizer({ mode = 'trace', height = 28, width }: AudioVis
   return (
     <div
       ref={containerRef}
-      className="relative w-full border border-hairline overflow-hidden"
-      style={{ height, background: 'rgba(0, 18, 0, 0.5)' }}
+      className="relative w-full border border-chart-line/50 overflow-hidden"
+      style={{ height, background: 'rgba(6,10,18,0.5)' }}
     >
       <svg ref={svgRef} viewBox={`0 0 600 ${height}`} preserveAspectRatio="none" className="w-full h-full block">
-        <line x1="0" y1={height / 2} x2="600" y2={height / 2} stroke="hsl(var(--vdu-green-faint))" strokeWidth="0.5" />
-        <line x1="0" y1={height / 4} x2="600" y2={height / 4} stroke="hsl(var(--vdu-green-faint))" strokeWidth="0.5" />
-        <line x1="0" y1={(height * 3) / 4} x2="600" y2={(height * 3) / 4} stroke="hsl(var(--vdu-green-faint))" strokeWidth="0.5" />
-        <path ref={trailRef} fill="none" stroke="hsl(var(--vdu-green))" strokeWidth="1" opacity="0.25" />
-        <path ref={traceRef} fill="none" stroke="hsl(var(--vdu-green-bright))" strokeWidth="1" style={{ filter: 'drop-shadow(0 0 2px hsla(120,100%,60%,0.7))' }} />
-        <line ref={cursorRef} x1="600" y1="0" x2="600" y2={height} stroke="hsl(var(--accent-cyan))" strokeWidth="0.8" opacity="0.7" />
+        <line x1="0" y1={height / 2} x2="600" y2={height / 2} stroke="hsl(var(--chart-line))" strokeWidth="0.5" />
+        <line x1="0" y1={height / 4} x2="600" y2={height / 4} stroke="hsl(var(--chart-line))" strokeWidth="0.5" />
+        <line x1="0" y1={(height * 3) / 4} x2="600" y2={(height * 3) / 4} stroke="hsl(var(--chart-line))" strokeWidth="0.5" />
+        <path ref={trailRef} fill="none" stroke="hsl(var(--chart-ink))" strokeWidth="1" opacity="0.25" />
+        <path ref={traceRef} fill="none" stroke="hsl(var(--chart-ink-bright))" strokeWidth="1" style={{ filter: 'drop-shadow(0 0 2px hsl(210 40% 94% / 0.5))' }} />
+        <line ref={cursorRef} x1="600" y1="0" x2="600" y2={height} stroke="hsl(var(--signal))" strokeWidth="0.8" opacity="0.7" />
       </svg>
     </div>
   )
@@ -226,7 +226,7 @@ function drawBars(canvas: HTMLCanvasElement, bytes: Uint8Array, active: boolean)
   const barW = (w - gap * (bars - 1)) / bars
 
   ctx.clearRect(0, 0, w, h)
-  ctx.fillStyle = 'rgba(0, 18, 0, 0.65)'
+  ctx.fillStyle = 'rgba(6,10,18,0.65)'
   ctx.fillRect(0, 0, w, h)
 
   for (let i = 0; i < bars; i++) {
@@ -240,11 +240,11 @@ function drawBars(canvas: HTMLCanvasElement, bytes: Uint8Array, active: boolean)
     const y = h - barH
     const hot = level > 0.72
 
-    ctx.fillStyle = hot ? 'rgba(143,255,255,0.9)' : 'rgba(44,255,44,0.78)'
+    ctx.fillStyle = hot ? 'rgba(255,170,60,0.9)' : 'rgba(147,170,200,0.55)'
     ctx.fillRect(x, y, barW, barH)
 
     if (hot) {
-      ctx.fillStyle = 'rgba(143,255,255,0.22)'
+      ctx.fillStyle = 'rgba(255,170,60,0.22)'
       ctx.fillRect(x, Math.max(0, y - 3), barW, 2)
     }
   }
@@ -267,10 +267,10 @@ function drawSyntheticBars(canvas: HTMLCanvasElement, phase: number, active: boo
 }
 
 function waterfallColor(v: number): [number, number, number, number] {
-  // Ramp: faint → dim → green → bright → cyan
+  // Ramp: faint → dim → ink → bright → amber
   if (v < 0.05) return [0, 0, 0, 0]
-  if (v < 0.2) return [10, 50, 10, 180]
-  if (v < 0.5) return [20, 130, 30, 210]
-  if (v < 0.8) return [40, 230, 60, 230]
-  return [80, 255, 200, 240]
+  if (v < 0.2) return [20, 30, 50, 180]
+  if (v < 0.5) return [60, 80, 110, 210]
+  if (v < 0.8) return [150, 170, 200, 230]
+  return [255, 170, 60, 240]
 }

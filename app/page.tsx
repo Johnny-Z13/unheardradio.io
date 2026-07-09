@@ -84,30 +84,30 @@ export default function Home() {
   ]
 
   return (
-    <div className="h-dvh overflow-hidden bg-black text-vdu-green font-mono flex flex-col">
-      <header className="shrink-0 border-b border-hairline px-3 sm:px-4 py-3 flex items-end justify-between gap-3">
-        <div className="border border-vdu-green-bright px-2.5 py-1 font-display text-[20px] sm:text-[22px] leading-none text-vdu-green-bright phosphor tracking-[0.08em]">
+    <div className="h-dvh overflow-hidden bg-chart-bg text-chart-ink font-mono flex flex-col">
+      <header className="shrink-0 border-b border-chart-line/50 px-3 sm:px-4 py-3 flex items-end justify-between gap-3">
+        <div className="border border-chart-ink-bright px-2.5 py-1 font-display text-[20px] sm:text-[22px] leading-none text-chart-ink-bright ink-glow tracking-[0.08em]">
           UNHEARD&nbsp;//&nbsp;RADIO
         </div>
-        <div className="text-right text-[10px] tracking-[0.12em] uppercase text-vdu-green-dim leading-relaxed">
+        <div className="text-right text-[10px] tracking-[0.12em] uppercase text-chart-ink-dim leading-relaxed">
           <div>// Listening Post</div>
           <div className="hidden sm:block">
-            <span className="text-vdu-green">{stats ? stats.stations.toLocaleString() : '…'}</span> stations
+            <span className="text-chart-ink">{stats ? stats.stations.toLocaleString() : '…'}</span> stations
             <span className="opacity-50 px-1.5">·</span>
-            <span className="text-vdu-green">{stats ? stats.countries : '…'}</span> countries
+            <span className="text-chart-ink">{stats ? stats.countries : '…'}</span> countries
           </div>
           <a
             href="https://www.z13labs.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="block hover:text-vdu-green transition-colors"
+            className="block hover:text-chart-ink transition-colors"
           >
             Made by Z13LABS
           </a>
         </div>
       </header>
 
-      <nav className="shrink-0 border-b border-hairline overflow-x-auto">
+      <nav className="shrink-0 border-b border-chart-line/50 overflow-x-auto">
         <div className="flex min-w-max">
           {tabs.map((tab) => {
             const Icon = tab.icon
@@ -116,15 +116,15 @@ export default function Home() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-3 sm:px-4 py-2.5 sm:py-3 border-r border-hairline transition-colors text-[11px] tracking-[0.12em] uppercase whitespace-nowrap ${
+                className={`flex items-center gap-2 px-3 sm:px-4 py-2.5 sm:py-3 border-r border-chart-line/50 transition-colors text-[11px] tracking-[0.12em] uppercase whitespace-nowrap ${
                   active
-                    ? 'text-vdu-green-bright bg-vdu-green/[0.06] phosphor border-b-2 border-b-vdu-green-bright'
-                    : 'text-vdu-green-dim hover:text-vdu-green'
+                    ? 'text-chart-ink-bright bg-chart-ink/[0.06] ink-glow border-b-2 border-b-signal'
+                    : 'text-chart-ink-dim hover:text-chart-ink'
                 }`}
                 title={tab.label}
               >
                 <Icon size={12} />
-                <span className="hidden sm:inline text-vdu-green-faint text-[9px]">{tab.num}</span>
+                <span className="hidden sm:inline text-chart-line text-[9px]">{tab.num}</span>
                 <span>{tab.label}</span>
               </button>
             )
@@ -134,7 +134,7 @@ export default function Home() {
 
       <main className="flex flex-1 min-h-0 flex-col lg:flex-row">
         {activeTab === 'search' && (
-          <div className="w-full lg:w-80 shrink-0 border-b lg:border-b-0 lg:border-r border-vdu-green/20 bg-black/50 max-h-[42vh] lg:max-h-none overflow-y-auto">
+          <div className="w-full lg:w-80 shrink-0 border-b lg:border-b-0 lg:border-r border-chart-line/50 bg-chart-bg/50 max-h-[42vh] lg:max-h-none overflow-y-auto">
             <SearchSidebar
               onRefreshToDiscovery={handleRefreshToDiscovery}
               totalStations={stats?.stations ?? 0}
@@ -153,8 +153,8 @@ export default function Home() {
             <div className="h-full min-h-0 p-4 sm:p-6 overflow-y-auto overscroll-contain pb-28">
               <div className="max-w-2xl mx-auto space-y-8">
                 <div>
-                  <h1 className="text-3xl font-bold mb-4 glow">UNHEARD RADIO</h1>
-                  <p className="text-xl text-vdu-green-dim mb-6">
+                  <h1 className="text-3xl font-bold mb-4 ink-glow">UNHEARD RADIO</h1>
+                  <p className="text-xl text-chart-ink-dim mb-6">
                     your portal to the strange side of sound
                   </p>
                 </div>
@@ -182,16 +182,16 @@ export default function Home() {
                   </p>
                 </div>
 
-                <div className="border-t border-vdu-green/20 pt-6 mt-8">
-                  <div className="text-sm text-vdu-green-dim space-y-2">
+                <div className="border-t border-chart-line/50 pt-6 mt-8">
+                  <div className="text-sm text-chart-ink-dim space-y-2">
                     <p>
                       Made by{' '}
-                      <a href="https://www.z13labs.com" target="_blank" rel="noopener noreferrer" className="text-vdu-green hover:text-vdu-green-dim underline">
+                      <a href="https://www.z13labs.com" target="_blank" rel="noopener noreferrer" className="text-chart-ink hover:text-chart-ink-dim underline">
                         Z13LABS
                       </a>
                     </p>
                     <p>Contact: hello@z13labs.com</p>
-                    <a href="/privacy" className="block text-vdu-green hover:text-vdu-green-dim underline">
+                    <a href="/privacy" className="block text-chart-ink hover:text-chart-ink-dim underline">
                       Privacy Policy
                     </a>
                   </div>

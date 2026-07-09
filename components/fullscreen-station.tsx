@@ -47,13 +47,13 @@ export function FullscreenStation({ station, onClose }: FullscreenStationProps) 
   };
 
   return (
-    <div className="fixed inset-0 bg-black z-[9999] w-screen h-dvh overflow-y-auto overscroll-contain">
-      <div className="sticky top-0 z-20 border-b border-hairline bg-radio-black/95 backdrop-blur px-3 sm:px-6 py-3 flex items-center justify-between gap-3">
+    <div className="fixed inset-0 bg-chart-bg z-[9999] w-screen h-dvh overflow-y-auto overscroll-contain">
+      <div className="sticky top-0 z-20 border-b border-chart-line/50 bg-chart-bg/95 backdrop-blur px-3 sm:px-6 py-3 flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <div className="font-display text-[22px] leading-none text-vdu-green-bright phosphor tracking-[0.08em]">
+          <div className="font-display text-[22px] leading-none text-chart-ink-bright ink-glow tracking-[0.08em]">
             UNHEARD // SIGNAL DETAIL
           </div>
-          <div className="mt-1 text-[10px] uppercase tracking-[0.14em] text-vdu-green-dim truncate">
+          <div className="mt-1 text-[10px] uppercase tracking-[0.14em] text-chart-ink-dim truncate">
             ID {getStationId(station)} · BAND {getBand(station)} · {getOrigin(station)}
           </div>
         </div>
@@ -61,17 +61,17 @@ export function FullscreenStation({ station, onClose }: FullscreenStationProps) 
         <button
           onClick={onClose}
           aria-label="Close station detail"
-          className="w-10 h-10 border border-vdu-green-dim text-vdu-green hover:border-vdu-green-bright hover:text-vdu-green-bright flex items-center justify-center transition-colors shrink-0"
+          className="w-10 h-10 border border-chart-line text-chart-ink hover:border-chart-ink-bright hover:text-chart-ink-bright flex items-center justify-center transition-colors shrink-0"
         >
           <Close size={16} />
         </button>
       </div>
 
-      <div className="relative min-h-[220px] border-b border-hairline overflow-hidden">
+      <div className="relative min-h-[220px] border-b border-chart-line/50 overflow-hidden">
         <div className="absolute inset-0 opacity-45 pointer-events-none">
           <AudioVisualizer mode="waterfall" height={260} />
         </div>
-        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/60 to-black" />
+        <div className="absolute inset-0 bg-gradient-to-b from-chart-bg/10 via-chart-bg/60 to-chart-bg" />
 
         <div className="relative z-10 max-w-6xl mx-auto px-3 sm:px-6 py-8 sm:py-10">
           <div className="grid lg:grid-cols-[minmax(0,1fr)_320px] gap-6 items-end">
@@ -81,15 +81,15 @@ export function FullscreenStation({ station, onClose }: FullscreenStationProps) 
                 <Badge>{isLive ? 'LIVE SIGNAL' : isCurrentStation ? 'PAUSED' : 'READY'}</Badge>
                 <Badge>{streamQuality.quality}</Badge>
               </div>
-              <h1 className="font-display text-[40px] sm:text-[56px] leading-none text-vdu-green-bright phosphor tracking-[0.03em] uppercase break-words">
+              <h1 className="font-display text-[40px] sm:text-[56px] leading-none text-chart-ink-bright ink-glow tracking-[0.03em] uppercase break-words">
                 {station.name || 'Unknown Station'}
               </h1>
-              <p className="mt-3 max-w-2xl text-sm sm:text-base text-vdu-green-dim leading-relaxed">
+              <p className="mt-3 max-w-2xl text-sm sm:text-base text-chart-ink-dim leading-relaxed">
                 {generateStationDescription(station)}
               </p>
             </div>
 
-            <div className="border border-hairline bg-radio-dark/80 p-3">
+            <div className="border border-chart-line/50 bg-chart-panel/80 p-3">
               <AudioVisualizer mode="bars" height={54} />
               <div className="mt-2">
                 <AudioVisualizer mode="dbfs" />
@@ -104,7 +104,7 @@ export function FullscreenStation({ station, onClose }: FullscreenStationProps) 
           <button
             onClick={handlePrimary}
             disabled={isLoading}
-            className="h-9 px-4 bg-vdu-green-bright text-radio-black border border-vdu-green-bright flex items-center gap-2 font-bold text-[11px] uppercase tracking-[0.14em] disabled:opacity-60"
+            className="h-9 px-4 bg-signal text-chart-bg border border-signal flex items-center gap-2 font-bold text-[11px] uppercase tracking-[0.14em] disabled:opacity-60"
           >
             {isLoading ? (
               <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
@@ -120,8 +120,8 @@ export function FullscreenStation({ station, onClose }: FullscreenStationProps) 
             onClick={() => toggleBookmark(station)}
             className={`h-9 px-3 border flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] font-bold transition-colors ${
               bookmarked
-                ? 'border-vdu-green bg-vdu-green/10 text-vdu-green-bright'
-                : 'border-vdu-green-dim text-vdu-green-dim hover:border-vdu-green hover:text-vdu-green'
+                ? 'border-chart-ink-dim bg-chart-ink/[0.06] text-chart-ink-bright'
+                : 'border-chart-line text-chart-ink-dim hover:border-chart-ink-dim hover:text-chart-ink'
             }`}
           >
             {bookmarked ? <LogOn size={13} /> : <Log size={13} />}
@@ -130,7 +130,7 @@ export function FullscreenStation({ station, onClose }: FullscreenStationProps) 
 
           <ShareMenu
             station={station}
-            iconClassName="h-9 px-3 border border-vdu-green-dim text-vdu-green-dim hover:border-vdu-green hover:text-vdu-green flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] font-bold transition-colors"
+            iconClassName="h-9 px-3 border border-chart-line text-chart-ink-dim hover:border-chart-ink-dim hover:text-chart-ink flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] font-bold transition-colors"
             trigger={<><Send size={13} /><span>Share</span></>}
           />
 
@@ -139,7 +139,7 @@ export function FullscreenStation({ station, onClose }: FullscreenStationProps) 
               href={station.homepage}
               target="_blank"
               rel="noopener noreferrer"
-              className="h-9 px-3 border border-vdu-green-dim text-vdu-green-dim hover:border-vdu-green hover:text-vdu-green flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] font-bold transition-colors"
+              className="h-9 px-3 border border-chart-line text-chart-ink-dim hover:border-chart-ink-dim hover:text-chart-ink flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] font-bold transition-colors"
             >
               <MapPin size={13} />
               Site
@@ -148,7 +148,7 @@ export function FullscreenStation({ station, onClose }: FullscreenStationProps) 
         </div>
 
         {error && isCurrentStation && (
-          <div className="mb-5 border border-accent-cyan bg-radio-dark px-3 py-2 text-xs text-accent-cyan">
+          <div className="mb-5 border border-danger bg-chart-panel px-3 py-2 text-xs text-danger">
             {error}
           </div>
         )}
@@ -189,7 +189,7 @@ export function FullscreenStation({ station, onClose }: FullscreenStationProps) 
 
 function Badge({ children }: { children: React.ReactNode }) {
   return (
-    <span className="border border-vdu-green-dim bg-radio-dark/80 px-2 py-1 text-[10px] uppercase tracking-[0.14em] text-vdu-green">
+    <span className="border border-chart-line bg-chart-panel/80 px-2 py-1 text-[10px] uppercase tracking-[0.14em] text-chart-ink">
       {children}
     </span>
   );
@@ -197,8 +197,8 @@ function Badge({ children }: { children: React.ReactNode }) {
 
 function DetailPanel({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="border border-hairline bg-radio-dark p-3">
-      <h2 className="text-[11px] uppercase tracking-[0.14em] text-vdu-green-bright mb-3">{title}</h2>
+    <section className="border border-chart-line/50 bg-chart-panel p-3">
+      <h2 className="text-[11px] uppercase tracking-[0.14em] text-chart-ink-bright mb-3">{title}</h2>
       <div className="space-y-2">{children}</div>
     </section>
   );
@@ -207,8 +207,8 @@ function DetailPanel({ title, children }: { title: string; children: React.React
 function DetailItem({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="grid grid-cols-[88px_minmax(0,1fr)] gap-3 text-[11px] uppercase tracking-[0.05em]">
-      <span className="text-vdu-green-dim">{label}</span>
-      <span className="text-vdu-green truncate">{value}</span>
+      <span className="text-chart-ink-dim">{label}</span>
+      <span className="text-chart-ink truncate">{value}</span>
     </div>
   );
 }

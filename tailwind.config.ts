@@ -67,17 +67,6 @@ export default {
         signal: "hsl(var(--signal))",
         "signal-dim": "hsl(var(--signal-dim))",
         danger: "hsl(var(--danger))",
-        // Legacy names (removed in final sweep) — retargeted via CSS vars
-        "radio-black": "hsl(var(--radio-black))",
-        "radio-dark": "hsl(var(--radio-dark))",
-        "vdu-green": "hsl(var(--vdu-green))",
-        "vdu-green-bright": "hsl(var(--vdu-green-bright))",
-        "vdu-green-dim": "hsl(var(--vdu-green-dim))",
-        "accent-cyan": "hsl(var(--accent-cyan))",
-        "vdu-green-faint": "hsl(var(--vdu-green-faint))",
-        "radio-panel": "hsl(var(--radio-panel))",
-        "text-muted": "hsl(var(--text-muted))",
-        hairline: "hsl(var(--hairline))",
         sidebar: {
           DEFAULT: "var(--sidebar-background)",
           foreground: "var(--sidebar-foreground)",

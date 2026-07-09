@@ -42,15 +42,15 @@ export function BookmarkList() {
   return (
     <div className="h-full min-h-0 p-3 md:p-6 overflow-y-auto overscroll-contain pb-28">
       <div className="mb-4 md:mb-6">
-        <h2 className="font-display text-[22px] md:text-[28px] leading-none text-vdu-green-bright phosphor tracking-[0.04em]">// LOG / SAVED CONTACTS</h2>
-        <p className="text-[10px] tracking-[0.12em] uppercase text-vdu-green-dim mt-1.5">{bookmarkStations.length} saved {bookmarkStations.length === 1 ? 'contact' : 'contacts'}</p>
+        <h2 className="font-display text-[22px] md:text-[28px] leading-none text-chart-ink-bright ink-glow tracking-[0.04em]">// LOG / SAVED CONTACTS</h2>
+        <p className="text-[10px] tracking-[0.12em] uppercase text-chart-ink-dim mt-1.5">{bookmarkStations.length} saved {bookmarkStations.length === 1 ? 'contact' : 'contacts'}</p>
       </div>
 
       {bookmarkStations.length === 0 ? (
         <div className="text-center py-12">
-          <Log size={64} className="text-vdu-green-dim mx-auto mb-4 block" />
-          <p className="text-vdu-green text-lg mb-2">No saved stations</p>
-          <p className="text-sm text-muted max-w-md mx-auto">
+          <Log size={64} className="text-chart-ink-dim mx-auto mb-4 block" />
+          <p className="text-chart-ink text-lg mb-2">No saved stations</p>
+          <p className="text-sm text-chart-ink-dim max-w-md mx-auto">
             Bookmark stations from the discover feed to keep them here for quick access.
           </p>
         </div>

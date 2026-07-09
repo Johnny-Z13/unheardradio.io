@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { radioBrowserFetch } from '@/lib/radio-browser'
+import { diversify } from '@/lib/discovery'
 import type { RadioStation, SearchFilters } from '@/types/radio'
 
 export default async function handler(
@@ -66,11 +67,19 @@ export default async function handler(
 
     if (shouldRandomise && filters.randomSeed) {
       stations = seededShuffle(stations, filters.randomSeed)
+      const homeCountry = (req.headers['x-vercel-ip-country'] as string | undefined)?.toUpperCase()
+      stations = diversify(stations, {
+        pageSize: filters.limit || 20,
+        maxPerCountry: 2,
+        homeCountry,
+        homeCap: 1,
+      })
       const start = filters.offset || 0
       const end = start + (filters.limit || 20)
       stations = stations.slice(start, end)
     }
 
+    res.setHeader('Vary', 'x-vercel-ip-country')
     res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300')
     res.status(200).json(stations)
   } catch (error) {

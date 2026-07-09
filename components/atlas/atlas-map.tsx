@@ -6,6 +6,7 @@ import { RadioStation } from '@/types/radio'
 import { fetchStations } from '@/lib/radio-api'
 import { useAudioStore } from '@/lib/audio-store'
 import { createRenderer, createProjector, type Signal, type View } from './atlas-render'
+import { AtlasCallout } from './atlas-callout'
 import centroids from '@/lib/geo/country-centroids.json'
 
 const CENTROIDS = centroids as Record<string, { lat: number; lng: number; region: string }>
@@ -107,6 +108,13 @@ export default function AtlasMap({ onStationSelect }: { onStationSelect: (s: Rad
     let dragged = false
     let pinchDist = 0
 
+    // Canvas-local coordinates from client coords — offsetX/Y is unreliable
+    // for synthetic events and after event retargeting.
+    const pt = (e: PointerEvent) => {
+      const r = canvas.getBoundingClientRect()
+      return { x: e.clientX - r.left, y: e.clientY - r.top }
+    }
+
     const clamp = (v: View) => {
       v.k = Math.min(12, Math.max(1, v.k))
       const maxPan = 0.75 * Math.max(v.w, v.h) * v.k
@@ -127,8 +135,8 @@ export default function AtlasMap({ onStationSelect }: { onStationSelect: (s: Rad
     }
 
     const onDown = (e: PointerEvent) => {
-      canvas.setPointerCapture(e.pointerId)
-      pointers.set(e.pointerId, { x: e.offsetX, y: e.offsetY })
+      try { canvas.setPointerCapture(e.pointerId) } catch { /* synthetic pointer */ }
+      pointers.set(e.pointerId, pt(e))
       dragged = false
       if (pointers.size === 2) {
         const pts = Array.from(pointers.values())
@@ -139,9 +147,10 @@ export default function AtlasMap({ onStationSelect }: { onStationSelect: (s: Rad
       const st = stateRef.current
       if (pointers.has(e.pointerId)) {
         const prev = pointers.get(e.pointerId)!
-        const dx = e.offsetX - prev.x
-        const dy = e.offsetY - prev.y
-        pointers.set(e.pointerId, { x: e.offsetX, y: e.offsetY })
+        const cur = pt(e)
+        const dx = cur.x - prev.x
+        const dy = cur.y - prev.y
+        pointers.set(e.pointerId, cur)
         if (pointers.size === 1) {
           if (Math.abs(dx) + Math.abs(dy) > 2) dragged = true
           st.view.x += dx
@@ -155,14 +164,16 @@ export default function AtlasMap({ onStationSelect }: { onStationSelect: (s: Rad
           dragged = true
         }
       } else {
-        st.hover = nearest(e.offsetX, e.offsetY)?.station.stationuuid ?? null
+        const cur = pt(e)
+        st.hover = nearest(cur.x, cur.y)?.station.stationuuid ?? null
         canvas.style.cursor = st.hover ? 'pointer' : 'grab'
       }
     }
     const onUp = (e: PointerEvent) => {
       pointers.delete(e.pointerId)
       if (!dragged) {
-        setSelected(nearest(e.offsetX, e.offsetY))
+        const cur = pt(e)
+        setSelected(nearest(cur.x, cur.y))
       }
     }
     const onWheel = (e: WheelEvent) => {
@@ -200,6 +211,13 @@ export default function AtlasMap({ onStationSelect }: { onStationSelect: (s: Rad
       >
         RESWEEP
       </button>
+      {selected && (
+        <AtlasCallout
+          placed={selected}
+          onTune={() => onStationSelect(selected.station)}
+          onClose={() => setSelected(null)}
+        />
+      )}
     </div>
   )
 }

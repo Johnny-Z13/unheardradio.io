@@ -3,70 +3,91 @@
 @tailwind utilities;
 
 :root {
-  /* Listening Post tokens (HSL channels for shadcn compatibility) */
-  --background: 0 0% 2%;
-  --foreground: 120 80% 42%;
-  --card: 0 0% 4%;
-  --card-foreground: 120 80% 42%;
-  --popover: 0 0% 4%;
-  --popover-foreground: 120 80% 42%;
-  --primary: 120 100% 58%;
-  --primary-foreground: 0 0% 0%;
-  --secondary: 0 0% 5%;
-  --secondary-foreground: 120 80% 42%;
-  --muted: 0 0% 8%;
-  --muted-foreground: 120 65% 28%;
-  --accent: 180 100% 70%;
-  --accent-foreground: 0 0% 0%;
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 120 40% 14%;
-  --input: 0 0% 5%;
-  --ring: 120 100% 58%;
+  /* Signal Atlas tokens (HSL channels for shadcn compatibility) */
+  --chart-bg: 215 45% 4%;
+  --chart-panel: 215 40% 7%;
+  --chart-panel-2: 215 38% 9%;
+  --chart-line: 215 30% 24%;
+  --chart-ink-dim: 215 18% 48%;
+  --chart-ink: 210 25% 78%;
+  --chart-ink-bright: 210 40% 94%;
+  --signal: 36 95% 58%;
+  --signal-dim: 36 45% 42%;
+  --danger: 5 75% 62%;
+
+  /* shadcn mapping */
+  --background: var(--chart-bg);
+  --foreground: var(--chart-ink);
+  --card: var(--chart-panel);
+  --card-foreground: var(--chart-ink);
+  --popover: var(--chart-panel);
+  --popover-foreground: var(--chart-ink);
+  --primary: var(--signal);
+  --primary-foreground: var(--chart-bg);
+  --secondary: var(--chart-panel-2);
+  --secondary-foreground: var(--chart-ink);
+  --muted: var(--chart-panel-2);
+  --muted-foreground: var(--chart-ink-dim);
+  --accent: var(--signal);
+  --accent-foreground: var(--chart-bg);
+  --destructive: var(--danger);
+  --destructive-foreground: var(--chart-ink-bright);
+  --border: var(--chart-line);
+  --input: var(--chart-panel);
+  --ring: var(--signal);
   --radius: 0;
 
-  /* App-specific (existing names retained for Tailwind tokens) */
-  --vdu-green: 120 80% 42%;
-  --vdu-green-dim: 120 65% 28%;
-  --vdu-green-bright: 120 100% 58%;
-  --vdu-green-faint: 120 40% 14%;
-  --vdu-glow: 120 100% 58%;
-  --radio-black: 0 0% 2%;
-  --radio-dark: 0 0% 4%;
-  --radio-panel: 0 0% 5%;
-  --accent-cyan: 180 100% 70%;
-  --text-muted: 120 65% 28%;
-  --hairline: 120 60% 30%;
+  /* Legacy aliases — retargeted so existing classnames render atlas colors.
+     Removed in the final sweep task. */
+  --vdu-green: var(--chart-ink);
+  --vdu-green-dim: var(--chart-ink-dim);
+  --vdu-green-bright: var(--chart-ink-bright);
+  --vdu-green-faint: var(--chart-line);
+  --vdu-glow: var(--chart-ink-bright);
+  --radio-black: var(--chart-bg);
+  --radio-dark: var(--chart-panel);
+  --radio-panel: var(--chart-panel-2);
+  --accent-cyan: var(--signal);
+  --text-muted: var(--chart-ink-dim);
+  --hairline: var(--chart-line);
 }
 
 * {
-  border-color: hsl(var(--border));
+  border-color: hsl(var(--border) / 0.5);
 }
 
 body {
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
+  background-color: hsl(var(--chart-bg));
+  color: hsl(var(--chart-ink));
   font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  background-image: linear-gradient(rgba(0,0,0,0) 50%, rgba(0,0,0,0.18) 50%);
-  background-size: 100% 3px;
+  /* faint graticule motif — replaces CRT scanlines */
+  background-image:
+    linear-gradient(hsl(var(--chart-line) / 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(var(--chart-line) / 0.07) 1px, transparent 1px);
+  background-size: 56px 56px;
   overflow: hidden;
 }
 
 html {
-  background-color: hsl(var(--background));
+  background-color: hsl(var(--chart-bg));
 }
 
 .font-display {
-  font-family: var(--font-display), var(--font-mono), monospace;
+  font-family: var(--font-mono), monospace;
+  letter-spacing: 0.12em;
 }
 
-.phosphor {
-  text-shadow: 0 0 5px hsla(120, 100%, 55%, 0.4);
+.signal-glow {
+  text-shadow: 0 0 6px hsl(var(--signal) / 0.45);
 }
 
-.glow {
-  text-shadow: 0 0 8px hsl(var(--vdu-glow));
+.ink-glow {
+  text-shadow: 0 0 6px hsl(var(--chart-ink-bright) / 0.25);
 }
+
+/* Legacy glow aliases (removed in final sweep) */
+.phosphor { text-shadow: 0 0 6px hsl(var(--chart-ink-bright) / 0.25); }
+.glow { text-shadow: 0 0 6px hsl(var(--chart-ink-bright) / 0.25); }
 
 .text-vdu-green { color: hsl(var(--vdu-green)); }
 .text-vdu-green-dim { color: hsl(var(--vdu-green-dim)); }
@@ -76,9 +97,9 @@ html {
 .bg-radio-panel { background-color: hsl(var(--radio-panel)); }
 .border-vdu-green { border-color: hsl(var(--vdu-green)); }
 .border-vdu-green-dim { border-color: hsl(var(--vdu-green-dim)); }
-.border-hairline { border-color: hsla(var(--hairline), 0.35); }
+.border-hairline { border-color: hsl(var(--hairline) / 0.35); }
 
 ::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: hsl(var(--background)); }
-::-webkit-scrollbar-thumb { background: hsl(var(--vdu-green-dim)); }
-::-webkit-scrollbar-thumb:hover { background: hsl(var(--vdu-green)); }
+::-webkit-scrollbar-track { background: hsl(var(--chart-bg)); }
+::-webkit-scrollbar-thumb { background: hsl(var(--chart-line)); }
+::-webkit-scrollbar-thumb:hover { background: hsl(var(--chart-ink-dim)); }

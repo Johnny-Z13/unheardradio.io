@@ -81,6 +81,7 @@ Key files:
 - `pages/api/stations/index.ts` proxies station search and creates seeded obscure random feeds.
 - `pages/api/stations/[uuid]/index.ts` resolves shared station links.
 - `pages/api/stations/[uuid]/click.ts` records RadioBrowser click counts.
+- `app/sitemap.ts` generates the XML sitemap for Google Search.
 
 ## Product Principles
 
@@ -100,6 +101,13 @@ Key files:
 - The Signal Atlas is an abstract coordinate plot, not a full map provider integration.
 - Bookmarks are browser-local only.
 - There is no automated test suite yet beyond TypeScript and production build validation.
+
+## SEO
+
+- The canonical host is `https://www.unheardradio.io` — the apex 308-redirects to www. Use the www host in any absolute URL (sitemap, metadata, share copy).
+- `app/sitemap.ts` serves `https://www.unheardradio.io/sitemap.xml` for Google Search. It lists the two real routes (`/` and `/privacy`); the SCAN/FILTER/LOG/GRID/NFO tabs are in-app state, not URLs.
+- `lastModified` dates are pinned by hand. Bump them when a page meaningfully changes — Google only trusts `lastmod` when it tracks real content changes, and it ignores `changeFrequency` and `priority`.
+- `app/robots.ts` serves `/robots.txt`: allows all crawlers, blocks `/api/`, and points at the sitemap.
 
 ## Deployment
 

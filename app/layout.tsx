@@ -16,7 +16,7 @@ const vt323 = VT323({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://unheardradio.io'),
+  metadataBase: new URL('https://www.unheardradio.io'),
   title: 'Unheard Radio - Discover Obscure Underground Radio Stations Worldwide',
   description: 'Anti-algorithm radio discovery platform. Find the world\'s most obscure, underground radio stations with zero listeners. Stream live broadcasts from forgotten corners of the globe.',
   keywords: 'radio, obscure radio, underground radio, radio discovery, live radio, streaming radio, zero listeners, anti-algorithm, radio browser, global radio, experimental radio, rare radio stations',
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Unheard Radio - Discover Obscure Radio Stations',
     description: 'Your portal to the strange side of sound. Stream live radio from the world\'s most overlooked stations.',
-    url: 'https://unheardradio.io',
+    url: 'https://www.unheardradio.io',
     siteName: 'Unheard Radio',
     type: 'website',
     locale: 'en_US',

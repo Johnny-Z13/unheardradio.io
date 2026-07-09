@@ -38,10 +38,12 @@ Unheard Radio is a Next.js 15 app (mixed App Router + Pages Router) that surface
 ### Sharing
 `components/share-menu.tsx` is the single source of truth for sharing. On mobile it triggers `navigator.share` (native share sheet → WhatsApp/Telegram/etc); on desktop or when native share is unavailable, it opens a popover with Copy link / WhatsApp / Telegram / X / Email. Used by `station-card`, `now-playing-bar`, and `fullscreen-station`. Don't reimplement share logic in components — pass the `RadioStation` to `<ShareMenu>` and optionally style via `iconClassName` + `trigger`.
 
-### Styling — Listening Post design system
-Tailwind + shadcn/ui (style: `new-york`). The app uses a deliberate "SIGINT listening post" treatment defined in `docs/superpowers/specs/2026-04-29-listening-post-ui-design.md`.
+### Styling — Signal Atlas design system
+Tailwind + shadcn/ui (style: `new-york`). The app uses a "night chart" treatment defined in `docs/superpowers/specs/2026-07-09-signal-atlas-design.md` — ink-navy ground, slate linework, chart-ink text.
 
-Color discipline: `--vdu-green-bright` and `--accent-cyan` are scarce. Bright is reserved for the **active station + primary actions + brand wordmark only**. Cyan is reserved for **live RX pulse, visualizer trace cursor, and waterfall hot-end** — no other use. Most chrome should sit between `--vdu-green-dim` and `--vdu-green`. The fonts are JetBrains Mono (body/data) and VT323 (`.font-display`, used for brand and section headers).
+Color discipline: **amber (`--signal`) is the only warm hue and it is scarce** — live/playing signal markers, pulses, the primary play action, visualizer hot-end, and the active-tab underline only. Coral (`--danger`) is for stream errors only. Bright ink (`--chart-ink-bright`) marks brand, headings, and active callsigns. Most chrome sits between `--chart-line` and `--chart-ink`. If everything glows, nothing glows. Single font family: JetBrains Mono (`.font-display` is the same mono with wide letter-spacing for display moments).
+
+The Atlas (`components/atlas/`) is the landing view: a canvas world chart (d3-geo + bundled TopoJSON in `lib/geo/` — no tiles, no keys). Its animation state is module-level, read in rAF — never per-frame React state. The seeded discovery feed is diversified server-side (`lib/discovery.ts`): ≤2 stations per country per page, listener's own country (from `x-vercel-ip-country`) capped at 1 and pushed last. Run `npm test` (node --test) for its suite.
 
 **Iconography:** all icons live in `components/icons.tsx` as 14×14 SVG components with 1.5px stroke and square caps. Do not introduce Lucide icons (the lone exception is `Loader2` as a spinner). If a new glyph is needed, draft it into that file matching the existing style.
 

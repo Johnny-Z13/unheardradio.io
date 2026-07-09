@@ -89,7 +89,7 @@ export function ShareMenu({ station, className, iconClassName, trigger }: ShareM
       <button
         onClick={handleClick}
         title="Share"
-        className={iconClassName ?? 'w-7 h-7 rounded-full border border-vdu-green-dim text-vdu-green-dim hover:border-vdu-green hover:text-vdu-green transition-all flex items-center justify-center'}
+        className={iconClassName ?? 'w-7 h-7 rounded-full border border-chart-line text-chart-ink-dim hover:border-chart-ink-dim hover:text-chart-ink transition-all flex items-center justify-center'}
       >
         {trigger ?? <SendIcon size={12} />}
       </button>
@@ -98,13 +98,13 @@ export function ShareMenu({ station, className, iconClassName, trigger }: ShareM
         <div
           onClick={stop}
           role="menu"
-          className="absolute right-0 top-full mt-2 z-[60] w-56 border border-vdu-green-dim bg-radio-panel p-1 shadow-[0_4px_20px_hsla(120,100%,40%,0.12)]"
+          className="absolute right-0 top-full mt-2 z-[60] w-56 border border-chart-line bg-chart-panel-2 p-1 shadow-[0_4px_20px_hsl(215_30%_24%/0.12)]"
         >
-          <div className="flex items-center justify-between px-2 py-1.5 text-[10px] tracking-[0.15em] uppercase text-vdu-green-dim border-b border-hairline mb-1">
+          <div className="flex items-center justify-between px-2 py-1.5 text-[10px] tracking-[0.15em] uppercase text-chart-ink-dim border-b border-chart-line/50 mb-1">
             <span>// Send to</span>
             <button
               onClick={() => setOpen(false)}
-              className="text-vdu-green-dim hover:text-vdu-green-bright"
+              className="text-chart-ink-dim hover:text-chart-ink-bright"
               aria-label="Close share menu"
             >
               <Close size={10} />
@@ -113,7 +113,7 @@ export function ShareMenu({ station, className, iconClassName, trigger }: ShareM
 
           <button
             onClick={handleCopy}
-            className="w-full flex items-center gap-2 px-2 py-2 text-[11px] tracking-[0.05em] uppercase text-vdu-green hover:bg-vdu-green/10 hover:text-vdu-green-bright transition-colors"
+            className="w-full flex items-center gap-2 px-2 py-2 text-[11px] tracking-[0.05em] uppercase text-chart-ink hover:bg-chart-ink/[0.06] hover:text-chart-ink-bright transition-colors"
           >
             {copied ? <span className="font-display text-[14px] leading-none w-4">✓</span> : <span className="font-display text-[14px] leading-none w-4">⎘</span>}
             <span>{copied ? 'Copied!' : 'Copy link'}</span>
@@ -123,7 +123,7 @@ export function ShareMenu({ station, className, iconClassName, trigger }: ShareM
             href={`https://wa.me/?text=${encodeURIComponent(full)}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full flex items-center gap-2 px-2 py-2 text-[11px] tracking-[0.05em] uppercase text-vdu-green hover:bg-vdu-green/10 hover:text-vdu-green-bright transition-colors"
+            className="w-full flex items-center gap-2 px-2 py-2 text-[11px] tracking-[0.05em] uppercase text-chart-ink hover:bg-chart-ink/[0.06] hover:text-chart-ink-bright transition-colors"
             onClick={() => setOpen(false)}
           >
             <span className="font-display text-[14px] leading-none w-4">W</span>
@@ -134,7 +134,7 @@ export function ShareMenu({ station, className, iconClassName, trigger }: ShareM
             href={`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full flex items-center gap-2 px-2 py-2 text-[11px] tracking-[0.05em] uppercase text-vdu-green hover:bg-vdu-green/10 hover:text-vdu-green-bright transition-colors"
+            className="w-full flex items-center gap-2 px-2 py-2 text-[11px] tracking-[0.05em] uppercase text-chart-ink hover:bg-chart-ink/[0.06] hover:text-chart-ink-bright transition-colors"
             onClick={() => setOpen(false)}
           >
             <span className="font-display text-[14px] leading-none w-4">T</span>
@@ -145,7 +145,7 @@ export function ShareMenu({ station, className, iconClassName, trigger }: ShareM
             href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full flex items-center gap-2 px-2 py-2 text-[11px] tracking-[0.05em] uppercase text-vdu-green hover:bg-vdu-green/10 hover:text-vdu-green-bright transition-colors"
+            className="w-full flex items-center gap-2 px-2 py-2 text-[11px] tracking-[0.05em] uppercase text-chart-ink hover:bg-chart-ink/[0.06] hover:text-chart-ink-bright transition-colors"
             onClick={() => setOpen(false)}
           >
             <span className="font-display text-[14px] leading-none w-4">X</span>
@@ -154,7 +154,7 @@ export function ShareMenu({ station, className, iconClassName, trigger }: ShareM
 
           <a
             href={`mailto:?subject=${encodeURIComponent(`${station.name} — Unheard Radio`)}&body=${encodeURIComponent(full)}`}
-            className="w-full flex items-center gap-2 px-2 py-2 text-[11px] tracking-[0.05em] uppercase text-vdu-green hover:bg-vdu-green/10 hover:text-vdu-green-bright transition-colors"
+            className="w-full flex items-center gap-2 px-2 py-2 text-[11px] tracking-[0.05em] uppercase text-chart-ink hover:bg-chart-ink/[0.06] hover:text-chart-ink-bright transition-colors"
             onClick={() => setOpen(false)}
           >
             <span className="font-display text-[14px] leading-none w-4">@</span>

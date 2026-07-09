@@ -75,8 +75,8 @@ export function DiscoveryList({ filters }: DiscoveryListProps) {
     return (
     <div className="h-full p-6 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-vdu-green mx-auto mb-4" />
-          <p className="text-vdu-green">Scanning airwaves...</p>
+          <Loader2 className="w-8 h-8 animate-spin text-chart-ink mx-auto mb-4" />
+          <p className="text-chart-ink">Scanning airwaves...</p>
         </div>
       </div>
     );
@@ -99,10 +99,10 @@ export function DiscoveryList({ filters }: DiscoveryListProps) {
     <div className="h-full min-h-0 p-3 md:p-6 overflow-y-auto overscroll-contain pb-28">
       <div className="mb-4 md:mb-6 flex flex-col md:flex-row md:items-center md:justify-between space-y-3 md:space-y-0">
         <div className="min-w-0">
-          <h2 className="font-display text-[22px] md:text-[28px] leading-none text-vdu-green-bright phosphor tracking-[0.04em]">
+          <h2 className="font-display text-[22px] md:text-[28px] leading-none text-chart-ink-bright ink-glow tracking-[0.04em]">
             // OBSCURE TRANSMISSIONS
           </h2>
-          <p className="text-[10px] tracking-[0.12em] uppercase text-vdu-green-dim mt-1.5">
+          <p className="text-[10px] tracking-[0.12em] uppercase text-chart-ink-dim mt-1.5">
             {!filters.search && !filters.country && !filters.genre 
               ? `Random discoveries • ${allStations.length} stations`
               : `Sorted by reverse popularity • ${allStations.length} stations found`
@@ -115,7 +115,7 @@ export function DiscoveryList({ filters }: DiscoveryListProps) {
             variant="outline"
             size="sm"
             disabled={isFetching || !canRandomise}
-            className="border-vdu-green-dim text-vdu-green hover:bg-vdu-green-bright hover:text-radio-black text-[10px] tracking-[0.15em] uppercase font-bold rounded-none"
+            className="border-chart-line text-chart-ink hover:bg-chart-ink-bright hover:text-chart-bg text-[10px] tracking-[0.15em] uppercase font-bold rounded-none"
           >
             <Scan size={12} className="mr-1.5" />
             <span className="hidden md:inline">RANDOMISE FEED</span>
@@ -155,7 +155,7 @@ export function DiscoveryList({ filters }: DiscoveryListProps) {
           <Button
             onClick={handleLoadMore}
             variant="outline"
-            className="border-vdu-green-dim text-vdu-green hover:bg-vdu-green hover:text-radio-black"
+            className="border-chart-line text-chart-ink hover:bg-chart-ink hover:text-chart-bg"
           >
             Load More Stations
           </Button>
@@ -165,7 +165,7 @@ export function DiscoveryList({ filters }: DiscoveryListProps) {
       {/* Loading More Indicator */}
       {isFetching && offset > 0 && (
         <div className="text-center mt-6">
-          <Loader2 className="w-6 h-6 animate-spin text-vdu-green mx-auto" />
+          <Loader2 className="w-6 h-6 animate-spin text-chart-ink mx-auto" />
         </div>
       )}
 

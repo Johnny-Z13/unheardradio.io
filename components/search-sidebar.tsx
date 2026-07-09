@@ -64,24 +64,24 @@ export function SearchSidebar({ onRefreshToDiscovery, totalStations }: SearchSid
   };
 
   return (
-    <aside className="w-full lg:w-80 bg-radio-dark overflow-y-auto flex-shrink-0 h-auto lg:h-full">
+    <aside className="w-full lg:w-80 bg-chart-panel overflow-y-auto flex-shrink-0 h-auto lg:h-full">
       <div className="p-3 space-y-3">
         {/* Header with refresh button */}
         <div className="flex items-center justify-between">
-          <h2 className="font-display text-[22px] leading-none text-vdu-green-bright phosphor tracking-[0.05em]">// FILTERS</h2>
+          <h2 className="font-display text-[22px] leading-none text-chart-ink-bright ink-glow tracking-[0.05em]">// FILTERS</h2>
           <Button
             onClick={handleRefresh}
             size="sm"
-            className="bg-vdu-green-bright text-radio-black hover:bg-vdu-green text-[10px] tracking-[0.15em] uppercase font-bold px-3 py-1.5 h-auto rounded-none"
+            className="bg-chart-ink-bright text-chart-bg hover:bg-chart-ink text-[10px] tracking-[0.15em] uppercase font-bold px-3 py-1.5 h-auto rounded-none"
           >
             <Rescan size={12} className="mr-1.5" />
             APPLY
           </Button>
         </div>
         
-        <div className="border-t border-b border-hairline py-2 flex items-baseline justify-between">
-          <span className="text-[10px] tracking-[0.15em] uppercase text-vdu-green-dim">// Indexed</span>
-          <span className="font-display text-[20px] leading-none text-vdu-green-bright">{totalStations.toLocaleString()}</span>
+        <div className="border-t border-b border-chart-line/50 py-2 flex items-baseline justify-between">
+          <span className="text-[10px] tracking-[0.15em] uppercase text-chart-ink-dim">// Indexed</span>
+          <span className="font-display text-[20px] leading-none text-chart-ink-bright">{totalStations.toLocaleString()}</span>
         </div>
         
         {/* Search Input */}
@@ -91,23 +91,23 @@ export function SearchSidebar({ onRefreshToDiscovery, totalStations }: SearchSid
             placeholder="Search stations..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-radio-black border-vdu-green-dim text-vdu-green placeholder-gray-500 focus:border-vdu-green pr-8 h-8 text-sm"
+            className="w-full bg-chart-bg border-chart-line text-chart-ink placeholder-gray-500 focus:border-chart-ink-dim pr-8 h-8 text-sm"
           />
-          <SearchIcon size={12} className="absolute right-2.5 top-2.5 text-vdu-green-dim" />
+          <SearchIcon size={12} className="absolute right-2.5 top-2.5 text-chart-ink-dim" />
         </div>
 
         {/* Listener Count Filter - Compact Layout */}
         <div className="space-y-2">
-          <h3 className="text-[10px] font-bold text-vdu-green-dim uppercase tracking-[0.15em]">// AUDIENCE&nbsp;SIZE</h3>
+          <h3 className="text-[10px] font-bold text-chart-ink-dim uppercase tracking-[0.15em]">// AUDIENCE&nbsp;SIZE</h3>
           <Select value={listenerFilter} onValueChange={(value) => setListenerFilter(value as any)}>
-            <SelectTrigger className="w-full bg-radio-black border-vdu-green-dim text-vdu-green focus:border-vdu-green h-8 text-xs">
+            <SelectTrigger className="w-full bg-chart-bg border-chart-line text-chart-ink focus:border-chart-ink-dim h-8 text-xs">
               <SelectValue placeholder="All listener counts" />
             </SelectTrigger>
-            <SelectContent className="bg-black border-vdu-green-dim backdrop-blur-none">
-              <SelectItem value="zero" className="text-vdu-green hover:bg-vdu-green hover:bg-opacity-20 text-xs font-bold bg-black">Zero listeners only</SelectItem>
-              <SelectItem value="hide-zero" className="text-vdu-green hover:bg-vdu-green hover:bg-opacity-20 text-xs bg-black">Hide zero listeners</SelectItem>
-              <SelectItem value="high-to-low" className="text-vdu-green hover:bg-vdu-green hover:bg-opacity-20 text-xs bg-black">Listeners high to low</SelectItem>
-              <SelectItem value="low-to-high" className="text-vdu-green hover:bg-vdu-green hover:bg-opacity-20 text-xs bg-black">Listeners low to high</SelectItem>
+            <SelectContent className="bg-chart-bg border-chart-line backdrop-blur-none">
+              <SelectItem value="zero" className="text-chart-ink hover:bg-chart-ink/[0.06] text-xs font-bold bg-chart-bg">Zero listeners only</SelectItem>
+              <SelectItem value="hide-zero" className="text-chart-ink hover:bg-chart-ink/[0.06] text-xs bg-chart-bg">Hide zero listeners</SelectItem>
+              <SelectItem value="high-to-low" className="text-chart-ink hover:bg-chart-ink/[0.06] text-xs bg-chart-bg">Listeners high to low</SelectItem>
+              <SelectItem value="low-to-high" className="text-chart-ink hover:bg-chart-ink/[0.06] text-xs bg-chart-bg">Listeners low to high</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -115,15 +115,15 @@ export function SearchSidebar({ onRefreshToDiscovery, totalStations }: SearchSid
         {/* Location and Genre Filters - Compact Grid */}
         <div className="grid grid-cols-1 gap-2">
           <div className="space-y-1">
-            <h3 className="text-[10px] font-bold text-vdu-green-dim uppercase tracking-[0.15em]">// LOCATION</h3>
+            <h3 className="text-[10px] font-bold text-chart-ink-dim uppercase tracking-[0.15em]">// LOCATION</h3>
             <Select value={country} onValueChange={setCountry}>
-              <SelectTrigger className="w-full bg-radio-black border-vdu-green-dim text-vdu-green focus:border-vdu-green h-8 text-xs">
+              <SelectTrigger className="w-full bg-chart-bg border-chart-line text-chart-ink focus:border-chart-ink-dim h-8 text-xs">
                 <SelectValue placeholder="All Countries" />
               </SelectTrigger>
-              <SelectContent className="bg-black border-vdu-green-dim max-h-48 overflow-y-auto backdrop-blur-none">
-                <SelectItem value="all" className="text-vdu-green hover:bg-vdu-green hover:bg-opacity-20 text-xs bg-black">All Countries</SelectItem>
+              <SelectContent className="bg-chart-bg border-chart-line max-h-48 overflow-y-auto backdrop-blur-none">
+                <SelectItem value="all" className="text-chart-ink hover:bg-chart-ink/[0.06] text-xs bg-chart-bg">All Countries</SelectItem>
                 {countries.slice(0, 50).map((c) => (
-                  <SelectItem key={c.iso_3166_1} value={c.name} className="text-vdu-green hover:bg-vdu-green hover:bg-opacity-20 text-xs bg-black">
+                  <SelectItem key={c.iso_3166_1} value={c.name} className="text-chart-ink hover:bg-chart-ink/[0.06] text-xs bg-chart-bg">
                     {c.name.length > 15 ? c.name.substring(0, 15) + '...' : c.name} ({c.stationcount})
                   </SelectItem>
                 ))}
@@ -132,15 +132,15 @@ export function SearchSidebar({ onRefreshToDiscovery, totalStations }: SearchSid
           </div>
 
           <div className="space-y-1">
-            <h3 className="text-[10px] font-bold text-vdu-green-dim uppercase tracking-[0.15em]">// GENRE</h3>
+            <h3 className="text-[10px] font-bold text-chart-ink-dim uppercase tracking-[0.15em]">// GENRE</h3>
             <Select value={genre} onValueChange={setGenre}>
-              <SelectTrigger className="w-full bg-radio-black border-vdu-green-dim text-vdu-green focus:border-vdu-green h-8 text-xs">
+              <SelectTrigger className="w-full bg-chart-bg border-chart-line text-chart-ink focus:border-chart-ink-dim h-8 text-xs">
                 <SelectValue placeholder="All Genres" />
               </SelectTrigger>
-              <SelectContent className="bg-black border-vdu-green-dim max-h-48 overflow-y-auto backdrop-blur-none">
-                <SelectItem value="all" className="text-vdu-green hover:bg-vdu-green hover:bg-opacity-20 text-xs bg-black">All Genres</SelectItem>
+              <SelectContent className="bg-chart-bg border-chart-line max-h-48 overflow-y-auto backdrop-blur-none">
+                <SelectItem value="all" className="text-chart-ink hover:bg-chart-ink/[0.06] text-xs bg-chart-bg">All Genres</SelectItem>
                 {genres.slice(0, 100).map((g) => (
-                  <SelectItem key={g.name} value={g.name} className="text-vdu-green hover:bg-vdu-green hover:bg-opacity-20 text-xs bg-black">
+                  <SelectItem key={g.name} value={g.name} className="text-chart-ink hover:bg-chart-ink/[0.06] text-xs bg-chart-bg">
                     {g.name} ({g.stationcount})
                   </SelectItem>
                 ))}
@@ -150,9 +150,9 @@ export function SearchSidebar({ onRefreshToDiscovery, totalStations }: SearchSid
         </div>
 
         {/* Usage Instructions */}
-        <div className="mt-3 pt-3 border-t border-hairline">
-          <p className="text-[10px] tracking-[0.05em] uppercase text-vdu-green-dim leading-relaxed">
-            Set filters · press <span className="text-vdu-green-bright">APPLY</span> · returns to SCAN feed
+        <div className="mt-3 pt-3 border-t border-chart-line/50">
+          <p className="text-[10px] tracking-[0.05em] uppercase text-chart-ink-dim leading-relaxed">
+            Set filters · press <span className="text-chart-ink-bright">APPLY</span> · returns to SCAN feed
           </p>
         </div>
 

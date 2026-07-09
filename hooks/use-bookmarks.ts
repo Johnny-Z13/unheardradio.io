@@ -5,6 +5,7 @@ interface BookmarkedStation {
   stationuuid: string;
   name: string;
   country: string;
+  countrycode?: string;
   genre: string;
   bitrate: number;
   url: string;
@@ -63,6 +64,7 @@ export function useBookmarks() {
       stationuuid: station.stationuuid,
       name: station.name,
       country: station.country,
+      countrycode: station.countrycode,
       genre: station.tags,
       bitrate: station.bitrate,
       url: station.url,

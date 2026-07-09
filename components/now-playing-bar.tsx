@@ -6,86 +6,89 @@ import { Stop, Play, Log, LogOn, Send, Inspect } from './icons';
 import { getBand, getStationId, getCoords } from '@/lib/station-format';
 
 export function NowPlayingBar({ onMaximize }: { onMaximize?: () => void }) {
-  const { currentStation, isPlaying, togglePlay, error } = useAudioStore();
+  const { currentStation, isPlaying, isLoading, togglePlay, error } = useAudioStore();
   const { isBookmarked, toggleBookmark } = useBookmarks();
 
   if (!currentStation) return null;
   const bookmarked = isBookmarked(currentStation.stationuuid);
+  const statusLabel = error ? 'SIGNAL LOST' : isLoading ? 'BUFFERING' : isPlaying ? 'LIVE' : 'PAUSED';
+  const statusIsLive = statusLabel === 'LIVE';
 
   return (
     <div
-      className="border-t border-vdu-green-dim bg-radio-panel px-3 sm:px-4 py-2 sm:py-3 grid items-center gap-3 sm:gap-4"
-      style={{
-        gridTemplateColumns: 'minmax(0, 1fr) minmax(180px, 340px) auto',
-        boxShadow: '0 -4px 22px hsla(120, 100%, 40%, 0.12)',
-      }}
+      className="border-t border-chart-line bg-chart-panel-2 px-3 sm:px-4 py-2.5 sm:py-3"
+      style={{ boxShadow: '0 -4px 22px hsl(215 40% 12% / 0.6)' }}
     >
-      {/* Info + trace stack */}
-      <div className="min-w-0">
-        <div className="flex items-center gap-2 text-[10px] sm:text-[11px] tracking-[0.08em] uppercase text-vdu-green-dim mb-0.5">
-          <span>► Signal</span>
-          <span className="text-accent-cyan">ID&nbsp;{getStationId(currentStation)}</span>
-          <span className="hidden sm:inline">·&nbsp;BAND&nbsp;{getBand(currentStation)}</span>
-          <span className="hidden md:inline">·&nbsp;{getCoords(currentStation)}</span>
-          <span className="ml-auto inline-flex items-center gap-1.5 text-accent-cyan">
-            <span className={`w-1.5 h-1.5 bg-accent-cyan ${isPlaying ? 'animate-pulse' : 'opacity-30'}`} />
-            {isPlaying ? 'LIVE' : 'PAUSED'}
-          </span>
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[minmax(0,1fr)_minmax(160px,320px)_auto] items-center gap-3 sm:gap-4">
+        {/* Info */}
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 text-[10px] sm:text-[11px] tracking-[0.08em] uppercase text-chart-ink-dim mb-0.5">
+            <span>► Signal</span>
+            <span className="text-chart-ink">ID&nbsp;{getStationId(currentStation)}</span>
+            <span className="hidden sm:inline">·&nbsp;BAND&nbsp;{getBand(currentStation)}</span>
+            <span className="hidden md:inline">·&nbsp;{getCoords(currentStation)}</span>
+            <span className={`ml-auto inline-flex items-center gap-1.5 ${statusIsLive ? 'text-signal' : error ? 'text-danger' : 'text-chart-ink-dim'}`}>
+              <span className={`w-1.5 h-1.5 ${statusIsLive ? 'bg-signal animate-pulse' : error ? 'bg-danger' : 'bg-chart-ink-dim opacity-40'}`} />
+              {statusLabel}
+            </span>
+          </div>
+          <div className={`font-bold text-[13px] sm:text-sm uppercase tracking-wide truncate ${statusIsLive ? 'text-chart-ink-bright signal-glow' : 'text-chart-ink-bright'}`}>
+            {currentStation.name}
+          </div>
+          {error && (
+            <p className="text-[10px] text-danger truncate mt-0.5">⚠ {error}</p>
+          )}
         </div>
-        <div className="text-vdu-green-bright font-bold text-[13px] sm:text-sm uppercase tracking-wide truncate phosphor">
-          {currentStation.name}
-        </div>
-        {error && (
-          <p className="text-[10px] text-accent-cyan truncate mt-0.5">⚠ {error}</p>
-        )}
-      </div>
 
-      {/* Visualizer + readout (hidden on the smallest screens) */}
-      <div className="hidden sm:grid grid-cols-[1fr_88px] items-center gap-2 min-w-0">
-        <div className="grid gap-1">
+        {/* sm+: single visualizer + dBFS on md+ */}
+        <div className="hidden sm:grid grid-cols-[1fr_auto] items-center gap-2 min-w-0">
           <AudioVisualizer mode="bars" height={28} />
-          <AudioVisualizer mode="trace" height={18} />
+          <div className="hidden md:block text-right">
+            <AudioVisualizer mode="dbfs" />
+          </div>
         </div>
-        <div className="hidden md:block text-right">
-          <AudioVisualizer mode="dbfs" />
+
+        {/* Controls */}
+        <div className="flex gap-1.5">
+          <button
+            onClick={togglePlay}
+            aria-label={isPlaying ? 'Stop' : 'Play'}
+            className="w-10 h-10 bg-signal text-chart-bg border border-signal flex items-center justify-center"
+            style={{ boxShadow: '0 0 8px hsl(36 95% 58% / 0.4)' }}
+          >
+            {isPlaying ? <Stop size={12} /> : <Play size={12} />}
+          </button>
+          <button
+            onClick={() => toggleBookmark(currentStation)}
+            aria-label={bookmarked ? 'Remove from log' : 'Log contact'}
+            className={`w-10 h-10 border flex items-center justify-center transition-colors ${
+              bookmarked
+                ? 'border-chart-ink text-chart-ink-bright bg-chart-ink/[0.06]'
+                : 'border-chart-line text-chart-ink-dim hover:text-chart-ink hover:border-chart-ink-dim'
+            }`}
+          >
+            {bookmarked ? <LogOn size={12} /> : <Log size={12} />}
+          </button>
+          <ShareMenu
+            station={currentStation}
+            iconClassName="w-10 h-10 border border-chart-line text-chart-ink-dim hover:text-chart-ink hover:border-chart-ink-dim flex items-center justify-center transition-colors"
+            trigger={<Send size={12} />}
+          />
+          {onMaximize && (
+            <button
+              onClick={onMaximize}
+              aria-label="Inspect"
+              className="w-10 h-10 border border-chart-line text-chart-ink-dim hover:text-chart-ink hover:border-chart-ink-dim flex items-center justify-center transition-colors"
+            >
+              <Inspect size={12} />
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Controls */}
-      <div className="flex gap-1.5">
-        <button
-          onClick={togglePlay}
-          aria-label={isPlaying ? 'Stop' : 'Play'}
-          className="w-8 h-8 bg-vdu-green-bright text-radio-black border border-vdu-green-bright flex items-center justify-center"
-          style={{ boxShadow: '0 0 8px hsla(120,100%,55%,0.4)' }}
-        >
-          {isPlaying ? <Stop size={12} /> : <Play size={12} />}
-        </button>
-        <button
-          onClick={() => toggleBookmark(currentStation)}
-          aria-label={bookmarked ? 'Remove from log' : 'Log contact'}
-          className={`w-8 h-8 border flex items-center justify-center transition-colors ${
-            bookmarked
-              ? 'border-vdu-green text-vdu-green-bright bg-vdu-green/10'
-              : 'border-vdu-green-dim text-vdu-green-dim hover:text-vdu-green hover:border-vdu-green'
-          }`}
-        >
-          {bookmarked ? <LogOn size={12} /> : <Log size={12} />}
-        </button>
-        <ShareMenu
-          station={currentStation}
-          iconClassName="w-8 h-8 border border-vdu-green-dim text-vdu-green-dim hover:text-vdu-green hover:border-vdu-green flex items-center justify-center transition-colors"
-          trigger={<Send size={12} />}
-        />
-        {onMaximize && (
-          <button
-            onClick={onMaximize}
-            aria-label="Inspect"
-            className="w-8 h-8 border border-vdu-green-dim text-vdu-green-dim hover:text-vdu-green hover:border-vdu-green flex items-center justify-center transition-colors"
-          >
-            <Inspect size={12} />
-          </button>
-        )}
+      {/* Mobile: single bars visualizer */}
+      <div className="sm:hidden mt-2 min-w-0">
+        <AudioVisualizer mode="bars" height={22} />
       </div>
     </div>
   );

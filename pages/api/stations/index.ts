@@ -34,6 +34,9 @@ export default async function handler(
     params.append('limit', requestLimit)
     params.append('offset', shouldRandomise ? '0' : (filters.offset?.toString() || '0'))
     params.append('hidebroken', 'true')
+    // The site is served over HTTPS, so http:// streams are blocked as mixed
+    // content by the browser — only surface stations with https streams.
+    params.append('is_https', 'true')
 
     if (filters.listenerFilter === 'zero' || filters.listenerFilter === 'low-to-high') {
       params.append('order', 'clickcount')

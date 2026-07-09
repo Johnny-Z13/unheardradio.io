@@ -103,6 +103,16 @@ export function MapPin({ size = 14, className }: IconProps) {
   )
 }
 
+export function Atlas({ size = 14, className }: IconProps) {
+  return (
+    <svg {...base(size)} className={className} aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <circle cx="7" cy="7" r="5.5" />
+      <ellipse cx="7" cy="7" rx="2.5" ry="5.5" />
+      <line x1="1.5" y1="7" x2="12.5" y2="7" />
+    </svg>
+  )
+}
+
 export function Info({ size = 14, className }: IconProps) {
   return (
     <svg {...base(size)} className={className} aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.5">

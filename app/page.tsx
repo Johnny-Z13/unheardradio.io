@@ -2,21 +2,23 @@
 
 import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import dynamic from 'next/dynamic'
 import { SearchSidebar } from '@/components/search-sidebar'
 import { DiscoveryList } from '@/components/discovery-list'
 import { BookmarkList } from '@/components/bookmark-list'
-import { StationMap } from '@/components/station-map-simple'
 import { NowPlayingBar } from '@/components/now-playing-bar'
 import { FullscreenStation } from '@/components/fullscreen-station'
 import { RadioStation, SearchFilters } from '@/types/radio'
 import { useAudioStore } from '@/lib/audio-store'
 import { fetchStationByUuid } from '@/lib/radio-api'
-import { Discover, Filter, Log, MapPin, Info } from '@/components/icons'
+import { Discover, Filter, Log, Atlas, Info } from '@/components/icons'
+
+const AtlasMap = dynamic(() => import('@/components/atlas/atlas-map'), { ssr: false })
 
 type Tab = 'discover' | 'search' | 'saved' | 'map' | 'about'
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<Tab>('discover')
+  const [activeTab, setActiveTab] = useState<Tab>('map')
   const [searchFilters, setSearchFilters] = useState<SearchFilters>({
     listenerFilter: 'low-to-high',
     limit: 20,
@@ -74,10 +76,10 @@ export default function Home() {
   }
 
   const tabs = [
-    { id: 'discover' as Tab, icon: Discover, label: 'SCAN', num: '01' },
-    { id: 'search' as Tab, icon: Filter, label: 'FILTER', num: '02' },
-    { id: 'saved' as Tab, icon: Log, label: 'LOG', num: '03' },
-    { id: 'map' as Tab, icon: MapPin, label: 'GRID', num: '04' },
+    { id: 'map' as Tab, icon: Atlas, label: 'ATLAS', num: '01' },
+    { id: 'discover' as Tab, icon: Discover, label: 'SCAN', num: '02' },
+    { id: 'search' as Tab, icon: Filter, label: 'FILTER', num: '03' },
+    { id: 'saved' as Tab, icon: Log, label: 'LOG', num: '04' },
     { id: 'about' as Tab, icon: Info, label: 'NFO', num: '05' },
   ]
 
@@ -144,12 +146,7 @@ export default function Home() {
           {activeTab === 'discover' && <DiscoveryList filters={searchFilters} />}
           {activeTab === 'saved' && <BookmarkList />}
           {activeTab === 'map' && (
-            <StationMap
-              onStationSelect={(station) => {
-                playStation(station)
-                setFullscreenStation(station)
-              }}
-            />
+            <AtlasMap onStationSelect={(station) => playStation(station)} />
           )}
           {activeTab === 'search' && <DiscoveryList filters={searchFilters} />}
           {activeTab === 'about' && (

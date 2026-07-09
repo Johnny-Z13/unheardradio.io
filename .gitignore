@@ -8,3 +8,5 @@ dist
 .vercel
 *.tar.gz
 .superpowers/
+
+.worktrees/

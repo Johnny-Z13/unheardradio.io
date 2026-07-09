@@ -94,6 +94,14 @@ export default function Home() {
             <span className="opacity-50 px-1.5">·</span>
             <span className="text-vdu-green">{stats ? stats.countries : '…'}</span> countries
           </div>
+          <a
+            href="https://www.z13labs.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block hover:text-vdu-green transition-colors"
+          >
+            Made by Z13LABS
+          </a>
         </div>
       </header>
 
@@ -179,7 +187,12 @@ export default function Home() {
 
                 <div className="border-t border-vdu-green/20 pt-6 mt-8">
                   <div className="text-sm text-vdu-green-dim space-y-2">
-                    <p>Built by Z13labs</p>
+                    <p>
+                      Made by{' '}
+                      <a href="https://www.z13labs.com" target="_blank" rel="noopener noreferrer" className="text-vdu-green hover:text-vdu-green-dim underline">
+                        Z13LABS
+                      </a>
+                    </p>
                     <p>Contact: hello@z13labs.com</p>
                     <a href="/privacy" className="block text-vdu-green hover:text-vdu-green-dim underline">
                       Privacy Policy

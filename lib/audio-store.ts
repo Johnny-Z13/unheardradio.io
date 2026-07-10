@@ -62,7 +62,7 @@ export const useAudioStore = create<AudioStore>((set, get) => ({
     });
     
     audio.addEventListener('play', () => {
-      set({ isPlaying: true });
+      set({ isPlaying: true, isLoading: false, error: null });
     });
     
     audio.addEventListener('pause', () => {
@@ -186,6 +186,17 @@ export const useAudioStore = create<AudioStore>((set, get) => ({
     }
 
     if (!audio) return;
+
+    // A blocked boot-time autoplay can leave the media element wired through
+    // a suspended AudioContext. Resume both from this explicit user gesture;
+    // otherwise the element reports `playing` while the analyser/output graph
+    // remains silent until another station is selected.
+    const audioContext = get().audioContext;
+    if (audioContext?.state === 'suspended') {
+      void audioContext.resume().catch(() => {
+        set({ error: 'Failed to activate audio output', isPlaying: false });
+      });
+    }
     audio.play().catch(() => {
       set({ error: 'Failed to resume playback', isPlaying: false });
     });

@@ -1,6 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" fill="#000"/>
-  <rect x="8" y="8" width="48" height="48" fill="none" stroke="#2cff2c" stroke-width="4"/>
-  <path d="M18 39V25h6v14h-6Zm11 7V18h6v28h-6Zm11-7V25h6v14h-6Z" fill="#2cff2c"/>
-  <path d="M12 12h8M44 52h8" stroke="#8fffff" stroke-width="3" stroke-linecap="square"/>
+  <!-- Signal Atlas favicon: night chart, receiver rings, one live signal. -->
+  <rect width="64" height="64" rx="8" fill="#060b12"/>
+  <path d="M8 20h48M8 44h48M20 8v48M44 8v48" stroke="#29384c" stroke-width="1" opacity=".72"/>
+  <circle cx="32" cy="32" r="21" fill="#0b1420" stroke="#40536b" stroke-width="2"/>
+  <path d="M11 32h42M32 11c-6 5.3-9 12.3-9 21s3 15.7 9 21m0-42c6 5.3 9 12.3 9 21s-3 15.7-9 21" fill="none" stroke="#40536b" stroke-width="1.5"/>
+  <path d="M32 32 48.5 19.2" stroke="#e5edf6" stroke-width="2.5" stroke-linecap="square"/>
+  <circle cx="32" cy="32" r="4.5" fill="#f4a62a"/>
+  <circle cx="32" cy="32" r="8.5" fill="none" stroke="#f4a62a" stroke-width="1.5" opacity=".5"/>
+  <path d="M8 8h9M47 56h9" stroke="#e5edf6" stroke-width="2"/>
 </svg>

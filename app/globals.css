@@ -71,6 +71,41 @@ html {
   text-shadow: 0 0 6px hsl(var(--chart-ink-bright) / 0.25);
 }
 
+@keyframes atlas-boot-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes atlas-console-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes player-dock-in {
+  from { opacity: 0; transform: translateY(100%); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.atlas-boot-in {
+  animation: atlas-boot-in 240ms ease-out both;
+}
+
+.atlas-console-in {
+  animation: atlas-console-in 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.player-dock-in {
+  animation: player-dock-in 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atlas-boot-in,
+  .atlas-console-in,
+  .player-dock-in {
+    animation-duration: 1ms;
+  }
+}
+
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: hsl(var(--chart-bg)); }
 ::-webkit-scrollbar-thumb { background: hsl(var(--chart-line)); }

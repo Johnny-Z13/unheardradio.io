@@ -10,6 +10,7 @@ export async function fetchStations(filters: SearchFilters = {}): Promise<RadioS
   if (filters.limit) params.append('limit', filters.limit.toString());
   if (filters.offset) params.append('offset', filters.offset.toString());
   if (filters.randomSeed) params.append('randomSeed', filters.randomSeed);
+  if (filters.farFromVisitor) params.append('farFromVisitor', 'true');
   
   const response = await fetch(`/api/stations?${params}`);
   if (!response.ok) {

@@ -2,6 +2,9 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { radioBrowserFetch } from '@/lib/radio-browser'
 import { diversify } from '@/lib/discovery'
 import type { RadioStation, SearchFilters } from '@/types/radio'
+import centroids from '@/lib/geo/country-centroids.json'
+
+const COUNTRY_CENTROIDS = centroids as Record<string, { lat: number; lng: number }>
 
 export default async function handler(
   req: NextApiRequest,
@@ -20,6 +23,7 @@ export default async function handler(
       limit: parseInt(req.query.limit as string) || 20,
       offset: parseInt(req.query.offset as string) || 0,
       randomSeed: req.query.randomSeed as string,
+      farFromVisitor: req.query.farFromVisitor === 'true',
     }
     const shouldRandomise = Boolean(filters.randomSeed)
 
@@ -47,9 +51,14 @@ export default async function handler(
     const response = await radioBrowserFetch(`/json/stations/search?${params.toString()}`)
     let stations: RadioStation[] = await response.json()
 
+    // RadioBrowser probes streams independently. `hidebroken` is useful but
+    // these explicit health fields prevent stale/SSL-failing entries from
+    // reaching the discovery pool when a mirror returns them anyway.
+    stations = stations.filter((station) => station.lastcheckok === 1 && station.ssl_error !== 1)
+
     switch (filters.listenerFilter) {
       case 'zero':
-        stations = stations.filter(s => (s.clickcount || 0) <= 5)
+        stations = stations.filter(s => (s.clickcount || 0) === 0)
         stations.sort((a, b) => (a.clickcount || 0) - (b.clickcount || 0))
         break
       case 'hide-zero':
@@ -68,6 +77,9 @@ export default async function handler(
     if (shouldRandomise && filters.randomSeed) {
       stations = seededShuffle(stations, filters.randomSeed)
       const homeCountry = (req.headers['x-vercel-ip-country'] as string | undefined)?.toUpperCase()
+      if (filters.farFromVisitor) {
+        stations = preferDistantStations(stations, req, homeCountry)
+      }
       stations = diversify(stations, {
         pageSize: filters.limit || 20,
         maxPerCountry: 2,
@@ -86,6 +98,46 @@ export default async function handler(
     console.error('Error fetching stations:', error)
     res.status(502).json({ error: 'Failed to fetch stations' })
   }
+}
+
+function preferDistantStations(
+  stations: RadioStation[],
+  req: NextApiRequest,
+  homeCountry?: string,
+): RadioStation[] {
+  const visitorLat = Number(req.headers['x-vercel-ip-latitude'])
+  const visitorLng = Number(req.headers['x-vercel-ip-longitude'])
+  const hasVisitorCoords = Number.isFinite(visitorLat) && Number.isFinite(visitorLng)
+
+  if (hasVisitorCoords) {
+    // Retain seeded random order, but only inside the genuinely distant pool.
+    // 5,000 km is far enough to make the opening signal feel global without
+    // starving countries whose station coordinates are approximate.
+    const distant = stations.filter((station) => {
+      const fallback = COUNTRY_CENTROIDS[station.countrycode?.toUpperCase()]
+      const lat = station.geo_lat || fallback?.lat
+      const lng = station.geo_long || fallback?.lng
+      return typeof lat === 'number' && typeof lng === 'number'
+        && greatCircleKm(visitorLat, visitorLng, lat, lng) >= 5000
+    })
+    if (distant.length >= 10) return distant
+  }
+
+  if (homeCountry) {
+    const abroad = stations.filter((station) => station.countrycode?.toUpperCase() !== homeCountry)
+    if (abroad.length > 0) return abroad
+  }
+
+  return stations
+}
+
+function greatCircleKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const radians = (degrees: number) => degrees * Math.PI / 180
+  const dLat = radians(lat2 - lat1)
+  const dLng = radians(lng2 - lng1)
+  const a = Math.sin(dLat / 2) ** 2
+    + Math.cos(radians(lat1)) * Math.cos(radians(lat2)) * Math.sin(dLng / 2) ** 2
+  return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 }
 
 function seededShuffle(stations: RadioStation[], seed: string): RadioStation[] {

@@ -13,7 +13,7 @@ interface AudioStore extends AudioState {
   setVolume: (volume: number) => void;
   setError: (error: string | null) => void;
   setIsLoading: (loading: boolean) => void;
-  playStation: (station: RadioStation) => Promise<void>;
+  playStation: (station: RadioStation) => Promise<'playing' | 'blocked' | 'failed'>;
   tuneStation: (station: RadioStation) => void;
   togglePlay: () => void;
   stop: () => void;
@@ -90,14 +90,14 @@ export const useAudioStore = create<AudioStore>((set, get) => ({
       audio = get().audio;
       if (!audio) {
         console.warn('Failed to initialize audio element');
-        return;
+        return 'failed';
       }
     }
     
     // If same station is playing, just pause/play
     if (currentStation?.stationuuid === station.stationuuid && isPlaying) {
       audio.pause();
-      return;
+      return 'playing';
     }
     
     try {
@@ -113,25 +113,38 @@ export const useAudioStore = create<AudioStore>((set, get) => ({
       // Initialize audio context for visualizer on first play
       get().initializeAudioContext();
       
-      // Track click for RadioBrowser
-      await trackStationClick(station.stationuuid);
-      
       // Try resolved URL first, then fallback to main URL
       const streamUrl = station.url_resolved || station.url;
       audio.src = streamUrl;
       audio.volume = get().volume;
-      
-      await audio.play();
+
+      // Start playback before doing any network bookkeeping. In particular,
+      // iOS/iPadOS only preserves a tap's media permission for the current
+      // task; awaiting the click-tracking request first loses that gesture.
+      void trackStationClick(station.stationuuid);
+      await playWithTimeout(audio);
       set({ isLoading: false });
+      return 'playing';
       
-    } catch {
+    } catch (playError) {
+      // Safari blocks unprompted playback. Keep the selected station armed so
+      // the visible player can start it with one explicit tap.
+      if (playError instanceof DOMException && playError.name === 'NotAllowedError') {
+        set({
+          error: 'Tap play to receive this signal.',
+          isLoading: false,
+          isPlaying: false,
+        });
+        return 'blocked';
+      }
+
       // Try fallback URL if available and different
       if (station.url_resolved && station.url_resolved !== station.url) {
         try {
           audio.src = station.url;
-          await audio.play();
+          await playWithTimeout(audio);
           set({ isLoading: false });
-          return;
+          return 'playing';
         } catch { /* stream fallback unavailable */ }
       }
       
@@ -140,6 +153,7 @@ export const useAudioStore = create<AudioStore>((set, get) => ({
         isLoading: false,
         isPlaying: false 
       });
+      return 'failed';
     }
   },
 
@@ -284,3 +298,22 @@ export const useAudioStore = create<AudioStore>((set, get) => ({
     });
   },
 }));
+
+function playWithTimeout(audio: HTMLAudioElement, timeoutMs = 8000): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const timeout = window.setTimeout(() => finish(new Error('Stream timed out')), timeoutMs)
+    const onPlaying = () => finish()
+    const onError = () => finish(new Error('Stream failed'))
+    const finish = (error?: Error) => {
+      window.clearTimeout(timeout)
+      audio.removeEventListener('playing', onPlaying)
+      audio.removeEventListener('error', onError)
+      if (error) reject(error)
+      else resolve()
+    }
+
+    audio.addEventListener('playing', onPlaying, { once: true })
+    audio.addEventListener('error', onError, { once: true })
+    audio.play().catch((error) => finish(error))
+  })
+}

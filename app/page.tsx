@@ -10,12 +10,13 @@ import { NowPlayingBar } from '@/components/now-playing-bar'
 import { FullscreenStation } from '@/components/fullscreen-station'
 import { RadioStation, SearchFilters } from '@/types/radio'
 import { useAudioStore } from '@/lib/audio-store'
-import { fetchStationByUuid } from '@/lib/radio-api'
+import { fetchStationByUuid, fetchStations } from '@/lib/radio-api'
 import { Discover, Filter, Log, Atlas, Info } from '@/components/icons'
 
 const AtlasMap = dynamic(() => import('@/components/atlas/atlas-map'), { ssr: false })
 
 type Tab = 'discover' | 'search' | 'saved' | 'map' | 'about'
+type FirstSweepState = 'idle' | 'selecting' | 'tuned'
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<Tab>('map')
@@ -26,6 +27,7 @@ export default function Home() {
     randomSeed: Date.now().toString(36),
   })
   const [fullscreenStation, setFullscreenStation] = useState<RadioStation | null>(null)
+  const [firstSweep, setFirstSweep] = useState<FirstSweepState>('idle')
 
   const { currentStation, playStation } = useAudioStore()
 
@@ -57,6 +59,54 @@ export default function Home() {
       })
       .catch(() => { /* link broken, ignore */ })
 
+    return () => { cancelled = true }
+  }, [playStation])
+
+  // First visit: let the Atlas sweep, choose from the obscure seeded pool,
+  // and attempt playback. Browsers that require a gesture leave the station
+  // armed in the player with a clear play control instead.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.has('station')) return
+
+    let cancelled = false
+    setFirstSweep('selecting')
+
+    const selectStation = async () => {
+      try {
+        const stations = await fetchStations({
+          listenerFilter: 'zero',
+          limit: 20,
+          offset: 0,
+          randomSeed: `first-${Date.now().toString(36)}`,
+          farFromVisitor: true,
+        })
+        if (cancelled || stations.length === 0) {
+          setFirstSweep('idle')
+          return
+        }
+
+        // Keep the sweep legible rather than instantly replacing it with the
+        // player on a fast connection.
+        await new Promise((resolve) => window.setTimeout(resolve, 1400))
+        if (cancelled) return
+
+        setFirstSweep('tuned')
+        for (const station of stations) {
+          if (cancelled) return
+          const result = await playStation(station)
+          if (result === 'playing' || result === 'blocked') break
+          setFirstSweep('selecting')
+        }
+        window.setTimeout(() => {
+          if (!cancelled) setFirstSweep('idle')
+        }, 1200)
+      } catch {
+        if (!cancelled) setFirstSweep('idle')
+      }
+    }
+
+    void selectStation()
     return () => { cancelled = true }
   }, [playStation])
 
@@ -199,11 +249,21 @@ export default function Home() {
               </div>
             </div>
           )}
+          {firstSweep !== 'idle' && (
+            <div className="atlas-boot-in absolute inset-0 z-40 flex items-center justify-center bg-chart-bg/55 backdrop-blur-[1px] pointer-events-none" aria-live="polite">
+              <div className="atlas-console-in border border-chart-line bg-chart-panel/95 px-5 py-4 text-center uppercase tracking-[0.14em] shadow-2xl">
+                <div className="mb-2 text-[10px] text-signal animate-pulse">● Atlas sweep active</div>
+                <div className="text-xs sm:text-sm text-chart-ink-bright">
+                  {firstSweep === 'selecting' ? 'Selecting station at random…' : 'Obscure signal acquired'}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </main>
 
       {currentStation && (
-        <div className="fixed bottom-0 left-0 right-0 z-50">
+        <div className="player-dock-in relative z-50 shrink-0">
           <NowPlayingBar onMaximize={handleMaximizeStation} />
         </div>
       )}

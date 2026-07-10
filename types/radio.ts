@@ -46,6 +46,7 @@ export interface SearchFilters {
   limit?: number;
   offset?: number;
   randomSeed?: string;
+  farFromVisitor?: boolean;
   bookmarkedOnly?: boolean;
 }
 

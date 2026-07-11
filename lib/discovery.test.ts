@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { diversify } from './discovery.ts'
+import { diversify, prioritizeAtlasStations } from './discovery.ts'
 
 type S = { stationuuid: string; countrycode: string }
 const mk = (cc: string, i: number): S => ({ stationuuid: `${cc}-${i}`, countrycode: cc })
@@ -56,4 +56,31 @@ test('empty and missing countrycode handled', () => {
   assert.deepEqual(diversify([] as never, { pageSize: 20, maxPerCountry: 2, homeCap: 1 }), [])
   const pool = [{ stationuuid: 'x' }, { stationuuid: 'y' }] as never
   assert.equal(diversify(pool, { pageSize: 20, maxPerCountry: 2, homeCap: 1 }).length, 2)
+})
+
+test('Atlas prioritises the least-clicked signal from every represented country', () => {
+  const pool = [
+    { ...mk('US', 0), clickcount: 0, votes: 1, clicktrend: 0 },
+    { ...mk('US', 1), clickcount: 1, votes: 0, clicktrend: 0 },
+    { ...mk('NP', 0), clickcount: 12, votes: 1, clicktrend: 0 },
+    { ...mk('NP', 1), clickcount: 40, votes: 0, clicktrend: 0 },
+    { ...mk('AQ', 0), clickcount: 80, votes: 0, clicktrend: 0 },
+  ]
+  const out = prioritizeAtlasStations(pool as never, 'sweep-a') as unknown as Array<S & { clickcount: number }>
+
+  assert.deepEqual(out.slice(0, 3).map(s => s.countrycode), ['US', 'NP', 'AQ'])
+  assert.deepEqual(out.slice(0, 3).map(s => s.clickcount), [0, 12, 80])
+})
+
+test('Atlas keeps obscurity ranking ahead of seeded variation', () => {
+  const pool = [
+    { ...mk('US', 0), clickcount: 0, votes: 0, clicktrend: 0 },
+    { ...mk('DE', 0), clickcount: 5, votes: 0, clicktrend: 0 },
+    { ...mk('FR', 0), clickcount: 50, votes: 0, clicktrend: 0 },
+  ]
+
+  for (const seed of ['one', 'two', 'three']) {
+    const out = prioritizeAtlasStations(pool as never, seed) as unknown as Array<S & { clickcount: number }>
+    assert.deepEqual(out.map(s => s.clickcount), [0, 5, 50])
+  }
 })

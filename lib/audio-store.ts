@@ -14,7 +14,6 @@ interface AudioStore extends AudioState {
   setError: (error: string | null) => void;
   setIsLoading: (loading: boolean) => void;
   playStation: (station: RadioStation) => Promise<'playing' | 'blocked' | 'failed'>;
-  tuneStation: (station: RadioStation) => void;
   togglePlay: () => void;
   stop: () => void;
   initializeAudio: () => void;
@@ -157,15 +156,6 @@ export const useAudioStore = create<AudioStore>((set, get) => ({
     }
   },
 
-  // Make a station current without starting playback ("arm" it). Any
-  // ongoing stream stops; play/togglePlay then starts the tuned station.
-  tuneStation: (station) => {
-    const { audio, currentStation } = get();
-    if (currentStation?.stationuuid === station.stationuuid) return;
-    if (audio) audio.pause();
-    set({ currentStation: station, isPlaying: false, isLoading: false, error: null });
-  },
-
   togglePlay: () => {
     const { audio, isPlaying, currentStation } = get();
 
@@ -174,8 +164,8 @@ export const useAudioStore = create<AudioStore>((set, get) => ({
       return;
     }
 
-    // If the tuned station changed since the audio element last loaded a
-    // stream (e.g. armed via tuneStation), start it properly.
+    // If the current station changed since the audio element last loaded a
+    // stream, start it properly.
     const expectedSrc = currentStation ? (currentStation.url_resolved || currentStation.url) : null;
     if (currentStation && (!audio || audio.src !== expectedSrc)) {
       const loadedFallback = audio && currentStation ? audio.src === currentStation.url : false;

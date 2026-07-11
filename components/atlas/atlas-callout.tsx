@@ -13,6 +13,7 @@ export function AtlasCallout({ placed, onTune, onClose }: { placed: Placed; onTu
   const { isBookmarked, toggleBookmark } = useBookmarks()
   const isCurrent = currentStation?.stationuuid === station.stationuuid
   const live = isCurrent && isPlaying
+  const anotherStationIsLive = Boolean(currentStation && !isCurrent && isPlaying)
   const bookmarked = isBookmarked(station.stationuuid)
 
   return (
@@ -36,11 +37,16 @@ export function AtlasCallout({ placed, onTune, onClose }: { placed: Placed; onTu
       {isCurrent && error && (
         <p className="text-[10px] tracking-[0.08em] uppercase text-danger mb-2">{error}</p>
       )}
+      {anotherStationIsLive && (
+        <p className="text-[10px] tracking-[0.08em] uppercase text-chart-ink-dim mb-2">
+          Previewing signal · current station continues
+        </p>
+      )}
       <div className="flex gap-1.5">
         <button
           onClick={onTune}
           disabled={isCurrent && isLoading}
-          aria-label={live ? 'Stop' : 'Tune in'}
+          aria-label={live ? 'Stop' : isCurrent ? 'Play station' : 'Switch station'}
           className={`h-10 px-4 flex items-center gap-2 text-[11px] tracking-[0.12em] uppercase border transition-colors ${
             live
               ? 'bg-signal text-chart-bg border-signal'
@@ -50,7 +56,7 @@ export function AtlasCallout({ placed, onTune, onClose }: { placed: Placed; onTu
           {isCurrent && isLoading
             ? <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
             : live ? <Stop size={12} /> : <Play size={12} />}
-          {live ? 'STOP' : 'TUNE IN'}
+          {live ? 'STOP' : isCurrent ? 'PLAY STATION' : 'SWITCH & PLAY'}
         </button>
         <button
           onClick={() => toggleBookmark(station)}

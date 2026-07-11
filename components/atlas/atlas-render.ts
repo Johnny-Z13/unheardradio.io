@@ -25,6 +25,18 @@ const INK = {
   signal: 'hsl(36 95% 58%)',
 }
 
+const REVEAL_MS = 1550
+
+function easeOutCubic(t: number) {
+  return 1 - (1 - t) ** 3
+}
+
+function signalDelay(uuid: string) {
+  let hash = 0
+  for (let i = 0; i < uuid.length; i++) hash = Math.imul(31, hash) + uuid.charCodeAt(i) | 0
+  return Math.abs(hash % 260)
+}
+
 /** Shared projection math so hit-testing and drawing always agree. */
 export function createProjector() {
   const projection = geoNaturalEarth1()
@@ -65,7 +77,7 @@ export function createRenderer(canvas: HTMLCanvasElement) {
   const projector = createProjector()
   const path = geoPath(projector.projection, ctx)
 
-  function draw(view: View, signals: Signal[], now: number, sweepStart: number) {
+  function draw(view: View, signals: Signal[], now: number, sweepStart: number, selectionPulseStart: number) {
     const dpr = window.devicePixelRatio || 1
     if (canvas.width !== Math.round(view.w * dpr) || canvas.height !== Math.round(view.h * dpr)) {
       canvas.width = Math.round(view.w * dpr)
@@ -74,6 +86,21 @@ export function createRenderer(canvas: HTMLCanvasElement) {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     ctx.clearRect(0, 0, view.w, view.h)
     projector.fit(view)
+
+    const sweepAge = now - sweepStart
+    const revealProgress = Math.min(1, Math.max(0, sweepAge / REVEAL_MS))
+    const cx = view.w / 2
+    const cy = view.h / 2
+    const maxRadius = Math.hypot(view.w, view.h) * 0.62
+
+    // The chart itself boots through a radial aperture instead of simply
+    // fading in. Keep all map linework inside the same reveal boundary.
+    ctx.save()
+    if (revealProgress < 1) {
+      ctx.beginPath()
+      ctx.arc(cx, cy, maxRadius * easeOutCubic(revealProgress), 0, Math.PI * 2)
+      ctx.clip()
+    }
 
     ctx.beginPath()
     path(graticule)
@@ -89,11 +116,10 @@ export function createRenderer(canvas: HTMLCanvasElement) {
     ctx.lineWidth = 0.75
     ctx.stroke()
 
-    const sweepAge = now - sweepStart
-    if (sweepAge >= 0 && sweepAge < 1200) {
-      const angle = (sweepAge / 1200) * Math.PI * 2 - Math.PI / 2
-      const cx = view.w / 2
-      const cy = view.h / 2
+    ctx.restore()
+
+    if (sweepAge >= 0 && sweepAge < REVEAL_MS) {
+      const angle = (sweepAge / REVEAL_MS) * Math.PI * 2 - Math.PI / 2
       const r = Math.hypot(view.w, view.h)
       const grad = ctx.createLinearGradient(cx, cy, cx + Math.cos(angle) * r, cy + Math.sin(angle) * r)
       grad.addColorStop(0, 'hsl(36 95% 58% / 0.25)')
@@ -111,6 +137,29 @@ export function createRenderer(canvas: HTMLCanvasElement) {
       if (!p) continue
       const [px, py] = p
       if (px < -20 || py < -20 || px > view.w + 20 || py > view.h + 20) continue
+
+      // Nodes materialise just behind the expanding chart aperture, with a
+      // tiny deterministic delay so the field resolves organically.
+      const distanceProgress = Math.hypot(px - cx, py - cy) / maxRadius
+      const nodeRevealAt = distanceProgress * REVEAL_MS * 0.72 + signalDelay(s.uuid)
+      if (sweepAge < nodeRevealAt) continue
+      const nodeAlpha = Math.min(1, Math.max(0, (sweepAge - nodeRevealAt) / 220))
+      ctx.save()
+      ctx.globalAlpha = nodeAlpha
+
+      if ((s.state === 'armed' || s.state === 'playing') && now - selectionPulseStart < 1050) {
+        const pulse = Math.max(0, (now - selectionPulseStart) / 1050)
+        for (let ring = 0; ring < 3; ring++) {
+          const phase = Math.max(0, Math.min(1, pulse * 1.45 - ring * 0.2))
+          if (phase <= 0) continue
+          ctx.beginPath()
+          ctx.arc(px, py, 5 + phase * 34, 0, Math.PI * 2)
+          ctx.strokeStyle = `hsl(36 95% 58% / ${(0.65 * (1 - phase)).toFixed(3)})`
+          ctx.lineWidth = 1.5
+          ctx.stroke()
+        }
+      }
+
       if (s.state === 'playing') {
         // expanding amber rings, 1.8s cycle, two phases
         const t = (now % 1800) / 1800
@@ -143,6 +192,7 @@ export function createRenderer(canvas: HTMLCanvasElement) {
         ctx.fillStyle = s.approx ? INK.dotApprox : INK.dot
         ctx.fill()
       }
+      ctx.restore()
     }
   }
 

@@ -42,6 +42,7 @@ interface AtlasState {
   currentUuid: string | null
   isPlaying: boolean
   sweepStart: number
+  selectionPulseStart: number
 }
 
 export default function AtlasMap({ onStationSelect }: { onStationSelect: (s: RadioStation) => void }) {
@@ -62,9 +63,13 @@ export default function AtlasMap({ onStationSelect }: { onStationSelect: (s: Rad
 
   // Mutable render inputs — written by React, read by the rAF loop.
   const stateRef = useRef<AtlasState>({
-    placed: [], view: { k: 1, x: 0, y: 0, w: 300, h: 300 }, hover: null, currentUuid: null, sweepStart: -10000, isPlaying: false,
+    placed: [], view: { k: 1, x: 0, y: 0, w: 300, h: 300 }, hover: null, currentUuid: null, sweepStart: performance.now(), selectionPulseStart: -10000, isPlaying: false,
   })
-  stateRef.current.currentUuid = currentStation?.stationuuid ?? null
+  const nextCurrentUuid = currentStation?.stationuuid ?? null
+  if (stateRef.current.currentUuid !== nextCurrentUuid) {
+    stateRef.current.currentUuid = nextCurrentUuid
+    if (nextCurrentUuid) stateRef.current.selectionPulseStart = performance.now()
+  }
   stateRef.current.isPlaying = isPlaying
 
   useEffect(() => {
@@ -99,7 +104,7 @@ export default function AtlasMap({ onStationSelect }: { onStationSelect: (s: Rad
           ? (st.isPlaying ? 'playing' : 'armed')
           : p.station.stationuuid === st.hover ? 'hover' : 'idle',
       }))
-      renderer.draw(st.view, signals, now, st.sweepStart)
+      renderer.draw(st.view, signals, now, st.sweepStart, st.selectionPulseStart)
       raf = requestAnimationFrame(loop)
     }
     raf = requestAnimationFrame(loop)

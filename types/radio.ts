@@ -47,6 +47,7 @@ export interface SearchFilters {
   offset?: number;
   randomSeed?: string;
   farFromVisitor?: boolean;
+  atlasMode?: boolean;
   bookmarkedOnly?: boolean;
 }
 

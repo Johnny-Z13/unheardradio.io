@@ -53,11 +53,16 @@ export default function AtlasMap({ onStationSelect }: { onStationSelect: (s: Rad
   const [plottedCount, setPlottedCount] = useState(0)
   const currentStation = useAudioStore((s) => s.currentStation)
   const isPlaying = useAudioStore((s) => s.isPlaying)
-  const tuneStation = useAudioStore((s) => s.tuneStation)
 
   const { data: stations = [], isLoading } = useQuery({
     queryKey: ['/api/stations', 'atlas', seed],
-    queryFn: () => fetchStations({ listenerFilter: 'low-to-high', limit: 400, offset: 0, randomSeed: seed }),
+    queryFn: () => fetchStations({
+      listenerFilter: 'low-to-high',
+      limit: 3000,
+      offset: 0,
+      randomSeed: seed,
+      atlasMode: true,
+    }),
     staleTime: 5 * 60 * 1000,
   })
 
@@ -195,9 +200,8 @@ export default function AtlasMap({ onStationSelect }: { onStationSelect: (s: Rad
         const cur = pt(e)
         const hit = nearest(cur.x, cur.y)
         setSelected(hit)
-        // Tapping a node tunes it: it becomes the current (armed) station,
-        // so the player bar's PLAY starts this signal, not the previous one.
-        if (hit) tuneStation(hit.station)
+        // Selecting a signal only opens its preview. Playback changes only
+        // after the user explicitly chooses the callout action.
       }
     }
     const onWheel = (e: WheelEvent) => {

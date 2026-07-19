@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { radioBrowserFetch } from '@/lib/radio-browser'
-import { diversify } from '@/lib/discovery'
+import { diversify, prioritizeAtlasStations } from '@/lib/discovery'
 import type { RadioStation, SearchFilters } from '@/types/radio'
 import centroids from '@/lib/geo/country-centroids.json'
 
@@ -24,6 +24,7 @@ export default async function handler(
       offset: parseInt(req.query.offset as string) || 0,
       randomSeed: req.query.randomSeed as string,
       farFromVisitor: req.query.farFromVisitor === 'true',
+      atlasMode: req.query.atlasMode === 'true',
     }
     const shouldRandomise = Boolean(filters.randomSeed)
 
@@ -32,9 +33,13 @@ export default async function handler(
     if (filters.country) params.append('country', filters.country)
     if (filters.genre) params.append('tag', filters.genre)
 
-    // Zero-listener mode pulls a wider net so post-filter still has variety
-    const requestLimit = shouldRandomise || filters.listenerFilter === 'zero'
-      ? '1000'
+    // Atlas pulls a much wider obscure pool. The response is later trimmed to
+    // the requested display limit, keeping the payload below Vercel's practical
+    // response ceiling while restoring thousands of plotted signals.
+    const requestLimit = filters.atlasMode
+      ? '5000'
+      : shouldRandomise || filters.listenerFilter === 'zero'
+        ? '1000'
       : (filters.limit?.toString() || '20')
     params.append('limit', requestLimit)
     params.append('offset', shouldRandomise ? '0' : (filters.offset?.toString() || '0'))
@@ -74,7 +79,10 @@ export default async function handler(
         break
     }
 
-    if (shouldRandomise && filters.randomSeed) {
+    if (filters.atlasMode) {
+      stations = prioritizeAtlasStations(stations, filters.randomSeed || 'atlas')
+      stations = stations.slice(0, Math.min(filters.limit || 3000, 3000))
+    } else if (shouldRandomise && filters.randomSeed) {
       stations = seededShuffle(stations, filters.randomSeed)
       const homeCountry = (req.headers['x-vercel-ip-country'] as string | undefined)?.toUpperCase()
       if (filters.farFromVisitor) {

@@ -262,11 +262,15 @@ export default function Home() {
         </div>
       </main>
 
-      {currentStation && (
-        <div className="player-dock-in relative z-50 shrink-0">
-          <NowPlayingBar onMaximize={handleMaximizeStation} />
-        </div>
-      )}
+      {/* Keep the receiver dock reserved so tuning the first signal never
+          changes the Atlas viewport height. */}
+      <div className="relative z-50 h-[88px] sm:h-[65px] shrink-0 overflow-hidden border-t border-chart-line bg-chart-panel-2">
+        {currentStation && (
+          <div className="player-dock-in h-full">
+            <NowPlayingBar onMaximize={handleMaximizeStation} />
+          </div>
+        )}
+      </div>
 
       {fullscreenStation && (
         <FullscreenStation station={fullscreenStation} onClose={handleCloseFullscreen} />

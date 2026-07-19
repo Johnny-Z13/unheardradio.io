@@ -17,7 +17,7 @@ export function NowPlayingBar({ onMaximize }: { onMaximize?: () => void }) {
 
   return (
     <div
-      className="border-t border-chart-line bg-chart-panel-2 px-3 sm:px-4 pt-2.5 sm:pt-3 pb-[max(0.625rem,env(safe-area-inset-bottom))] sm:pb-[max(0.75rem,env(safe-area-inset-bottom))]"
+      className="h-full bg-chart-panel-2 px-3 sm:px-4 pt-2.5 sm:pt-3 pb-[max(0.625rem,env(safe-area-inset-bottom))] sm:pb-[max(0.75rem,env(safe-area-inset-bottom))]"
       style={{ boxShadow: '0 -4px 22px hsl(215 40% 12% / 0.6)' }}
     >
       <div className="grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[minmax(0,1fr)_minmax(160px,320px)_auto] items-center gap-3 sm:gap-4">

@@ -1,5 +1,14 @@
 import Link from 'next/link'
+import type { Metadata } from 'next'
 import { ArrowLeft } from '@/components/icons'
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy — Unheard Radio',
+  description: 'How Unheard Radio handles usage data, cookies, analytics, advertising, and privacy choices.',
+  alternates: {
+    canonical: '/privacy',
+  },
+}
 
 export default function Privacy() {
   return (

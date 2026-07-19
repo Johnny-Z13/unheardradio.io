@@ -14,11 +14,14 @@ export const metadata: Metadata = {
   title: 'Unheard Radio - Discover Obscure Underground Radio Stations Worldwide',
   description: 'Anti-algorithm radio discovery platform. Find the world\'s most obscure, underground radio stations with zero listeners. Stream live broadcasts from forgotten corners of the globe.',
   keywords: 'radio, obscure radio, underground radio, radio discovery, live radio, streaming radio, zero listeners, anti-algorithm, radio browser, global radio, experimental radio, rare radio stations',
-  authors: [{ name: 'Z13labs' }],
-  creator: 'Z13labs',
+  authors: [{ name: 'Z13Labs' }],
+  creator: 'Z13Labs',
   publisher: 'Unheard Radio',
   category: 'Music & Audio',
   robots: 'index, follow',
+  alternates: {
+    canonical: '/',
+  },
   openGraph: {
     title: 'Unheard Radio - Discover Obscure Radio Stations',
     description: 'Your portal to the strange side of sound. Stream live radio from the world\'s most overlooked stations.',

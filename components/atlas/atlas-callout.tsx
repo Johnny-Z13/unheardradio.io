@@ -3,11 +3,11 @@
 import { useAudioStore } from '@/lib/audio-store'
 import { useBookmarks } from '@/hooks/use-bookmarks'
 import { ShareMenu } from '@/components/share-menu'
-import { Play, Stop, Log, LogOn, Send } from '@/components/icons'
-import { getBand, getStationId, getOrigin, getRate } from '@/lib/station-format'
+import { Play, Stop, Log, LogOn, Send, Inspect } from '@/components/icons'
+import { getBand, getStationId, getOrigin, getDigitalDust } from '@/lib/station-format'
 import type { Placed } from './atlas-map'
 
-export function AtlasCallout({ placed, onTune, onClose }: { placed: Placed; onTune: () => void; onClose: () => void }) {
+export function AtlasCallout({ placed, onTune, onClose, onInspect }: { placed: Placed; onTune: () => void; onClose: () => void; onInspect: () => void }) {
   const { station, approx, lat, lng } = placed
   const { currentStation, isPlaying, isLoading, error, togglePlay } = useAudioStore()
   const { isBookmarked, toggleBookmark } = useBookmarks()
@@ -15,6 +15,7 @@ export function AtlasCallout({ placed, onTune, onClose }: { placed: Placed; onTu
   const live = isCurrent && isPlaying
   const anotherStationIsLive = Boolean(currentStation && !isCurrent && isPlaying)
   const bookmarked = isBookmarked(station.stationuuid)
+  const dust = getDigitalDust(station)
 
   return (
     <div className="absolute left-3 right-3 bottom-3 sm:left-auto sm:right-3 sm:bottom-3 sm:w-[320px] border border-chart-line bg-chart-panel/95 backdrop-blur-sm p-3">
@@ -27,13 +28,13 @@ export function AtlasCallout({ placed, onTune, onClose }: { placed: Placed; onTu
             {station.name}
           </h3>
         </div>
-        <button onClick={onClose} aria-label="Close" className="text-chart-ink-dim hover:text-chart-ink text-sm leading-none px-1">×</button>
+        <button onClick={onClose} aria-label="Close" className="text-chart-ink-dim hover:text-chart-ink text-sm leading-none min-w-11 min-h-11 -mr-2 -mt-2">×</button>
       </div>
       <div className="text-[10px] tracking-[0.08em] uppercase text-chart-ink-dim mb-2.5">
-        {getOrigin(station)} · {Math.abs(lat).toFixed(1)}°{lat >= 0 ? 'N' : 'S'} {Math.abs(lng).toFixed(1)}°{lng >= 0 ? 'E' : 'W'}
-        {approx && <span className="opacity-70"> · POSN APPROX</span>}
-        <span className="px-1.5 opacity-50">·</span>{getRate(station)}
+        {getOrigin(station)}
+        {approx ? <span> · Approximate location</span> : <span> · {Math.abs(lat).toFixed(1)}°{lat >= 0 ? 'N' : 'S'} {Math.abs(lng).toFixed(1)}°{lng >= 0 ? 'E' : 'W'}</span>}
       </div>
+      <p className="text-xs text-chart-ink-dim leading-relaxed mb-3">{dust.note}</p>
       {isCurrent && error && (
         <p className="text-[10px] tracking-[0.08em] uppercase text-danger mb-2">{error}</p>
       )}
@@ -46,7 +47,7 @@ export function AtlasCallout({ placed, onTune, onClose }: { placed: Placed; onTu
         <button
           onClick={isCurrent ? togglePlay : onTune}
           aria-label={isCurrent && isLoading ? 'Cancel tuning' : live ? 'Pause signal' : isCurrent ? 'Play station' : 'Switch station'}
-          className={`h-11 px-4 flex items-center gap-2 text-[11px] tracking-[0.12em] uppercase border transition-colors ${
+          className={`h-11 flex-1 px-2 flex items-center justify-center gap-2 text-[11px] tracking-[0.12em] uppercase border transition-colors ${
             live
               ? 'bg-signal text-chart-bg border-signal'
               : 'border-chart-ink-dim text-chart-ink hover:border-signal hover:text-signal'
@@ -55,7 +56,7 @@ export function AtlasCallout({ placed, onTune, onClose }: { placed: Placed; onTu
           {isCurrent && isLoading
             ? <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
             : live ? <Stop size={12} /> : <Play size={12} />}
-          {isCurrent && isLoading ? 'CANCEL' : live ? 'PAUSE' : isCurrent ? 'PLAY STATION' : 'SWITCH & PLAY'}
+          {isCurrent && isLoading ? 'CANCEL' : live ? 'PAUSE' : 'TUNE IN'}
         </button>
         <button
           onClick={() => toggleBookmark(station)}
@@ -71,6 +72,7 @@ export function AtlasCallout({ placed, onTune, onClose }: { placed: Placed; onTu
           iconClassName="w-11 h-11 border border-chart-line text-chart-ink-dim hover:text-chart-ink hover:border-chart-ink-dim flex items-center justify-center transition-colors"
           trigger={<Send size={12} />}
         />
+        <button className="receiver-control shrink-0" onClick={onInspect} aria-label="Station field notes" title="Field notes"><Inspect size={14} /></button>
       </div>
     </div>
   )

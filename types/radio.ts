@@ -19,6 +19,8 @@ export interface RadioStation {
   lastchecktime: string;
   lastchecktime_iso8601?: string;
   activityKnown?: boolean;
+  clicktimestamp_iso8601?: string | null;
+  lastchangetime_iso8601?: string | null;
   lastcheckoktime: string;
   lastlocalchecktime: string;
   clicktimestamp: string;

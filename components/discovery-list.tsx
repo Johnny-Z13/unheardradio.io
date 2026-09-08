@@ -37,8 +37,8 @@ export function DiscoveryList({ filters }: { filters: SearchFilters }) {
         <div className="min-w-0">
           <h2 className="text-2xl text-chart-ink-bright tracking-tight">{strict ? 'The quiet frequencies' : 'Explore the directory'}</h2>
           <p className="text-xs text-chart-ink-dim mt-2 leading-relaxed">
-            {strict ? 'At most 5 clicks in 24 hours · at most 50 directory votes' : 'RadioBrowser directory activity'}
-            <br />Clicks are not listener counts. {stations.length} stations loaded.
+            {strict ? 'Small footprints. Unfamiliar places. Something worth stumbling into.' : 'Follow a frequency and see where it takes you.'}
+            <br />{stations.length} signals found. Open a station’s details for its field notes.
           </p>
         </div>
         {canRandomise && <Button onClick={() => setRandomSeed(`${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`)} variant="outline" disabled={query.isFetching} className="min-h-11 rounded-none text-xs shrink-0"><Scan size={14} className="mr-2" />Fresh sweep</Button>}

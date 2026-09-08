@@ -4,7 +4,7 @@ import { useBookmarks } from '@/hooks/use-bookmarks';
 import { ShareMenu } from './share-menu';
 import { AudioVisualizer } from './audio-visualizer';
 import { Play, Stop, Log, LogOn, Inspect, Send } from './icons';
-import { getBand, getStationId, getCoords, getOrigin, getRate, getChecked, getRecentClicks, getStationContext } from '@/lib/station-format';
+import { getBand, getStationId, getCoords, getOrigin, getStationContext, getDigitalDust } from '@/lib/station-format';
 import { getLocator } from '@/lib/locator';
 
 interface StationCardProps {
@@ -22,7 +22,7 @@ export function StationCard({ station, onMaximize }: StationCardProps) {
   const hasError = isCurrent && status === 'failed';
   const isPaused = isCurrent && !isPlaying && !isLoading && !hasError;
   const bookmarked = isBookmarked(station.stationuuid);
-  const recentClicks = getRecentClicks(station);
+  const dust = getDigitalDust(station);
 
   const handleBookmark = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -118,15 +118,9 @@ export function StationCard({ station, onMaximize }: StationCardProps) {
           )}
         </button>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 sm:gap-x-5 gap-y-0.5 text-[11px] tracking-[0.04em] min-w-0">
-          <span className="text-chart-ink-dim uppercase">Origin</span>
-          <span className="text-chart-ink-dim uppercase">Clicks / 24h</span>
-          <span className="text-chart-ink-dim uppercase hidden sm:inline">Rate</span>
-          <span className="text-chart-ink-dim uppercase hidden sm:inline">Checked</span>
-          <span className="text-chart-ink truncate">{getOrigin(station)}</span>
-          <span className="text-chart-ink">{recentClicks}</span>
-          <span className="text-chart-ink hidden sm:inline">{getRate(station)}</span>
-          <span className="text-chart-ink hidden sm:inline">{getChecked(station)}</span>
+        <div className="min-w-0 text-xs leading-relaxed">
+          <div className="text-chart-ink">{getOrigin(station)} <span className="text-chart-ink-dim">· {dust.badge}</span></div>
+          <p className="text-chart-ink-dim mt-1">{dust.note}</p>
         </div>
 
         <div className="flex gap-1.5 flex-shrink-0 col-span-2 sm:col-span-1 justify-end">
@@ -150,6 +144,7 @@ export function StationCard({ station, onMaximize }: StationCardProps) {
             <button
               onClick={onMaximize}
               aria-label="Inspect station"
+              title="Field notes and signal details"
               className="w-11 h-11 border border-chart-line/50 text-chart-ink-dim hover:text-chart-ink hover:border-chart-ink-dim flex items-center justify-center transition-colors"
             >
               <Inspect size={12} />

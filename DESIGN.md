@@ -47,6 +47,10 @@ Roulette uses prefetched candidates, avoids attempted UUIDs and equivalent strea
 
 Ready, tuning, live, paused and failed states are visibly distinct. Autoplay restrictions show a ready state and a Play action. Shared links arm the station for a user tap. Last checked is a UTC directory check timestamp, not continuous uptime. Unknown saved metadata stays unknown.
 
+Main station surfaces lead with place, sound and a short field note, not activity counters. Digital dust in the detail view explains the directory snapshot: last recorded click, entry edit date, votes and check age. Missing timestamps never imply nobody listened; contradictory recent counts suppress old-trace claims. No website scraping or audience measurement is implied.
+
+Selecting a map dot smoothly centres its location beside/above its preview without changing playback. Tuning a new station also centres the map. Approximate country locations use a wider zoom and retain their label. Whole world resets the camera; Locate signal returns to the current station. Drag, pinch and wheel interrupt camera travel; reduced motion makes it immediate. The camera stays in refs rather than per-frame React state.
+
 ## Verification
 
 Use `npm test`, `npm run typecheck` and `npm run build`. Verify the actual local app at desktop and narrow widths: entry, roulette, rapid next/stop, Back, saved stations, station detail, filter popup and empty results. Verify keyboard focus and reduced motion. Unit tests simulate media errors and stalls; live browser checks establish real integration but do not establish every station's availability or physical-device audio behavior.

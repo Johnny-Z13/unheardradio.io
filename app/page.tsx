@@ -30,6 +30,7 @@ export default function Home() {
   const [fullscreenStation, setFullscreenStation] = useState<RadioStation | null>(null)
   const roulette = useRadioRoulette()
   const [linkError, setLinkError] = useState<string | null>(null)
+  const [atlasPreview, setAtlasPreview] = useState(false)
 
   const { currentStation, playStation, armStation } = useAudioStore()
 
@@ -155,7 +156,7 @@ export default function Home() {
           {activeTab === 'saved' && <BookmarkList />}
           {activeTab === 'map' && (
             <div className="atlas-view h-full flex flex-col overflow-y-auto">
-              <section className="tuning-console shrink-0 px-4 py-4 sm:px-7 sm:py-6 border-b border-chart-line">
+              <section className={`tuning-console shrink-0 px-4 py-4 sm:px-7 sm:py-6 border-b border-chart-line ${atlasPreview ? 'hidden sm:block' : ''}`}>
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
                   <div>
                     <p className="hidden sm:block text-[11px] text-signal uppercase tracking-[0.18em] mb-2">The quiet end of the dial</p>
@@ -167,7 +168,7 @@ export default function Home() {
                       <Play size={14} /> Tune somewhere unexpected
                     </button>
                     <p className="text-[11px] text-chart-ink-dim mt-2 min-h-4" role="status">
-                      {roulette.isFetching ? 'Finding quiet signals…' : roulette.error ? 'The directory is unavailable.' : roulette.empty ? 'No fresh signals in this sweep.' : 'Few directory clicks. No repeats on Next.'}
+                      {roulette.isFetching ? 'Finding quiet signals…' : roulette.error ? 'The directory is unavailable.' : roulette.empty ? 'No fresh signals in this sweep.' : 'Follow a faint signal. No repeats on Next.'}
                     </p>
                     {(roulette.error || roulette.empty) && <button className="text-xs underline underline-offset-4 text-chart-ink py-2" onClick={roulette.refresh}>Try a fresh sweep</button>}
                   </div>
@@ -175,7 +176,7 @@ export default function Home() {
                 {linkError && <p role="alert" className="text-xs text-danger mt-3">{linkError}</p>}
               </section>
               <div className="relative flex-1 min-h-[180px]">
-                <AtlasMap onStationSelect={(station) => { void playStation(station) }} />
+                <AtlasMap onStationSelect={(station) => { void playStation(station) }} onInspect={setFullscreenStation} onPreviewChange={setAtlasPreview} />
               </div>
             </div>
           )}

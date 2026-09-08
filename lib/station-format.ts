@@ -82,3 +82,37 @@ export function getStationHomepage(station: RadioStation): string | undefined {
     return ['http:', 'https:'].includes(url.protocol) ? url.href : undefined
   } catch { return undefined }
 }
+
+function directoryTime(value: string | null | undefined, now: number): number | null {
+  if (!value || !/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}/.test(value)) return null
+  const time = Date.parse(/(?:Z|[+-]\d\d:\d\d)$/.test(value) ? value : value.replace(' ', 'T') + 'Z')
+  return Number.isFinite(time) && time <= now ? time : null
+}
+
+/** An evocative reading of a directory snapshot, never a claim about listeners. */
+export function getDigitalDust(station: RadioStation, now = Date.now()) {
+  const known = station.activityKnown !== false
+  const clicks = known && Number.isFinite(station.clickcount) && station.clickcount >= 0 ? station.clickcount : null
+  const edited = known ? directoryTime(station.lastchangetime_iso8601 || station.lastchangetime, now) : null
+  const trace = known ? directoryTime(station.clicktimestamp_iso8601 || station.clicktimestamp, now) : null
+  const day = 86400000
+  // Some mirrors expose recent counts without the corresponding timestamp.
+  // A contradictory old timestamp cannot support a multi-day quiet claim.
+  const consistentTrace = trace !== null && !(clicks !== null && clicks > 0 && now - trace >= day) ? trace : null
+  const days = consistentTrace === null ? null : Math.floor((now - consistentTrace) / day)
+  const date = (time: number) => new Date(time).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })
+  const quiet = clicks !== null && clicks <= 5 && Number.isFinite(station.votes) && station.votes >= 0 && station.votes <= 50
+  const badge = quiet ? 'Faint footprint' : clicks === null ? 'Uncharted signal' : 'On the dial'
+  let note = 'A frequency with a story still to discover.'
+  if (clicks === 0 && days !== null && days >= 2) note = `Last directory trace: ${days.toLocaleString()} days ago.`
+  else if (quiet && edited !== null && now - edited >= 180 * day) note = `Directory entry untouched since ${date(edited)}.`
+  else if (clicks === 0) note = 'No directory footprints in the past 24 hours.'
+  else if (quiet) note = 'Only a few footprints at this end of the dial.'
+  return {
+    badge,
+    note,
+    lastTrace: consistentTrace === null ? 'Not available' : days === 0 ? 'Within the past day' : `${date(consistentTrace)} · ${days}d ago`,
+    entryEdited: edited === null ? 'Not available' : date(edited),
+    votes: known && Number.isFinite(station.votes) && station.votes >= 0 ? station.votes.toLocaleString() : 'Unknown',
+  }
+}

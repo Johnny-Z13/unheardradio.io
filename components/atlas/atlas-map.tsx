@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { RadioStation } from '@/types/radio'
 import { fetchStations } from '@/lib/radio-api'
@@ -8,6 +8,7 @@ import { useAudioStore } from '@/lib/audio-store'
 import { createRenderer, createProjector, type Signal, type View } from './atlas-render'
 import { AtlasCallout } from './atlas-callout'
 import centroids from '@/lib/geo/country-centroids.json'
+import { focusAtlasView, interpolateAtlasView } from '@/lib/atlas-camera'
 
 const CENTROIDS = centroids as Record<string, { lat: number; lng: number; region: string }>
 
@@ -43,14 +44,16 @@ interface AtlasState {
   isPlaying: boolean
   sweepStart: number
   selectionPulseStart: number
+  selectedUuid: string | null
 }
 
-export default function AtlasMap({ onStationSelect }: { onStationSelect: (s: RadioStation) => void }) {
+export default function AtlasMap({ onStationSelect, onInspect, onPreviewChange }: { onStationSelect: (s: RadioStation) => void; onInspect: (s: RadioStation) => void; onPreviewChange: (open: boolean) => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
   const [seed, setSeed] = useState('atlas-1')
   const [selected, setSelected] = useState<Placed | null>(null)
   const [plottedCount, setPlottedCount] = useState(0)
+  useEffect(() => { onPreviewChange(Boolean(selected)) }, [selected, onPreviewChange])
   const currentStation = useAudioStore((s) => s.currentStation)
   const isPlaying = useAudioStore((s) => s.isPlaying)
 
@@ -68,14 +71,42 @@ export default function AtlasMap({ onStationSelect }: { onStationSelect: (s: Rad
 
   // Mutable render inputs — written by React, read by the rAF loop.
   const stateRef = useRef<AtlasState>({
-    placed: [], view: { k: 1, x: 0, y: 0, w: 300, h: 300 }, hover: null, currentUuid: null, sweepStart: performance.now(), selectionPulseStart: -10000, isPlaying: false,
+    placed: [], view: { k: 1, x: 0, y: 0, w: 300, h: 300 }, hover: null, currentUuid: null, sweepStart: performance.now(), selectionPulseStart: -10000, isPlaying: false, selectedUuid: null,
   })
+  const flightRef = useRef<{ from: View; to: View; start: number } | null>(null)
+  const focusTarget = useRef<{ placed: Placed; withCard: boolean } | null>(null)
+  const flyTo = useCallback((to: View) => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      flightRef.current = null
+      stateRef.current.view = to
+    } else flightRef.current = { from: { ...stateRef.current.view }, to, start: performance.now() }
+  }, [])
+  const focusAt = useCallback((placed: Placed, withCard: boolean) => {
+    focusTarget.current = { placed, withCard }
+    const view = stateRef.current.view
+    const point = createProjector().project(placed.lng, placed.lat, { ...view, k: 1, x: 0, y: 0 })
+    flyTo(focusAtlasView(view, point, placed.approx, withCard))
+  }, [flyTo])
+  const showWorld = () => {
+    focusTarget.current = null
+    setSelected(null)
+    stateRef.current.selectedUuid = null
+    flyTo({ ...stateRef.current.view, k: 1, x: 0, y: 0 })
+  }
   const nextCurrentUuid = currentStation?.stationuuid ?? null
   if (stateRef.current.currentUuid !== nextCurrentUuid) {
     stateRef.current.currentUuid = nextCurrentUuid
     if (nextCurrentUuid) stateRef.current.selectionPulseStart = performance.now()
   }
   stateRef.current.isPlaying = isPlaying
+
+  useEffect(() => {
+    if (!currentStation) return
+    const placed = placeStations([currentStation])[0]
+    setSelected(null)
+    stateRef.current.selectedUuid = null
+    if (placed) focusAt(placed, false)
+  }, [currentStation, focusAt])
 
   useEffect(() => {
     // The tuned station is always plotted, even when it came from the SCAN
@@ -100,6 +131,12 @@ export default function AtlasMap({ onStationSelect }: { onStationSelect: (s: Rad
     let raf = 0
     const loop = (now: number) => {
       const st = stateRef.current
+      const flight = flightRef.current
+      if (flight) {
+        const progress = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 1 : (now - flight.start) / 700
+        st.view = interpolateAtlasView(flight.from, flight.to, progress)
+        if (progress >= 1) flightRef.current = null
+      }
       const signals: Signal[] = st.placed.map((p) => ({
         uuid: p.station.stationuuid,
         lng: p.lng,
@@ -107,7 +144,7 @@ export default function AtlasMap({ onStationSelect }: { onStationSelect: (s: Rad
         approx: p.approx,
         state: p.station.stationuuid === st.currentUuid
           ? (st.isPlaying ? 'playing' : 'armed')
-          : p.station.stationuuid === st.hover ? 'hover' : 'idle',
+          : p.station.stationuuid === st.selectedUuid ? 'armed' : p.station.stationuuid === st.hover ? 'hover' : 'idle',
       }))
       renderer.draw(st.view, signals, now, st.sweepStart, st.selectionPulseStart)
       raf = requestAnimationFrame(loop)
@@ -116,13 +153,17 @@ export default function AtlasMap({ onStationSelect }: { onStationSelect: (s: Rad
 
     const ro = new ResizeObserver(() => {
       const r = wrap.getBoundingClientRect()
+      const interrupted = flightRef.current
       stateRef.current.view.w = Math.max(1, r.width)
       stateRef.current.view.h = Math.max(1, r.height)
+      flightRef.current = null
+      if (focusTarget.current) focusAt(focusTarget.current.placed, focusTarget.current.withCard)
+      else if (interrupted) flyTo({ ...interrupted.to, w: stateRef.current.view.w, h: stateRef.current.view.h })
     })
     ro.observe(wrap)
 
     return () => { cancelAnimationFrame(raf); ro.disconnect(); renderer.destroy() }
-  }, [])
+  }, [focusAt, flyTo])
 
   // Pointer: pan / wheel-zoom / pinch / hover / tap
   useEffect(() => {
@@ -132,6 +173,7 @@ export default function AtlasMap({ onStationSelect }: { onStationSelect: (s: Rad
     const pointers = new Map<number, { x: number; y: number }>()
     let dragged = false
     let pinchDist = 0
+    let travel = 0
 
     // Canvas-local coordinates from client coords — offsetX/Y is unreliable
     // for synthetic events and after event retargeting.
@@ -160,9 +202,12 @@ export default function AtlasMap({ onStationSelect }: { onStationSelect: (s: Rad
     }
 
     const onDown = (e: PointerEvent) => {
+      flightRef.current = null
+      focusTarget.current = null
       try { canvas.setPointerCapture(e.pointerId) } catch { /* synthetic pointer */ }
       pointers.set(e.pointerId, pt(e))
       dragged = false
+      travel = 0
       if (pointers.size === 2) {
         const pts = Array.from(pointers.values())
         pinchDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y)
@@ -177,7 +222,8 @@ export default function AtlasMap({ onStationSelect }: { onStationSelect: (s: Rad
         const dy = cur.y - prev.y
         pointers.set(e.pointerId, cur)
         if (pointers.size === 1) {
-          if (Math.abs(dx) + Math.abs(dy) > 2) dragged = true
+          travel += Math.abs(dx) + Math.abs(dy)
+          if (travel > 5) dragged = true
           st.view.x += dx
           st.view.y += dy
           clamp(st.view)
@@ -196,18 +242,29 @@ export default function AtlasMap({ onStationSelect }: { onStationSelect: (s: Rad
     }
     const onUp = (e: PointerEvent) => {
       pointers.delete(e.pointerId)
-      if (!dragged) {
+      if (!dragged && e.type !== 'pointercancel' && pointers.size === 0) {
         const cur = pt(e)
         const hit = nearest(cur.x, cur.y)
         setSelected(hit)
+        stateRef.current.selectedUuid = hit?.station.stationuuid ?? null
+        if (hit) focusAt(hit, true)
         // Selecting a signal only opens its preview. Playback changes only
         // after the user explicitly chooses the callout action.
       }
     }
     const onWheel = (e: WheelEvent) => {
       e.preventDefault()
+      flightRef.current = null
+      focusTarget.current = null
       const st = stateRef.current
+      const r = canvas.getBoundingClientRect()
+      const x = e.clientX - r.left - st.view.w / 2
+      const y = e.clientY - r.top - st.view.h / 2
+      const oldK = st.view.k
       st.view.k *= Math.exp(-e.deltaY * 0.0018)
+      clamp(st.view)
+      st.view.x = x - (x - st.view.x) * st.view.k / oldK
+      st.view.y = y - (y - st.view.y) * st.view.k / oldK
       clamp(st.view)
     }
 
@@ -223,7 +280,7 @@ export default function AtlasMap({ onStationSelect }: { onStationSelect: (s: Rad
       canvas.removeEventListener('pointercancel', onUp)
       canvas.removeEventListener('wheel', onWheel)
     }
-  }, [])
+  }, [focusAt])
 
   return (
     <div ref={wrapRef} className="relative h-full min-h-0 overflow-hidden bg-chart-bg touch-none">
@@ -234,18 +291,23 @@ export default function AtlasMap({ onStationSelect }: { onStationSelect: (s: Rad
         {isLoading && <span>sweeping…</span>}
       </div>
       <button
-        onClick={() => { setSelected(null); setSeed(`atlas-${Date.now().toString(36)}`) }}
+        onClick={() => { showWorld(); setSeed(`atlas-${Date.now().toString(36)}`) }}
         className="absolute top-3 right-3 border border-chart-line bg-chart-bg/70 px-2.5 py-2 text-[10px] tracking-[0.14em] uppercase text-chart-ink hover:text-chart-ink-bright hover:border-chart-ink-dim transition-colors"
       >
         RESWEEP
       </button>
+      <div className="absolute left-3 top-12 flex gap-2">
+        <button className="receiver-control px-2 text-[10px] tracking-wide" onClick={showWorld}>Whole world</button>
+        {currentStation && !selected && placeStations([currentStation]).length > 0 && <button className="receiver-control px-2 text-[10px] tracking-wide" onClick={() => { setSelected(null); stateRef.current.selectedUuid = null; focusAt(placeStations([currentStation])[0], false) }}>Locate signal</button>}
+      </div>
       {error && <div className="absolute inset-x-4 top-16 text-center text-sm text-chart-ink"><p>Could not load the map’s signals.</p><button className="underline py-3" onClick={() => void refetch()}>Retry map</button></div>}
       {!isLoading && !error && stations.length === 0 && <p role="status" className="absolute inset-x-4 top-16 text-center text-sm text-chart-ink">No quiet signals in this sweep. Try Resweep or adjust the filters.</p>}
       {selected && (
         <AtlasCallout
           placed={selected}
           onTune={() => onStationSelect(selected.station)}
-          onClose={() => setSelected(null)}
+          onInspect={() => onInspect(selected.station)}
+          onClose={() => { setSelected(null); stateRef.current.selectedUuid = null; if (focusTarget.current) focusAt(focusTarget.current.placed, false) }}
         />
       )}
     </div>

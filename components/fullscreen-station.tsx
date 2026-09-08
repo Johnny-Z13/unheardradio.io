@@ -11,7 +11,7 @@ import {
 import { AudioVisualizer } from '@/components/audio-visualizer';
 import { ShareMenu } from './share-menu';
 import { Close, Log, LogOn, MapPin, Play, Send, Stop } from './icons';
-import { getBand, getCoords, getOrigin, getRate, getStationId, getChecked, getRecentClicks, getStationHomepage } from '@/lib/station-format';
+import { getBand, getCoords, getOrigin, getRate, getStationId, getChecked, getRecentClicks, getStationHomepage, getDigitalDust } from '@/lib/station-format';
 
 interface FullscreenStationProps {
   station: RadioStation;
@@ -29,6 +29,7 @@ export function FullscreenStation({ station, onClose }: FullscreenStationProps) 
   const homepage = getStationHomepage(station);
   const obscurityBadge = getObscurityBadge(station);
   const streamQuality = getStreamQuality(station);
+  const dust = getDigitalDust(station);
 
   const handlePrimary = () => {
     if (isCurrentStation) {
@@ -160,11 +161,15 @@ export function FullscreenStation({ station, onClose }: FullscreenStationProps) 
             <DetailItem label="Protocol" value={station.url?.startsWith('https') ? 'HTTPS' : 'HTTP'} />
           </DetailPanel>
 
-          <DetailPanel title="Discovery">
+          <DetailPanel title="Digital dust">
+            <p className="text-sm text-chart-ink-bright leading-relaxed mb-3">{dust.note}</p>
+            <DetailItem label="Last trace" value={dust.lastTrace} />
+            <DetailItem label="Entry edited" value={dust.entryEdited} />
             <DetailItem label="Clicks / 24h" value={getRecentClicks(station)} />
-            <DetailItem label="Audience" value="Not measured" />
+            <DetailItem label="Votes" value={dust.votes} />
             <DetailItem label="Checked" value={getChecked(station)} />
-            <p className="text-xs text-chart-ink-dim leading-relaxed">Directory clicks are not listener counts.</p>
+            <p className="text-xs text-chart-ink-dim leading-relaxed">A RadioBrowser snapshot from when this station was found. Footprints are recorded directory clicks, not listeners. Entry edits are not broadcast dates. Missing history stays unknown.</p>
+            <a href="https://docs.radio-browser.info/" target="_blank" rel="noopener noreferrer" className="inline-block text-xs underline underline-offset-4 py-2 text-chart-ink">About the source</a>
           </DetailPanel>
 
           <DetailPanel title="Content">
@@ -200,7 +205,7 @@ function DetailItem({ label, value }: { label: string; value: string | number })
   return (
     <div className="grid grid-cols-[88px_minmax(0,1fr)] gap-3 text-[11px] uppercase tracking-[0.05em]">
       <span className="text-chart-ink-dim">{label}</span>
-      <span className="text-chart-ink truncate">{value}</span>
+      <span className="text-chart-ink break-words">{value}</span>
     </div>
   );
 }

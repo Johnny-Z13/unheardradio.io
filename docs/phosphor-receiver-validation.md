@@ -9,12 +9,14 @@ Reviewed 8 September 2026. This report records validation before publication; de
 - Strict discovery eligibility: healthy HTTPS streams, known directory activity, at most 5 recent clicks and 50 votes, with stream deduplication. These are directory activity indicators, not audience measurements.
 - Cancellable playback, bounded URL/station retries, accurate playback states, and click tracking only after playback starts.
 - Honest station metadata, retained filters, clear empty/error states, keyboard focus restoration, and browser-local bookmarks.
+- Field notes on station cards and map previews, with source-labelled "Digital dust" deeper in station details. Unknown or contradictory directory history never becomes a claim that nobody listened.
+- Click-to-zoom Atlas selection, automatic location focus when tuning, and Whole world / Locate signal controls. Mobile previews temporarily hide the intro so the selected location stays visible.
 
 The visual and interaction contract is in [DESIGN.md](../DESIGN.md).
 
 ## Validation evidence
 
-- `npm test`: 28 passing tests covering discovery, playback cancellation/fallback/stalls, upstream retries and station formatting.
+- `npm test`: 35 passing tests covering discovery, playback cancellation/fallback/stalls, upstream retries, camera framing/interpolation and station formatting.
 - `npm run check` passed: TypeScript validation and the production build. An earlier build could not resolve the existing Google font dependency inside the network sandbox; its network-enabled retry succeeded.
 - `git diff --check` passed.
 - Local API sample: 200 eligible stations, 92 countries, 200 unique stream URLs, all marked healthy by the directory; maximum recent clicks 0 and maximum votes 50.

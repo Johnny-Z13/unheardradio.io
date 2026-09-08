@@ -16,14 +16,7 @@ const topo = worldTopo as unknown as Topology<{ land: GeometryCollection }>
 const land = feature(topo, topo.objects.land)
 const graticule = geoGraticule10()
 
-const INK = {
-  lineFaint: 'hsl(215 30% 24% / 0.35)',
-  land: 'hsl(215 38% 9%)',
-  coast: 'hsl(215 25% 32%)',
-  dot: 'hsl(210 25% 78% / 0.85)',
-  dotApprox: 'hsl(210 25% 78% / 0.45)',
-  signal: 'hsl(36 95% 58%)',
-}
+
 
 const REVEAL_MS = 1550
 
@@ -74,6 +67,18 @@ export type Projector = ReturnType<typeof createProjector>
 
 export function createRenderer(canvas: HTMLCanvasElement) {
   const ctx = canvas.getContext('2d')!
+  const tokens = getComputedStyle(document.documentElement)
+  const channels = (name: string) => tokens.getPropertyValue(`--${name}`).trim()
+  const signal = channels('signal')
+  const INK = {
+    lineFaint: `hsl(${channels('chart-line')} / 0.5)`,
+    land: `hsl(${channels('chart-panel-2')})`,
+    coast: `hsl(${channels('chart-line')})`,
+    dot: `hsl(${channels('chart-ink')} / 0.9)`,
+    dotApprox: `hsl(${channels('chart-ink')} / 0.5)`,
+    signal: `hsl(${signal})`,
+  }
+  const motion = window.matchMedia('(prefers-reduced-motion: reduce)')
   const projector = createProjector()
   const path = geoPath(projector.projection, ctx)
 
@@ -87,7 +92,7 @@ export function createRenderer(canvas: HTMLCanvasElement) {
     ctx.clearRect(0, 0, view.w, view.h)
     projector.fit(view)
 
-    const sweepAge = now - sweepStart
+    const sweepAge = motion.matches ? REVEAL_MS + 1000 : now - sweepStart
     const revealProgress = Math.min(1, Math.max(0, sweepAge / REVEAL_MS))
     const cx = view.w / 2
     const cy = view.h / 2
@@ -122,8 +127,8 @@ export function createRenderer(canvas: HTMLCanvasElement) {
       const angle = (sweepAge / REVEAL_MS) * Math.PI * 2 - Math.PI / 2
       const r = Math.hypot(view.w, view.h)
       const grad = ctx.createLinearGradient(cx, cy, cx + Math.cos(angle) * r, cy + Math.sin(angle) * r)
-      grad.addColorStop(0, 'hsl(36 95% 58% / 0.25)')
-      grad.addColorStop(1, 'hsl(36 95% 58% / 0)')
+      grad.addColorStop(0, `hsl(${signal} / 0.25)`)
+      grad.addColorStop(1, `hsl(${signal} / 0)`)
       ctx.beginPath()
       ctx.moveTo(cx, cy)
       ctx.lineTo(cx + Math.cos(angle) * r, cy + Math.sin(angle) * r)
@@ -147,14 +152,14 @@ export function createRenderer(canvas: HTMLCanvasElement) {
       ctx.save()
       ctx.globalAlpha = nodeAlpha
 
-      if ((s.state === 'armed' || s.state === 'playing') && now - selectionPulseStart < 1050) {
+      if ((s.state === 'armed' || s.state === 'playing') && !motion.matches && now - selectionPulseStart < 1050) {
         const pulse = Math.max(0, (now - selectionPulseStart) / 1050)
         for (let ring = 0; ring < 3; ring++) {
           const phase = Math.max(0, Math.min(1, pulse * 1.45 - ring * 0.2))
           if (phase <= 0) continue
           ctx.beginPath()
           ctx.arc(px, py, 5 + phase * 34, 0, Math.PI * 2)
-          ctx.strokeStyle = `hsl(36 95% 58% / ${(0.65 * (1 - phase)).toFixed(3)})`
+          ctx.strokeStyle = `hsl(${signal} / ${(0.65 * (1 - phase)).toFixed(3)})`
           ctx.lineWidth = 1.5
           ctx.stroke()
         }
@@ -162,11 +167,11 @@ export function createRenderer(canvas: HTMLCanvasElement) {
 
       if (s.state === 'playing') {
         // expanding amber rings, 1.8s cycle, two phases
-        const t = (now % 1800) / 1800
+        const t = motion.matches ? 0.25 : (now % 1800) / 1800
         for (const phase of [t, (t + 0.5) % 1]) {
           ctx.beginPath()
           ctx.arc(px, py, 4 + phase * 22, 0, Math.PI * 2)
-          ctx.strokeStyle = `hsl(36 95% 58% / ${(0.5 * (1 - phase)).toFixed(3)})`
+          ctx.strokeStyle = `hsl(${signal} / ${(0.5 * (1 - phase)).toFixed(3)})`
           ctx.lineWidth = 1.25
           ctx.stroke()
         }
@@ -182,7 +187,7 @@ export function createRenderer(canvas: HTMLCanvasElement) {
         if (s.state === 'armed') {
           ctx.beginPath()
           ctx.arc(px, py, 7, 0, Math.PI * 2)
-          ctx.strokeStyle = 'hsl(36 95% 58% / 0.4)'
+          ctx.strokeStyle = `hsl(${signal} / 0.4)`
           ctx.lineWidth = 1
           ctx.stroke()
         }

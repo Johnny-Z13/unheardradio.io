@@ -1,8 +1,15 @@
 import { create } from 'zustand';
 import { RadioStation, AudioState } from '@/types/radio';
 import { trackStationClick } from './radio-api';
+import { createPlaybackController, type PlayResult, type PlaybackStatus } from './playback-controller';
 
 interface AudioStore extends AudioState {
+  status: PlaybackStatus;
+  history: RadioStation[];
+  historyIndex: number;
+  playPrevious: () => void;
+  attempted: RadioStation[];
+  armStation: (station: RadioStation) => void;
   audio: HTMLAudioElement | null;
   audioContext: AudioContext | null;
   audioSource: MediaElementAudioSourceNode | null;
@@ -13,7 +20,7 @@ interface AudioStore extends AudioState {
   setVolume: (volume: number) => void;
   setError: (error: string | null) => void;
   setIsLoading: (loading: boolean) => void;
-  playStation: (station: RadioStation) => Promise<'playing' | 'blocked' | 'failed'>;
+  playStation: (station: RadioStation, fromHistory?: boolean) => Promise<PlayResult>;
   togglePlay: () => void;
   stop: () => void;
   initializeAudio: () => void;
@@ -22,7 +29,36 @@ interface AudioStore extends AudioState {
   cleanup: () => void;
 }
 
-export const useAudioStore = create<AudioStore>((set, get) => ({
+export const useAudioStore = create<AudioStore>((set, get) => {
+  let historyNavigation = false;
+  const controller = createPlaybackController({
+    getAudio: () => {
+      if (!get().audio) get().initializeAudio();
+      return get().audio!;
+    },
+    prepare: () => get().initializeAudioContext(),
+    onState: ({ status, error }) => set({ status, error, isPlaying: status === 'playing', isLoading: status === 'loading' }),
+    onStarted: (station) => {
+      void trackStationClick(station.stationuuid);
+      set(({ history }) => historyNavigation && history.some((s) => s.stationuuid === station.stationuuid)
+        ? { historyIndex: history.findIndex((s) => s.stationuuid === station.stationuuid) }
+        : { history: [station, ...history.filter((s) => s.stationuuid !== station.stationuuid)].slice(0, 10), historyIndex: 0 });
+    },
+  });
+  return ({
+  status: 'idle',
+  history: [],
+  historyIndex: 0,
+  playPrevious: () => {
+    const { history, historyIndex, currentStation } = get();
+    const index = history[historyIndex]?.stationuuid === currentStation?.stationuuid ? historyIndex + 1 : historyIndex;
+    if (history[index]) void get().playStation(history[index], true);
+  },
+  attempted: [],
+  armStation: (station) => {
+    controller.pause();
+    set({ currentStation: station, status: 'ready', error: null, isLoading: false, isPlaying: false });
+  },
   currentStation: null,
   isPlaying: false,
   volume: 0.75,
@@ -52,153 +88,34 @@ export const useAudioStore = create<AudioStore>((set, get) => ({
     audio.preload = 'none';
     audio.id = 'main-audio-player';
     
-    audio.addEventListener('loadstart', () => {
-      set({ isLoading: true, error: null });
-    });
-    
-    audio.addEventListener('canplay', () => {
-      set({ isLoading: false });
-    });
-    
-    audio.addEventListener('play', () => {
-      set({ isPlaying: true, isLoading: false, error: null });
-    });
-    
-    audio.addEventListener('pause', () => {
-      set({ isPlaying: false });
-    });
-    
-    audio.addEventListener('error', () => {
-      const errorMessage = 'Failed to load radio stream. This station may be offline.';
-      set({ error: errorMessage, isLoading: false, isPlaying: false });
-    });
-    
-    audio.addEventListener('ended', () => {
-      set({ isPlaying: false });
-    });
-    
     set({ audio });
   },
 
-  playStation: async (station) => {
-    let { audio, currentStation, isPlaying } = get();
-    
-    if (!audio) {
-      get().initializeAudio();
-      // Get the audio element after initialization
-      audio = get().audio;
-      if (!audio) {
-        console.warn('Failed to initialize audio element');
-        return 'failed';
-      }
+  playStation: async (station, fromHistory = false) => {
+    historyNavigation = fromHistory;
+    if (get().currentStation?.stationuuid === station.stationuuid && get().isPlaying) {
+      controller.pause();
+      return 'paused';
     }
-    
-    // If same station is playing, just pause/play
-    if (currentStation?.stationuuid === station.stationuuid && isPlaying) {
-      audio.pause();
-      return 'playing';
-    }
-    
-    try {
-      set({ isLoading: true, error: null });
-      
-      // Stop current playback
-      audio.pause();
-      audio.currentTime = 0;
-      
-      // Set new station
-      set({ currentStation: station });
-      
-      // Initialize audio context for visualizer on first play
-      get().initializeAudioContext();
-      
-      // Try resolved URL first, then fallback to main URL
-      const streamUrl = station.url_resolved || station.url;
-      audio.src = streamUrl;
-      audio.volume = get().volume;
-
-      // Start playback before doing any network bookkeeping. In particular,
-      // iOS/iPadOS only preserves a tap's media permission for the current
-      // task; awaiting the click-tracking request first loses that gesture.
-      void trackStationClick(station.stationuuid);
-      await playWithTimeout(audio);
-      set({ isLoading: false });
-      return 'playing';
-      
-    } catch (playError) {
-      // Safari blocks unprompted playback. Keep the selected station armed so
-      // the visible player can start it with one explicit tap.
-      if (playError instanceof DOMException && playError.name === 'NotAllowedError') {
-        set({
-          error: 'Tap play to receive this signal.',
-          isLoading: false,
-          isPlaying: false,
-        });
-        return 'blocked';
-      }
-
-      // Try fallback URL if available and different
-      if (station.url_resolved && station.url_resolved !== station.url) {
-        try {
-          audio.src = station.url;
-          await playWithTimeout(audio);
-          set({ isLoading: false });
-          return 'playing';
-        } catch { /* stream fallback unavailable */ }
-      }
-      
-      set({ 
-        error: 'Failed to play station. This stream may be unavailable.',
-        isLoading: false,
-        isPlaying: false 
-      });
-      return 'failed';
-    }
+    set(({ attempted }) => ({
+      currentStation: station,
+      ...(fromHistory ? { historyIndex: Math.max(0, get().history.findIndex((s) => s.stationuuid === station.stationuuid)) } : {}),
+      attempted: attempted.some((s) => s.stationuuid === station.stationuuid) ? attempted : [...attempted, station],
+    }));
+    return controller.play(station);
   },
 
   togglePlay: () => {
-    const { audio, isPlaying, currentStation } = get();
-
-    if (isPlaying) {
-      audio?.pause();
-      return;
+    if (get().isPlaying || get().isLoading) {
+      controller.pause();
+    } else if (get().currentStation) {
+      void get().playStation(get().currentStation!);
     }
-
-    // If the current station changed since the audio element last loaded a
-    // stream, start it properly.
-    const expectedSrc = currentStation ? (currentStation.url_resolved || currentStation.url) : null;
-    if (currentStation && (!audio || audio.src !== expectedSrc)) {
-      const loadedFallback = audio && currentStation ? audio.src === currentStation.url : false;
-      if (!loadedFallback) {
-        get().playStation(currentStation);
-        return;
-      }
-    }
-
-    if (!audio) return;
-
-    // A blocked boot-time autoplay can leave the media element wired through
-    // a suspended AudioContext. Resume both from this explicit user gesture;
-    // otherwise the element reports `playing` while the analyser/output graph
-    // remains silent until another station is selected.
-    const audioContext = get().audioContext;
-    if (audioContext?.state === 'suspended') {
-      void audioContext.resume().catch(() => {
-        set({ error: 'Failed to activate audio output', isPlaying: false });
-      });
-    }
-    audio.play().catch(() => {
-      set({ error: 'Failed to resume playback', isPlaying: false });
-    });
   },
 
   stop: () => {
-    const { audio } = get();
-    if (audio) {
-      audio.pause();
-      audio.currentTime = 0;
-    }
-    set({ currentStation: null, isPlaying: false });
+    controller.pause();
+    set({ currentStation: null, status: 'idle', isPlaying: false, isLoading: false, error: null });
   },
 
   initializeAudioContext: () => {
@@ -209,7 +126,7 @@ export const useAudioStore = create<AudioStore>((set, get) => ({
       const existingContext = get().audioContext;
       if (existingContext && existingContext.state !== 'closed') {
         if (existingContext.state === 'suspended') {
-          existingContext.resume();
+          void existingContext.resume().catch(() => {});
         }
         if (audioSource && analyser && frequencyData) return;
       }
@@ -225,7 +142,7 @@ export const useAudioStore = create<AudioStore>((set, get) => ({
       
       // Resume context if suspended
       if (audioContext.state === 'suspended') {
-        audioContext.resume();
+        void audioContext.resume().catch(() => {});
       }
 
       const source = audioContext.createMediaElementSource(audio);
@@ -259,13 +176,14 @@ export const useAudioStore = create<AudioStore>((set, get) => ({
   },
 
   cleanup: () => {
+    controller.cancel();
     const { audio, audioContext, audioSource, analyser } = get();
     
     // Clean up audio element and all its event listeners
     if (audio) {
       audio.pause();
       audio.removeAttribute('src');
-      audio.load(); // This removes all event listeners
+      audio.load();
       audio.remove();
     }
     
@@ -293,28 +211,11 @@ export const useAudioStore = create<AudioStore>((set, get) => ({
       analyser: null,
       frequencyData: null,
       currentStation: null,
+      status: 'idle',
       isPlaying: false,
       isLoading: false,
       error: null
     });
   },
-}));
-
-function playWithTimeout(audio: HTMLAudioElement, timeoutMs = 8000): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const timeout = window.setTimeout(() => finish(new Error('Stream timed out')), timeoutMs)
-    const onPlaying = () => finish()
-    const onError = () => finish(new Error('Stream failed'))
-    const finish = (error?: Error) => {
-      window.clearTimeout(timeout)
-      audio.removeEventListener('playing', onPlaying)
-      audio.removeEventListener('error', onError)
-      if (error) reject(error)
-      else resolve()
-    }
-
-    audio.addEventListener('playing', onPlaying, { once: true })
-    audio.addEventListener('error', onError, { once: true })
-    audio.play().catch((error) => finish(error))
-  })
-}
+});
+});

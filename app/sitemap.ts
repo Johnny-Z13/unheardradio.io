@@ -6,7 +6,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     {
       url: 'https://www.unheardradio.io',
-      lastModified: '2026-05-02',
+      lastModified: '2026-09-08',
       changeFrequency: 'daily',
       priority: 1,
     },

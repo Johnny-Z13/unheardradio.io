@@ -54,7 +54,7 @@ export default function AtlasMap({ onStationSelect }: { onStationSelect: (s: Rad
   const currentStation = useAudioStore((s) => s.currentStation)
   const isPlaying = useAudioStore((s) => s.isPlaying)
 
-  const { data: stations = [], isLoading } = useQuery({
+  const { data: stations = [], isLoading, error, refetch } = useQuery({
     queryKey: ['/api/stations', 'atlas', seed],
     queryFn: () => fetchStations({
       listenerFilter: 'low-to-high',
@@ -227,10 +227,10 @@ export default function AtlasMap({ onStationSelect }: { onStationSelect: (s: Rad
 
   return (
     <div ref={wrapRef} className="relative h-full min-h-0 overflow-hidden bg-chart-bg touch-none">
-      <canvas ref={canvasRef} className="block w-full h-full" />
+      <canvas role="img" aria-label="World map of low-activity radio stations. Use the Stations view or Tune somewhere unexpected for keyboard discovery." ref={canvasRef} className="block w-full h-full" />
       <div className="absolute top-3 left-3 flex items-center gap-3 text-[10px] tracking-[0.14em] uppercase text-chart-ink-dim pointer-events-none">
-        <span className="text-chart-ink-bright">// SIGNAL ATLAS</span>
-        <span>{plottedCount} signals plotted</span>
+        <span className="text-chart-ink-bright"><span className="hidden sm:inline">// SIGNAL ATLAS</span><span className="sm:hidden">// ATLAS</span></span>
+        <span>{plottedCount}<span className="hidden sm:inline"> signals plotted</span><span className="sm:hidden"> signals</span></span>
         {isLoading && <span>sweeping…</span>}
       </div>
       <button
@@ -239,6 +239,8 @@ export default function AtlasMap({ onStationSelect }: { onStationSelect: (s: Rad
       >
         RESWEEP
       </button>
+      {error && <div className="absolute inset-x-4 top-16 text-center text-sm text-chart-ink"><p>Could not load the map’s signals.</p><button className="underline py-3" onClick={() => void refetch()}>Retry map</button></div>}
+      {!isLoading && !error && stations.length === 0 && <p role="status" className="absolute inset-x-4 top-16 text-center text-sm text-chart-ink">No quiet signals in this sweep. Try Resweep or adjust the filters.</p>}
       {selected && (
         <AtlasCallout
           placed={selected}

@@ -1,15 +1,15 @@
 # Unheard Radio
 
-Unheard Radio is a Next.js app for finding live radio stations that sit below the recommendation layer: low-listener, odd, local, forgotten, experimental, and otherwise overlooked broadcasts from the RadioBrowser directory.
+Unheard Radio is a Next.js app for finding live radio stations that sit below the recommendation layer: low-activity, odd, local, forgotten, experimental, and otherwise overlooked broadcasts from the RadioBrowser directory.
 
-The product is deliberately styled as a signal-intelligence listening post: dense station metadata, monochrome CRT greens, restrained cyan signal highlights, and live audio visualisation.
+The product is a phosphor-green radio receiver: a world chart, clear controls, and restrained audio visualization. See [DESIGN.md](DESIGN.md) for the current visual and interaction contract.
 
 ## What It Does
 
-- Loads a fresh randomised feed of obscure stations on every visit.
-- Lets listeners randomise the feed, filter by audience size, country, genre, and search text.
+- Prefetches a low-activity station pool for explicit roulette: Next signal, Back, and session history.
+- Lets listeners randomise the feed, filter by directory activity, country, genre, and search text.
 - Plays stations through a single shared browser audio element.
-- Drives trace, bars, dBFS, and waterfall visualisers from a shared Web Audio analyser when stream CORS allows inspection.
+- Drives trace, bars and waterfall visualisers from real analyser data; silent or unavailable data stays quiet.
 - Saves stations locally in the browser with no account or backend database.
 - Shares deep links like `/?station=<uuid>` through an internal station lookup API.
 - Proxies RadioBrowser requests through API routes with mirror fallback.
@@ -76,7 +76,7 @@ Key files:
 - `components/station-card.tsx` renders station rows and active signal state.
 - `components/now-playing-bar.tsx` owns the fixed bottom receiver bar.
 - `components/fullscreen-station.tsx` renders the station detail receiver panel.
-- `components/station-map-simple.tsx` renders the Signal Atlas.
+- `components/atlas/atlas-map.tsx` renders the Signal Atlas.
 - `lib/audio-store.ts` owns the shared `HTMLAudioElement`, `AudioContext`, analyser, playback state, and visualiser data.
 - `pages/api/stations/index.ts` proxies station search and creates seeded obscure random feeds.
 - `pages/api/stations/[uuid]/index.ts` resolves shared station links.
@@ -88,19 +88,18 @@ Key files:
 - First screen is the product, not a landing page.
 - Obscure discovery should feel immediate: every visit produces a new scan.
 - The UI should be dense, readable, and instrument-like.
-- Bright green is reserved for active states and primary actions.
-- Cyan is reserved for live signal state and visual hot spots.
+- Phosphor green is reserved for tuning and live states; secondary text remains clear and subdued.
 - Do not introduce decorative gradients, blob backgrounds, or marketing cards.
 - Keep station metadata formatting in `lib/station-format.ts`.
 - Keep share behavior centralized in `components/share-menu.tsx`.
 
 ## Known Constraints
 
-- Some radio streams cannot expose frequency data to Web Audio because of CORS. In those cases the visualiser falls back to synthetic signal motion while playback can still work.
-- RadioBrowser metadata is community-maintained. Station coordinates, codecs, tags, and uptime may be incomplete or stale.
-- The Signal Atlas is an abstract coordinate plot, not a full map provider integration.
+- Some radio streams cannot expose frequency data to Web Audio because of CORS. The visualizer does not invent audio activity; some streams also cannot play through the browser audio graph.
+- RadioBrowser metadata is community-maintained. Station coordinates, codecs, tags, and health checks may be incomplete or stale.
+- The Signal Atlas uses bundled geographic data. Missing station coordinates use country-level approximations.
 - Bookmarks are browser-local only.
-- There is no automated test suite yet beyond TypeScript and production build validation.
+- `npm test` runs discovery, metadata and playback-controller tests. TypeScript and production build checks remain required.
 
 ## SEO
 
@@ -124,7 +123,7 @@ npm run check
 ## Future Improvements
 
 - Add ESLint with a non-interactive config and real `lint` rules.
-- Add Playwright smoke tests for scan loading, randomise feed, playback, share menu, and detail panel.
+- Expand repeatable browser smoke coverage for roulette, saved stations, sharing and device audio behavior.
 - Add OG image assets and richer social metadata.
 - Consider a proper map provider only if the Signal Atlas becomes a core feature.
 - Add lightweight station health telemetry if playback failure rates become important.

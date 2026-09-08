@@ -96,3 +96,44 @@ export function diversify(stations: RadioStation[], opts: DiversifyOptions): Rad
 
   return out
 }
+
+/** Directory activity thresholds, not claims about a broadcaster's audience. */
+export const OBSCURE_LIMITS = { clicks: 5, votes: 50 } as const
+
+export function streamIdentity(station: RadioStation): string | null {
+  try {
+    const url = new URL(station.url_resolved || station.url)
+    if (url.protocol !== 'https:') return null
+    url.hash = ''
+    return url.href
+  } catch {
+    return null
+  }
+}
+
+export function obscurePool(stations: RadioStation[], seed: string): RadioStation[] {
+  const ranked = stations.filter((station) =>
+    station.lastcheckok === 1 && station.ssl_error !== 1 &&
+    Number.isFinite(station.clickcount) && station.clickcount >= 0 && station.clickcount <= OBSCURE_LIMITS.clicks &&
+    Number.isFinite(station.votes) && station.votes >= 0 && station.votes <= OBSCURE_LIMITS.votes &&
+    Boolean(station.stationuuid) && streamIdentity(station) !== null
+  ).sort((a, b) => a.clickcount - b.clickcount || a.votes - b.votes ||
+    seededStationKey(a.stationuuid, seed) - seededStationKey(b.stationuuid, seed))
+  const ids = new Set<string>()
+  const streams = new Set<string>()
+  return ranked.filter((station) => {
+    const stream = streamIdentity(station)!
+    if (ids.has(station.stationuuid) || streams.has(stream)) return false
+    ids.add(station.stationuuid)
+    streams.add(stream)
+    return true
+  })
+}
+
+/** Prefer a fresh country, but never repeat an attempted stream in this session. */
+export function nextSignal(pool: RadioStation[], attempted: RadioStation[], current?: RadioStation | null): RadioStation | null {
+  const ids = new Set(attempted.map((s) => s.stationuuid))
+  const streams = new Set(attempted.map(streamIdentity))
+  const fresh = pool.filter((s) => !ids.has(s.stationuuid) && !streams.has(streamIdentity(s)))
+  return fresh.find((s) => s.countrycode && s.countrycode !== current?.countrycode) ?? fresh[0] ?? null
+}

@@ -1,98 +1,60 @@
+import { useRef, useState } from 'react';
 import { useAudioStore } from '@/lib/audio-store';
 import { useBookmarks } from '@/hooks/use-bookmarks';
 import { AudioVisualizer } from '@/components/audio-visualizer';
 import { ShareMenu } from './share-menu';
-import { Stop, Play, Log, LogOn, Send, Inspect } from './icons';
-import { getBand, getStationId, getCoords } from '@/lib/station-format';
+import { Pause, Play, Stop, Log, LogOn, Send, Inspect, ArrowLeft, Scan, Close } from './icons';
+import { getOrigin, getStationContext } from '@/lib/station-format';
 
-export function NowPlayingBar({ onMaximize }: { onMaximize?: () => void }) {
-  const { currentStation, isPlaying, isLoading, togglePlay, error } = useAudioStore();
+export function NowPlayingBar({ onMaximize, onNext, canNext }: { onMaximize?: () => void; onNext: () => void; canNext: boolean }) {
+  const { currentStation, status, togglePlay, error, history, historyIndex, playPrevious, playStation } = useAudioStore();
   const { isBookmarked, toggleBookmark } = useBookmarks();
-
-  if (!currentStation) return null;
-  const bookmarked = isBookmarked(currentStation.stationuuid);
-  const autoplayBlocked = error === 'Tap play to receive this signal.';
-  const statusLabel = autoplayBlocked ? 'READY' : error ? 'SIGNAL LOST' : isLoading ? 'BUFFERING' : isPlaying ? 'LIVE' : 'PAUSED';
-  const statusIsLive = statusLabel === 'LIVE';
+  const [showHistory, setShowHistory] = useState(false);
+  const mobileHistoryButton = useRef<HTMLButtonElement>(null);
+  const historyButton = useRef<HTMLButtonElement>(null);
+  const bookmarked = currentStation ? isBookmarked(currentStation.stationuuid) : false;
+  const previousIndex = history[historyIndex]?.stationuuid === currentStation?.stationuuid ? historyIndex + 1 : historyIndex;
+  const statusText = { idle: 'Receiver ready', ready: 'Ready · tap play', loading: 'Tuning…', playing: 'Live signal', paused: 'Paused', failed: 'Signal lost' }[status];
+  const active = status === 'playing' || status === 'loading';
+  const closeHistory = () => { setShowHistory(false); (historyButton.current?.getClientRects().length ? historyButton.current : mobileHistoryButton.current)?.focus(); };
 
   return (
-    <div
-      className="h-full bg-chart-panel-2 px-3 sm:px-4 pt-2.5 sm:pt-3 pb-[max(0.625rem,env(safe-area-inset-bottom))] sm:pb-[max(0.75rem,env(safe-area-inset-bottom))]"
-      style={{ boxShadow: '0 -4px 22px hsl(215 40% 12% / 0.6)' }}
-    >
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[minmax(0,1fr)_minmax(160px,320px)_auto] items-center gap-3 sm:gap-4">
-        {/* Info */}
-        <div className="min-w-0">
-          <div className="flex items-center gap-2 text-[10px] sm:text-[11px] tracking-[0.08em] uppercase text-chart-ink-dim mb-0.5">
-            <span>► Signal</span>
-            <span className="text-chart-ink">ID&nbsp;{getStationId(currentStation)}</span>
-            <span className="hidden sm:inline">·&nbsp;BAND&nbsp;{getBand(currentStation)}</span>
-            <span className="hidden md:inline">·&nbsp;{getCoords(currentStation)}</span>
-            <span className={`ml-auto inline-flex items-center gap-1.5 ${statusIsLive || autoplayBlocked ? 'text-signal' : error ? 'text-danger' : 'text-chart-ink-dim'}`}>
-              <span className={`w-1.5 h-1.5 ${statusIsLive || autoplayBlocked ? 'bg-signal animate-pulse' : error ? 'bg-danger' : 'bg-chart-ink-dim opacity-40'}`} />
-              {statusLabel}
-            </span>
+    <section aria-label="Radio player" className="receiver-dock px-3 sm:px-6 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+      <div className="flex flex-col lg:flex-row lg:items-center gap-3 lg:gap-6">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 mb-1 text-[11px] tracking-[0.12em] uppercase" role="status" aria-live="polite">
+            <span className={`inline-block h-1.5 w-1.5 ${status === 'playing' ? 'bg-signal' : 'bg-chart-ink-dim'}`} />
+            <span className={status === 'failed' ? 'text-danger' : 'text-signal'}>{statusText}</span>
+            {currentStation && <span className="text-chart-ink-dim truncate">/ {getOrigin(currentStation)}</span>}
           </div>
-          <div className={`font-bold text-[13px] sm:text-sm uppercase tracking-wide truncate ${statusIsLive ? 'text-chart-ink-bright signal-glow' : 'text-chart-ink-bright'}`}>
-            {currentStation.name}
-          </div>
-          {error && (
-            <p className={`text-[10px] truncate mt-0.5 ${autoplayBlocked ? 'text-chart-ink-dim' : 'text-danger'}`}>
-              {autoplayBlocked ? '►' : '⚠'} {error}
-            </p>
-          )}
+          <div className="text-sm sm:text-base font-semibold text-chart-ink-bright truncate">{currentStation?.name || 'Your next favourite station is out there.'}</div>
+          <p className={`text-[11px] leading-relaxed truncate mt-1 ${status === 'failed' ? 'text-danger' : 'text-chart-ink-dim'}`}>
+            {error || (currentStation ? getStationContext(currentStation) : 'Choose a signal on the map, or let the dial decide.')}
+          </p>
         </div>
-
-        {/* sm+: single visualizer + dBFS on md+ */}
-        <div className="hidden sm:grid grid-cols-[1fr_auto] items-center gap-2 min-w-0">
-          <AudioVisualizer mode="bars" height={28} />
-          <div className="hidden md:block text-right">
-            <AudioVisualizer mode="dbfs" />
+        <div className="hidden xl:block w-28 shrink-0" aria-hidden="true"><AudioVisualizer mode="bars" height={32} /></div>
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <button className="receiver-control" aria-label="Previous signal" title="Previous signal" onClick={playPrevious} disabled={!history[previousIndex]}><ArrowLeft size={15} /></button>
+          <button className="receiver-control receiver-play" onClick={togglePlay} disabled={!currentStation} aria-label={status === 'loading' ? 'Cancel tuning' : status === 'playing' ? 'Pause signal' : 'Play signal'} title={active ? 'Pause / cancel' : 'Play'}>
+            {status === 'loading' ? <Stop size={14} /> : status === 'playing' ? <Pause size={14} /> : <Play size={14} />}
+          </button>
+          <button className="receiver-control px-3 gap-2 font-semibold text-xs whitespace-nowrap" onClick={onNext} disabled={!canNext}><Scan size={14} /><span>Next signal</span></button>
+          <span className="flex-1 lg:hidden" />
+          <div className="flex gap-1.5 sm:gap-2">
+            <button className="receiver-control" disabled={!currentStation} onClick={() => currentStation && toggleBookmark(currentStation)} aria-label={bookmarked ? 'Remove saved station' : 'Save station'} title={bookmarked ? 'Saved' : 'Save station'}>{bookmarked ? <LogOn size={14} /> : <Log size={14} />}</button>
+            {currentStation ? <ShareMenu side="above" station={currentStation} iconClassName="receiver-control" trigger={<Send size={14} />} /> : <button className="receiver-control" disabled aria-label="Share station"><Send size={14} /></button>}
+            {onMaximize && <button disabled={!currentStation} className="receiver-control hidden sm:flex" onClick={onMaximize} aria-label="Station details" title="Station details"><Inspect size={14} /></button>}
           </div>
-        </div>
-
-        {/* Controls */}
-        <div className="flex gap-1 sm:gap-1.5">
-          <button
-            onClick={togglePlay}
-            aria-label={isPlaying ? 'Stop' : 'Play'}
-            className="w-9 h-9 sm:w-10 sm:h-10 bg-signal text-chart-bg border border-signal flex items-center justify-center"
-            style={{ boxShadow: '0 0 8px hsl(36 95% 58% / 0.4)' }}
-          >
-            {isPlaying ? <Stop size={12} /> : <Play size={12} />}
-          </button>
-          <button
-            onClick={() => toggleBookmark(currentStation)}
-            aria-label={bookmarked ? 'Remove from log' : 'Log contact'}
-            className={`w-9 h-9 sm:w-10 sm:h-10 border flex items-center justify-center transition-colors ${
-              bookmarked
-                ? 'border-chart-ink text-chart-ink-bright bg-chart-ink/[0.06]'
-                : 'border-chart-line text-chart-ink-dim hover:text-chart-ink hover:border-chart-ink-dim'
-            }`}
-          >
-            {bookmarked ? <LogOn size={12} /> : <Log size={12} />}
-          </button>
-          <ShareMenu
-            station={currentStation}
-            iconClassName="w-9 h-9 sm:w-10 sm:h-10 border border-chart-line text-chart-ink-dim hover:text-chart-ink hover:border-chart-ink-dim flex items-center justify-center transition-colors"
-            trigger={<Send size={12} />}
-          />
-          {onMaximize && (
-            <button
-              onClick={onMaximize}
-              aria-label="Inspect"
-              className="w-9 h-9 sm:w-10 sm:h-10 border border-chart-line text-chart-ink-dim hover:text-chart-ink hover:border-chart-ink-dim flex items-center justify-center transition-colors"
-            >
-              <Inspect size={12} />
-            </button>
-          )}
+          <button ref={historyButton} className="receiver-control px-2 text-xs hidden sm:flex" aria-expanded={showHistory} aria-controls="recent-signals" disabled={!history.length} onClick={() => setShowHistory(!showHistory)}>Recent</button>
         </div>
       </div>
-
-      {/* Mobile: single bars visualizer */}
-      <div className="sm:hidden mt-2 min-w-0">
-        <AudioVisualizer mode="bars" height={22} />
-      </div>
-    </div>
+      <button disabled={!history.length} ref={mobileHistoryButton} className="sm:hidden text-[11px] text-chart-ink-dim underline underline-offset-4 mt-2" aria-expanded={showHistory} onClick={() => setShowHistory(!showHistory)}>Recent signals ({history.length})</button>
+      {showHistory && <div id="recent-signals" className="absolute bottom-full right-2 left-2 sm:left-auto sm:w-96 mb-2 border border-chart-line bg-chart-panel shadow-2xl p-3" onKeyDown={(e) => { if (e.key === 'Escape') closeHistory(); }}>
+        <div className="flex items-center justify-between mb-2"><h2 className="text-xs text-chart-ink-bright">Recent signals · this visit</h2><button className="receiver-control" onClick={closeHistory} aria-label="Close recent signals"><Close size={14} /></button></div>
+        <ol className="max-h-64 overflow-y-auto">
+          {history.map((station) => <li key={station.stationuuid}><button className="w-full text-left px-2 py-3 text-xs hover:bg-chart-line/30 flex flex-col gap-1" onClick={() => { void playStation(station, true); closeHistory(); }}><span className="text-chart-ink-bright truncate">{station.name}</span><span className="text-chart-ink-dim">{getOrigin(station)}</span></button></li>)}
+        </ol>
+      </div>}
+    </section>
   );
 }

@@ -1,10 +1,46 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { diversify, prioritizeAtlasStations } from './discovery.ts'
+import { diversify, prioritizeAtlasStations, obscurePool, nextSignal } from './discovery.ts'
+import type { RadioStation } from '../types/radio'
 
 type S = { stationuuid: string; countrycode: string }
 const mk = (cc: string, i: number): S => ({ stationuuid: `${cc}-${i}`, countrycode: cc })
 const codes = (s: S[]) => s.map(x => x.countrycode)
+const signal = (id: string, overrides: Partial<RadioStation> = {}): RadioStation => ({
+  stationuuid: id, url_resolved: `https://radio.test/${id}`, countrycode: 'US',
+  clickcount: 0, votes: 0, lastcheckok: 1, ssl_error: 0, ...overrides,
+} as RadioStation)
+
+test('strict eligibility rejects popular, unhealthy, insecure and missing-activity stations', () => {
+  const pool = [signal('good'), signal('clicks', { clickcount: 6 }), signal('votes', { votes: 51 }),
+    signal('unknown', { clickcount: undefined }), signal('negative', { votes: -1 }),
+    signal('insecure', { url_resolved: 'http://radio.test/no' }), signal('broken', { lastcheckok: 0 }),
+    signal('ssl', { ssl_error: 1 }), signal('nan', { clickcount: NaN })]
+  assert.deepEqual(obscurePool(pool, 'one').map((s) => s.stationuuid), ['good'])
+})
+
+test('deduplicates stream aliases and UUIDs without merging distinct query-based stations', () => {
+  const pool = [signal('a'), signal('alias', { url_resolved: 'https://radio.test/a#fragment' }),
+    signal('a', { url_resolved: 'https://radio.test/other' }),
+    signal('b', { url_resolved: 'https://radio.test/a?channel=b' })]
+  const out = obscurePool(pool, 'one')
+  assert.equal(new Set(out.map((s) => s.stationuuid)).size, out.length)
+  assert.ok(out.some((s) => s.stationuuid === 'b'))
+  assert.equal(out.filter((s) => s.url_resolved.split('#')[0] === 'https://radio.test/a').length, 1)
+})
+
+test('votes break equal-click ties before country variety; popularity never leaks into strict pool', () => {
+  const pool = [signal('voted', { votes: 40 }), signal('rare'), signal('popular-country', { countrycode: 'NP', clickcount: 80 })]
+  assert.deepEqual(prioritizeAtlasStations(obscurePool(pool, 'one'), 'one').map((s) => s.stationuuid), ['rare', 'voted'])
+})
+
+test('next signal avoids attempted aliases, prefers a new country and explicitly exhausts', () => {
+  const a = signal('a'), b = signal('b'), c = signal('c', { countrycode: 'FR' })
+  const alias = signal('alias', { url_resolved: a.url_resolved })
+  assert.equal(nextSignal([alias, b, c], [a], a)?.stationuuid, 'c')
+  assert.equal(nextSignal([alias, b], [a], a)?.stationuuid, 'b')
+  assert.equal(nextSignal([a, alias, b], [a, b], b), null)
+})
 
 test('caps each country at maxPerCountry per 20-station window (diverse pool)', () => {
   // 40 countries x 5 stations — plenty of variety, caps must hold exactly.

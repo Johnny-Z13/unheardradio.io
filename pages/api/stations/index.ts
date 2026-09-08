@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { radioBrowserFetch } from '@/lib/radio-browser'
-import { diversify } from '@/lib/discovery'
+import { diversify, prioritizeAtlasStations, obscurePool } from '@/lib/discovery'
 import type { RadioStation, SearchFilters } from '@/types/radio'
 import centroids from '@/lib/geo/country-centroids.json'
 
@@ -20,24 +20,31 @@ export default async function handler(
       country: req.query.country as string,
       genre: req.query.genre as string,
       listenerFilter: req.query.listenerFilter as SearchFilters['listenerFilter'],
-      limit: parseInt(req.query.limit as string) || 20,
-      offset: parseInt(req.query.offset as string) || 0,
+      limit: Math.max(1, Math.min(3000, parseInt(req.query.limit as string) || 20)),
+      offset: Math.max(0, parseInt(req.query.offset as string) || 0),
       randomSeed: req.query.randomSeed as string,
       farFromVisitor: req.query.farFromVisitor === 'true',
+      atlasMode: req.query.atlasMode === 'true',
     }
     const shouldRandomise = Boolean(filters.randomSeed)
+    const strictDiscovery = filters.listenerFilter === 'zero' || filters.listenerFilter === 'low-to-high' || filters.atlasMode
+    const pooled = strictDiscovery || shouldRandomise
 
     const params = new URLSearchParams()
     if (filters.search) params.append('name', filters.search)
     if (filters.country) params.append('country', filters.country)
     if (filters.genre) params.append('tag', filters.genre)
 
-    // Zero-listener mode pulls a wider net so post-filter still has variety
-    const requestLimit = shouldRandomise || filters.listenerFilter === 'zero'
-      ? '1000'
+    // Atlas pulls a much wider obscure pool. The response is later trimmed to
+    // the requested display limit, keeping the payload below Vercel's practical
+    // response ceiling while restoring thousands of plotted signals.
+    const requestLimit = strictDiscovery
+      ? '5000'
+      : shouldRandomise || filters.listenerFilter === 'zero'
+        ? '1000'
       : (filters.limit?.toString() || '20')
     params.append('limit', requestLimit)
-    params.append('offset', shouldRandomise ? '0' : (filters.offset?.toString() || '0'))
+    params.append('offset', pooled ? '0' : (filters.offset?.toString() || '0'))
     params.append('hidebroken', 'true')
     // The site is served over HTTPS, so http:// streams are blocked as mixed
     // content by the browser — only surface stations with https streams.
@@ -48,6 +55,11 @@ export default async function handler(
       params.append('reverse', 'false')
     }
 
+    if (filters.listenerFilter === 'high-to-low') {
+      params.set('order', 'clickcount')
+      params.set('reverse', 'true')
+    }
+
     const response = await radioBrowserFetch(`/json/stations/search?${params.toString()}`)
     let stations: RadioStation[] = await response.json()
 
@@ -55,6 +67,8 @@ export default async function handler(
     // these explicit health fields prevent stale/SSL-failing entries from
     // reaching the discovery pool when a mirror returns them anyway.
     stations = stations.filter((station) => station.lastcheckok === 1 && station.ssl_error !== 1)
+
+    if (strictDiscovery) stations = obscurePool(stations, filters.randomSeed || 'discovery')
 
     switch (filters.listenerFilter) {
       case 'zero':
@@ -74,8 +88,11 @@ export default async function handler(
         break
     }
 
-    if (shouldRandomise && filters.randomSeed) {
-      stations = seededShuffle(stations, filters.randomSeed)
+    if (filters.atlasMode) {
+      stations = prioritizeAtlasStations(stations, filters.randomSeed || 'atlas')
+      stations = stations.slice(0, Math.min(filters.limit || 3000, 3000))
+    } else if (shouldRandomise && filters.randomSeed) {
+      if (!strictDiscovery) stations = seededShuffle(stations, filters.randomSeed)
       const homeCountry = (req.headers['x-vercel-ip-country'] as string | undefined)?.toUpperCase()
       if (filters.farFromVisitor) {
         stations = preferDistantStations(stations, req, homeCountry)
@@ -89,6 +106,10 @@ export default async function handler(
       const start = filters.offset || 0
       const end = start + (filters.limit || 20)
       stations = stations.slice(start, end)
+    }
+
+    if (strictDiscovery && !shouldRandomise && !filters.atlasMode) {
+      stations = stations.slice(filters.offset || 0, (filters.offset || 0) + (filters.limit || 20))
     }
 
     res.setHeader('Vary', 'x-vercel-ip-country')
@@ -115,8 +136,8 @@ function preferDistantStations(
     // starving countries whose station coordinates are approximate.
     const distant = stations.filter((station) => {
       const fallback = COUNTRY_CENTROIDS[station.countrycode?.toUpperCase()]
-      const lat = station.geo_lat || fallback?.lat
-      const lng = station.geo_long || fallback?.lng
+      const lat = station.geo_lat ?? fallback?.lat
+      const lng = station.geo_long ?? fallback?.lng
       return typeof lat === 'number' && typeof lng === 'number'
         && greatCircleKm(visitorLat, visitorLng, lat, lng) >= 5000
     })

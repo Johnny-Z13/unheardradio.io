@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
-import { X } from "lucide-react"
+import { Close } from "@/components/icons"
 
 import { cn } from "@/lib/utils"
 
@@ -45,13 +45,26 @@ const DialogContent = React.forwardRef<
     >
       {children}
       <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
-        <X className="h-4 w-4" />
+        <Close size={16} />
         <span className="sr-only">Close</span>
       </DialogPrimitive.Close>
     </DialogPrimitive.Content>
   </DialogPortal>
 ))
 DialogContent.displayName = DialogPrimitive.Content.displayName
+
+const FullscreenDialogContent = React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
+>(({ children, className, ...props }, ref) => (
+  <DialogPortal>
+    <DialogOverlay />
+    <DialogPrimitive.Content ref={ref} className={cn("fixed inset-0 z-[100] bg-chart-bg h-dvh overflow-y-auto overscroll-contain", className)} {...props}>
+      {children}
+    </DialogPrimitive.Content>
+  </DialogPortal>
+))
+FullscreenDialogContent.displayName = "FullscreenDialogContent"
 
 const DialogHeader = ({
   className,
@@ -115,6 +128,7 @@ export {
   DialogClose,
   DialogTrigger,
   DialogContent,
+  FullscreenDialogContent,
   DialogHeader,
   DialogFooter,
   DialogTitle,

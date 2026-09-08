@@ -49,19 +49,36 @@ export function getOrigin(station: RadioStation): string {
 
 export function getRate(station: RadioStation): string {
   if (!station.bitrate) return '—'
-  const codec = (station.codec || 'MP3').toUpperCase()
+  const codec = (station.codec || '?').toUpperCase()
   return `${station.bitrate}k ${codec}`
 }
 
-export function getUptime(station: RadioStation): string {
-  if (!station.lastchangetime) return '—'
-  const last = new Date(station.lastchangetime).getTime()
-  if (Number.isNaN(last)) return '—'
-  const days = Math.floor((Date.now() - last) / (1000 * 60 * 60 * 24))
-  if (days < 1) return '<1d'
-  if (days < 30) return `${days}d`
-  if (days < 365) return `${Math.floor(days / 30)}mo`
-  const years = Math.floor(days / 365)
-  const remDays = days - years * 365
-  return remDays > 0 ? `${years}y ${remDays}d` : `${years}y`
+/** RadioBrowser's check timestamp is UTC; it is not continuous uptime. */
+export function getChecked(station: RadioStation, now = Date.now()): string {
+  const value = station.lastchecktime_iso8601 || station.lastchecktime
+  if (!value) return 'Unknown'
+  const timestamp = Date.parse(/(?:Z|[+-]\d\d:\d\d)$/.test(value) ? value : value.replace(' ', 'T') + 'Z')
+  if (!Number.isFinite(timestamp) || timestamp > now + 60000) return 'Unknown'
+  const minutes = Math.max(0, Math.floor((now - timestamp) / 60000))
+  if (minutes < 60) return `${minutes}m ago`
+  if (minutes < 1440) return `${Math.floor(minutes / 60)}h ago`
+  return `${Math.floor(minutes / 1440)}d ago`
+}
+
+export function getRecentClicks(station: RadioStation): string {
+  return station.activityKnown === false || !Number.isFinite(station.clickcount) || station.clickcount < 0
+    ? 'Unknown' : station.clickcount.toLocaleString()
+}
+
+export function getStationContext(station: RadioStation): string {
+  const tag = station.tags?.split(',').map((s) => s.trim()).find((s) =>
+    s && !/kbps|kbit|https?:|^\d|^(mp3|aac|aac\+|ogg|hls)$/i.test(s))
+  return [station.language && station.language !== 'unknown' ? station.language : null, tag].filter(Boolean).join(' · ') || 'Genre not listed. Tune in to explore.'
+}
+
+export function getStationHomepage(station: RadioStation): string | undefined {
+  try {
+    const url = new URL(station.homepage)
+    return ['http:', 'https:'].includes(url.protocol) ? url.href : undefined
+  } catch { return undefined }
 }

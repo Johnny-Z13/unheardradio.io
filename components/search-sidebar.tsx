@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef } from 'react';
 import { Search as SearchIcon, Rescan } from '@/components/icons';
 import { useQuery } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
@@ -10,13 +10,15 @@ import { SearchFilters, Country, Genre } from '@/types/radio';
 interface SearchSidebarProps {
   onRefreshToDiscovery: (filters: SearchFilters) => void;
   totalStations: number;
+  initialFilters: SearchFilters;
 }
 
-export function SearchSidebar({ onRefreshToDiscovery, totalStations }: SearchSidebarProps) {
-  const [search, setSearch] = useState('');
-  const [country, setCountry] = useState('');
-  const [genre, setGenre] = useState('');
-  const [listenerFilter, setListenerFilter] = useState<'all' | 'zero' | 'hide-zero' | 'high-to-low' | 'low-to-high'>('low-to-high');
+export function SearchSidebar({ onRefreshToDiscovery, totalStations, initialFilters }: SearchSidebarProps) {
+  const [search, setSearch] = useState(initialFilters.search || '');
+  const [country, setCountry] = useState(initialFilters.country || '');
+  const [genre, setGenre] = useState(initialFilters.genre || '');
+  const [listenerFilter, setListenerFilter] = useState<'all' | 'zero' | 'hide-zero' | 'high-to-low' | 'low-to-high'>(initialFilters.listenerFilter || 'all');
+  const searchInput = useRef<HTMLInputElement>(null);
 
   const { data: countries = [] } = useQuery<Country[]>({
     queryKey: ['/api/countries'],
@@ -87,27 +89,31 @@ export function SearchSidebar({ onRefreshToDiscovery, totalStations }: SearchSid
         {/* Search Input */}
         <div className="relative">
           <Input
-            type="text"
+            ref={searchInput}
+            aria-label="Search stations"
+            type="search"
+            onKeyDown={(e) => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) handleRefresh(); }}
             placeholder="Search stations..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-chart-bg border-chart-line text-chart-ink placeholder-gray-500 focus:border-chart-ink-dim pr-8 h-8 text-sm"
+            className="w-full bg-chart-bg border-chart-line text-chart-ink placeholder-gray-500 focus:border-chart-ink-dim pr-8 h-11 text-sm"
           />
-          <SearchIcon size={12} className="absolute right-2.5 top-2.5 text-chart-ink-dim" />
+          {search ? <button type="button" aria-label="Clear search" onClick={() => { setSearch(''); searchInput.current?.focus(); }} className="absolute right-1 top-0 h-11 w-11 text-chart-ink">×</button> : <SearchIcon size={12} className="absolute right-3 top-4 text-chart-ink-dim" />}
         </div>
 
         {/* Listener Count Filter - Compact Layout */}
         <div className="space-y-2">
-          <h3 className="text-[10px] font-bold text-chart-ink-dim uppercase tracking-[0.15em]">// AUDIENCE&nbsp;SIZE</h3>
-          <Select value={listenerFilter} onValueChange={(value) => setListenerFilter(value as any)}>
-            <SelectTrigger className="w-full bg-chart-bg border-chart-line text-chart-ink focus:border-chart-ink-dim h-8 text-xs">
-              <SelectValue placeholder="All listener counts" />
+          <h3 className="text-[10px] font-bold text-chart-ink-dim uppercase tracking-[0.15em]">// DIRECTORY&nbsp;ACTIVITY</h3>
+          <Select value={listenerFilter} onValueChange={(value) => setListenerFilter(value as NonNullable<SearchFilters['listenerFilter']>)}>
+            <SelectTrigger aria-label="Directory activity" className="w-full bg-chart-bg border-chart-line text-chart-ink focus:border-chart-ink-dim h-11 text-xs">
+              <SelectValue placeholder="Recent clicks" />
             </SelectTrigger>
             <SelectContent className="bg-chart-bg border-chart-line backdrop-blur-none">
-              <SelectItem value="zero" className="text-chart-ink hover:bg-chart-ink/[0.06] text-xs font-bold bg-chart-bg">Zero listeners only</SelectItem>
-              <SelectItem value="hide-zero" className="text-chart-ink hover:bg-chart-ink/[0.06] text-xs bg-chart-bg">Hide zero listeners</SelectItem>
-              <SelectItem value="high-to-low" className="text-chart-ink hover:bg-chart-ink/[0.06] text-xs bg-chart-bg">Listeners high to low</SelectItem>
-              <SelectItem value="low-to-high" className="text-chart-ink hover:bg-chart-ink/[0.06] text-xs bg-chart-bg">Listeners low to high</SelectItem>
+              <SelectItem value="all">All directory activity</SelectItem>
+              <SelectItem value="zero" className="text-chart-ink hover:bg-chart-ink/[0.06] text-xs font-bold bg-chart-bg">Zero recent clicks</SelectItem>
+              <SelectItem value="hide-zero" className="text-chart-ink hover:bg-chart-ink/[0.06] text-xs bg-chart-bg">Active directory entries</SelectItem>
+              <SelectItem value="high-to-low" className="text-chart-ink hover:bg-chart-ink/[0.06] text-xs bg-chart-bg">Most clicked (wider directory)</SelectItem>
+              <SelectItem value="low-to-high" className="text-chart-ink hover:bg-chart-ink/[0.06] text-xs bg-chart-bg">Deep cuts (≤5 clicks, ≤50 votes)</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -117,14 +123,14 @@ export function SearchSidebar({ onRefreshToDiscovery, totalStations }: SearchSid
           <div className="space-y-1">
             <h3 className="text-[10px] font-bold text-chart-ink-dim uppercase tracking-[0.15em]">// LOCATION</h3>
             <Select value={country} onValueChange={setCountry}>
-              <SelectTrigger className="w-full bg-chart-bg border-chart-line text-chart-ink focus:border-chart-ink-dim h-8 text-xs">
+              <SelectTrigger aria-label="Country" className="w-full bg-chart-bg border-chart-line text-chart-ink focus:border-chart-ink-dim h-11 text-xs">
                 <SelectValue placeholder="All Countries" />
               </SelectTrigger>
               <SelectContent className="bg-chart-bg border-chart-line max-h-48 overflow-y-auto backdrop-blur-none">
                 <SelectItem value="all" className="text-chart-ink hover:bg-chart-ink/[0.06] text-xs bg-chart-bg">All Countries</SelectItem>
                 {countries.slice(0, 50).map((c) => (
                   <SelectItem key={c.iso_3166_1} value={c.name} className="text-chart-ink hover:bg-chart-ink/[0.06] text-xs bg-chart-bg">
-                    {c.name.length > 15 ? c.name.substring(0, 15) + '...' : c.name} ({c.stationcount})
+                    {c.name} ({c.stationcount})
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -134,7 +140,7 @@ export function SearchSidebar({ onRefreshToDiscovery, totalStations }: SearchSid
           <div className="space-y-1">
             <h3 className="text-[10px] font-bold text-chart-ink-dim uppercase tracking-[0.15em]">// GENRE</h3>
             <Select value={genre} onValueChange={setGenre}>
-              <SelectTrigger className="w-full bg-chart-bg border-chart-line text-chart-ink focus:border-chart-ink-dim h-8 text-xs">
+              <SelectTrigger aria-label="Genre" className="w-full bg-chart-bg border-chart-line text-chart-ink focus:border-chart-ink-dim h-11 text-xs">
                 <SelectValue placeholder="All Genres" />
               </SelectTrigger>
               <SelectContent className="bg-chart-bg border-chart-line max-h-48 overflow-y-auto backdrop-blur-none">

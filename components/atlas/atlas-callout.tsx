@@ -9,10 +9,11 @@ import type { Placed } from './atlas-map'
 
 export function AtlasCallout({ placed, onTune, onClose }: { placed: Placed; onTune: () => void; onClose: () => void }) {
   const { station, approx, lat, lng } = placed
-  const { currentStation, isPlaying, isLoading, error } = useAudioStore()
+  const { currentStation, isPlaying, isLoading, error, togglePlay } = useAudioStore()
   const { isBookmarked, toggleBookmark } = useBookmarks()
   const isCurrent = currentStation?.stationuuid === station.stationuuid
   const live = isCurrent && isPlaying
+  const anotherStationIsLive = Boolean(currentStation && !isCurrent && isPlaying)
   const bookmarked = isBookmarked(station.stationuuid)
 
   return (
@@ -36,12 +37,16 @@ export function AtlasCallout({ placed, onTune, onClose }: { placed: Placed; onTu
       {isCurrent && error && (
         <p className="text-[10px] tracking-[0.08em] uppercase text-danger mb-2">{error}</p>
       )}
+      {anotherStationIsLive && (
+        <p className="text-[10px] tracking-[0.08em] uppercase text-chart-ink-dim mb-2">
+          Previewing signal · current station continues
+        </p>
+      )}
       <div className="flex gap-1.5">
         <button
-          onClick={onTune}
-          disabled={isCurrent && isLoading}
-          aria-label={live ? 'Stop' : 'Tune in'}
-          className={`h-10 px-4 flex items-center gap-2 text-[11px] tracking-[0.12em] uppercase border transition-colors ${
+          onClick={isCurrent ? togglePlay : onTune}
+          aria-label={isCurrent && isLoading ? 'Cancel tuning' : live ? 'Pause signal' : isCurrent ? 'Play station' : 'Switch station'}
+          className={`h-11 px-4 flex items-center gap-2 text-[11px] tracking-[0.12em] uppercase border transition-colors ${
             live
               ? 'bg-signal text-chart-bg border-signal'
               : 'border-chart-ink-dim text-chart-ink hover:border-signal hover:text-signal'
@@ -50,12 +55,12 @@ export function AtlasCallout({ placed, onTune, onClose }: { placed: Placed; onTu
           {isCurrent && isLoading
             ? <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
             : live ? <Stop size={12} /> : <Play size={12} />}
-          {live ? 'STOP' : 'TUNE IN'}
+          {isCurrent && isLoading ? 'CANCEL' : live ? 'PAUSE' : isCurrent ? 'PLAY STATION' : 'SWITCH & PLAY'}
         </button>
         <button
           onClick={() => toggleBookmark(station)}
           aria-label={bookmarked ? 'Remove from log' : 'Log contact'}
-          className={`w-10 h-10 border flex items-center justify-center transition-colors ${
+          className={`w-11 h-11 border flex items-center justify-center transition-colors ${
             bookmarked ? 'border-chart-ink text-chart-ink-bright bg-chart-ink/[0.06]' : 'border-chart-line text-chart-ink-dim hover:text-chart-ink hover:border-chart-ink-dim'
           }`}
         >
@@ -63,7 +68,7 @@ export function AtlasCallout({ placed, onTune, onClose }: { placed: Placed; onTu
         </button>
         <ShareMenu
           station={station}
-          iconClassName="w-10 h-10 border border-chart-line text-chart-ink-dim hover:text-chart-ink hover:border-chart-ink-dim flex items-center justify-center transition-colors"
+          iconClassName="w-11 h-11 border border-chart-line text-chart-ink-dim hover:text-chart-ink hover:border-chart-ink-dim flex items-center justify-center transition-colors"
           trigger={<Send size={12} />}
         />
       </div>

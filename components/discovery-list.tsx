@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { Scan } from '@/components/icons';
 import { RadioStation, SearchFilters } from '@/types/radio';
@@ -8,174 +8,47 @@ import { StationCard } from './station-card';
 import { FullscreenStation } from './fullscreen-station';
 import { Button } from '@/components/ui/button';
 
-interface DiscoveryListProps {
-  filters: SearchFilters;
-}
-
-export function DiscoveryList({ filters }: DiscoveryListProps) {
-  const [allStations, setAllStations] = useState<RadioStation[]>([]);
+export function DiscoveryList({ filters }: { filters: SearchFilters }) {
   const [fullscreenStation, setFullscreenStation] = useState<RadioStation | null>(null);
-  const [offset, setOffset] = useState(0);
-  const [randomSeed, setRandomSeed] = useState(() => filters.randomSeed ?? Date.now().toString(36));
-  const limit = 20;
+  const [randomSeed, setRandomSeed] = useState(() => Date.now().toString(36));
   const canRandomise = filters.listenerFilter !== 'high-to-low';
-  const activeFilters = canRandomise ? { ...filters, randomSeed } : filters;
-  
-  const {
-    data: stations = [],
-    isLoading,
-    error,
-    isFetching,
-  } = useQuery({
-    queryKey: ['/api/stations', { ...activeFilters, limit, offset }],
-    queryFn: () => fetchStations({ ...activeFilters, limit, offset }),
-    staleTime: 0,
-    gcTime: 5 * 60 * 1000, // Garbage collect after 5 minutes
-    refetchOnWindowFocus: false, // Prevent unnecessary refetches on tab switch
+  const activeFilters = { ...filters, randomSeed: canRandomise ? randomSeed : undefined };
+  const strict = filters.listenerFilter === 'zero' || filters.listenerFilter === 'low-to-high';
+  const limit = 20;
+  const query = useInfiniteQuery({
+    queryKey: ['stations', activeFilters],
+    initialPageParam: 0,
+    queryFn: ({ pageParam, signal }) => fetchStations({ ...activeFilters, limit, offset: pageParam }, signal),
+    getNextPageParam: (lastPage, pages) => lastPage.length === limit ? pages.length * limit : undefined,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 1,
+  });
+  const seen = new Set<string>();
+  const stations = (query.data?.pages.flat() || []).filter((station) => {
+    if (seen.has(station.stationuuid)) return false;
+    seen.add(station.stationuuid);
+    return true;
   });
 
-  // Reset offset when filters change
-  useEffect(() => {
-    setOffset(0);
-    setAllStations([]);
-    if (canRandomise) {
-      setRandomSeed(filters.randomSeed ?? Date.now().toString(36));
-    }
-  }, [canRandomise, filters.search, filters.country, filters.genre, filters.listenerFilter, filters.randomSeed]);
-
-  // Update allStations when new data comes in
-  useEffect(() => {
-    if (stations.length > 0) {
-      if (offset === 0) {
-        setAllStations(stations);
-      } else {
-        setAllStations(prev => {
-          // Prevent duplicates by checking if station already exists
-          const existingIds = new Set(prev.map(s => s.stationuuid));
-          const newStations = stations.filter(s => !existingIds.has(s.stationuuid));
-          return [...prev, ...newStations];
-        });
-      }
-    }
-    // Note: Removed the else condition that was causing infinite renders
-  }, [stations, offset]);
-
-  const handleLoadMore = () => {
-    setOffset(prev => prev + limit);
-  };
-
-  const handleRandomiseFeed = () => {
-    if (!canRandomise) return;
-    setAllStations([]);
-    setOffset(0);
-    setRandomSeed(`${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`);
-  };
-
-  if (isLoading && offset === 0) {
-    return (
-    <div className="h-full p-6 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-chart-ink mx-auto mb-4" />
-          <p className="text-chart-ink">Scanning airwaves...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-    <div className="h-full p-6 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-red-400 mb-2">Signal Lost</div>
-          <p className="text-gray-400">
-            {error instanceof Error ? error.message : 'Failed to load stations'}
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="h-full min-h-0 p-3 md:p-6 overflow-y-auto overscroll-contain pb-28">
-      <div className="mb-4 md:mb-6 flex flex-col md:flex-row md:items-center md:justify-between space-y-3 md:space-y-0">
+    <div className="h-full min-h-0 p-4 md:p-6 overflow-y-auto overscroll-contain">
+      <div className="mb-5 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div className="min-w-0">
-          <h2 className="font-display text-[22px] md:text-[28px] leading-none text-chart-ink-bright ink-glow tracking-[0.04em]">
-            // OBSCURE TRANSMISSIONS
-          </h2>
-          <p className="text-[10px] tracking-[0.12em] uppercase text-chart-ink-dim mt-1.5">
-            {!filters.search && !filters.country && !filters.genre 
-              ? `Random discoveries • ${allStations.length} stations`
-              : `Sorted by reverse popularity • ${allStations.length} stations found`
-            }
+          <h2 className="text-2xl text-chart-ink-bright tracking-tight">{strict ? 'The quiet frequencies' : 'Explore the directory'}</h2>
+          <p className="text-xs text-chart-ink-dim mt-2 leading-relaxed">
+            {strict ? 'At most 5 clicks in 24 hours · at most 50 directory votes' : 'RadioBrowser directory activity'}
+            <br />Clicks are not listener counts. {stations.length} stations loaded.
           </p>
         </div>
-        <div className="flex items-center justify-end">
-          <Button
-            onClick={handleRandomiseFeed}
-            variant="outline"
-            size="sm"
-            disabled={isFetching || !canRandomise}
-            className="border-chart-line text-chart-ink hover:bg-chart-ink-bright hover:text-chart-bg text-[10px] tracking-[0.15em] uppercase font-bold rounded-none"
-          >
-            <Scan size={12} className="mr-1.5" />
-            <span className="hidden md:inline">RANDOMISE FEED</span>
-            <span className="md:hidden">RANDOMISE</span>
-          </Button>
-        </div>
+        {canRandomise && <Button onClick={() => setRandomSeed(`${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`)} variant="outline" disabled={query.isFetching} className="min-h-11 rounded-none text-xs shrink-0"><Scan size={14} className="mr-2" />Fresh sweep</Button>}
       </div>
-
-      {allStations.length === 0 && !isLoading && !isFetching ? (
-        <div className="flex flex-col items-center justify-center py-16 px-4">
-          <div className="text-center">
-            <h3 className="text-lg font-semibold text-gray-400 mb-2">No stations found</h3>
-            <p className="text-sm text-gray-500">
-              {Object.keys(filters).some(key => filters[key as keyof SearchFilters]) 
-                ? "This filter combination returned no results. Try using '0 listeners' or 'under 100 listeners' filters, or select a different country/genre."
-                : "Try adjusting your search criteria or exploring different regions"
-              }
-            </p>
-          </div>
-        </div>
-      ) : (
-        <div className="space-y-3 md:space-y-4">
-          {allStations.map((station: RadioStation) => (
-            <div key={station.stationuuid} data-station-id={station.stationuuid}>
-              <StationCard 
-                station={station} 
-                onMaximize={() => setFullscreenStation(station)}
-              />
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Load More Button */}
-      {stations.length === limit && !isFetching && (
-        <div className="text-center mt-6">
-          <Button
-            onClick={handleLoadMore}
-            variant="outline"
-            className="border-chart-line text-chart-ink hover:bg-chart-ink hover:text-chart-bg"
-          >
-            Load More Stations
-          </Button>
-        </div>
-      )}
-
-      {/* Loading More Indicator */}
-      {isFetching && offset > 0 && (
-        <div className="text-center mt-6">
-          <Loader2 className="w-6 h-6 animate-spin text-chart-ink mx-auto" />
-        </div>
-      )}
-
-      {/* Fullscreen Station View */}
-      {fullscreenStation && (
-        <FullscreenStation 
-          station={fullscreenStation} 
-          onClose={() => setFullscreenStation(null)} 
-        />
-      )}
+      {query.isPending && <div className="py-16 text-center text-chart-ink-dim" role="status"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-3" />Finding signals…</div>}
+      {!query.isPending && !query.error && stations.length === 0 && <div className="border border-chart-line p-6 text-sm text-chart-ink-dim leading-relaxed" role="status"><h3 className="text-chart-ink-bright mb-2">No signals in this selection</h3>Clear your search or adjust the country and genre in Filter. We keep the activity limits even when the result is empty.</div>}
+      <div className="space-y-3">{stations.map((station) => <div key={station.stationuuid} data-station-id={station.stationuuid}><StationCard station={station} onMaximize={() => setFullscreenStation(station)} /></div>)}</div>
+      {query.error && <div role="alert" className="my-5 border border-danger p-4 text-sm"><p className="text-danger">Could not load {stations.length ? 'more stations' : 'the station directory'}.</p><button className="underline py-3" onClick={() => void (stations.length ? query.fetchNextPage() : query.refetch())}>Retry loading stations</button></div>}
+      {query.hasNextPage && !query.error && <div className="text-center mt-6"><Button onClick={() => void query.fetchNextPage()} disabled={query.isFetching} variant="outline" className="min-h-11 rounded-none">{query.isFetchingNextPage ? 'Loading…' : 'Load more stations'}</Button></div>}
+      {fullscreenStation && <FullscreenStation station={fullscreenStation} onClose={() => setFullscreenStation(null)} />}
     </div>
   );
 }

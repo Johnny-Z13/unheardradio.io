@@ -3,16 +3,16 @@
 @tailwind utilities;
 
 :root {
-  /* Signal Atlas tokens (HSL channels for shadcn compatibility) */
-  --chart-bg: 215 45% 4%;
-  --chart-panel: 215 40% 7%;
-  --chart-panel-2: 215 38% 9%;
-  --chart-line: 215 30% 24%;
-  --chart-ink-dim: 215 18% 48%;
-  --chart-ink: 210 25% 78%;
-  --chart-ink-bright: 210 40% 94%;
-  --signal: 36 95% 58%;
-  --signal-dim: 36 45% 42%;
+  /* Phosphor receiver tokens (HSL channels for shadcn compatibility) */
+  --chart-bg: 155 28% 5%;
+  --chart-panel: 155 22% 8%;
+  --chart-panel-2: 155 20% 10%;
+  --chart-line: 150 14% 27%;
+  --chart-ink-dim: 145 13% 66%;
+  --chart-ink: 135 20% 82%;
+  --chart-ink-bright: 125 32% 94%;
+  --signal: 119 62% 72%;
+  --signal-dim: 120 24% 47%;
   --danger: 5 75% 62%;
 
   /* shadcn mapping */
@@ -68,7 +68,7 @@ html {
 }
 
 .ink-glow {
-  text-shadow: 0 0 6px hsl(var(--chart-ink-bright) / 0.25);
+  text-shadow: none;
 }
 
 @keyframes atlas-boot-in {
@@ -110,3 +110,56 @@ html {
 ::-webkit-scrollbar-track { background: hsl(var(--chart-bg)); }
 ::-webkit-scrollbar-thumb { background: hsl(var(--chart-line)); }
 ::-webkit-scrollbar-thumb:hover { background: hsl(var(--chart-ink-dim)); }
+
+/* Controls read as physical keys: one illuminated action, quiet secondary keys. */
+@layer components {
+.receiver-button, .receiver-control {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  border: 1px solid hsl(var(--chart-line));
+  color: hsl(var(--chart-ink));
+  background: hsl(var(--chart-panel));
+  transition: background-color 140ms, border-color 140ms;
+}
+.receiver-button {
+  gap: 10px;
+  padding: 14px 18px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+.receiver-control { min-width: 44px; }
+.receiver-button, .receiver-play {
+  background: hsl(var(--signal));
+  border-color: hsl(var(--signal));
+  color: hsl(var(--chart-bg));
+}
+.receiver-button:hover:not(:disabled), .receiver-play:hover:not(:disabled) { background: hsl(var(--chart-ink-bright)); }
+.receiver-control:hover:not(:disabled) { border-color: hsl(var(--signal)); }
+}
+button:not(:disabled), summary, [role="combobox"] { cursor: pointer; }
+button:disabled { cursor: not-allowed; opacity: 0.45; }
+button:active:not(:disabled) { filter: brightness(0.92); }
+:where(button, a, input, [role="combobox"], summary):focus-visible {
+  outline: 2px solid hsl(var(--signal));
+  outline-offset: 3px;
+}
+.tuning-console { background: hsl(var(--chart-panel)); }
+.receiver-dock { min-height: 108px; }
+.skip-link { position: fixed; top: -100px; left: 12px; z-index: 10000; padding: 12px; background: hsl(var(--signal)); color: hsl(var(--chart-bg)); }
+.skip-link:focus { top: 12px; }
+* { scrollbar-width: thin; scrollbar-color: hsl(var(--chart-ink-dim)) hsl(var(--chart-bg)); }
+::-webkit-scrollbar-thumb:active { background: hsl(var(--chart-ink)); }
+@media (max-width: 639px) {
+  .receiver-dock { min-height: 146px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+@media (forced-colors: active) {
+  * { scrollbar-color: auto; }
+  .receiver-button, .receiver-control { border: 1px solid ButtonText; }
+  :focus-visible { outline-color: Highlight; }
+}

@@ -4,7 +4,7 @@ import { useBookmarks } from '@/hooks/use-bookmarks';
 import { ShareMenu } from './share-menu';
 import { AudioVisualizer } from './audio-visualizer';
 import { Play, Stop, Log, LogOn, Inspect, Send } from './icons';
-import { getBand, getStationId, getCoords, getOrigin, getRate, getUptime } from '@/lib/station-format';
+import { getBand, getStationId, getCoords, getOrigin, getRate, getChecked, getRecentClicks, getStationContext } from '@/lib/station-format';
 import { getLocator } from '@/lib/locator';
 
 interface StationCardProps {
@@ -13,16 +13,16 @@ interface StationCardProps {
 }
 
 export function StationCard({ station, onMaximize }: StationCardProps) {
-  const { playStation, currentStation, isPlaying, isLoading, error } = useAudioStore();
+  const { playStation, currentStation, isPlaying, isLoading, error, status, togglePlay } = useAudioStore();
   const { isBookmarked, toggleBookmark } = useBookmarks();
 
   const isCurrent = currentStation?.stationuuid === station.stationuuid;
   const isLive = isCurrent && isPlaying;
   const isBuffering = isCurrent && isLoading;
-  const hasError = isCurrent && Boolean(error);
+  const hasError = isCurrent && status === 'failed';
   const isPaused = isCurrent && !isPlaying && !isLoading && !hasError;
   const bookmarked = isBookmarked(station.stationuuid);
-  const listenerCount = station.clickcount || 0;
+  const recentClicks = getRecentClicks(station);
 
   const handleBookmark = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -31,14 +31,14 @@ export function StationCard({ station, onMaximize }: StationCardProps) {
 
   return (
     <div
-      className={`relative bg-chart-panel border border-chart-line/50 border-l-2 p-3 sm:p-4 mb-2.5 transition-colors overflow-hidden ${
+      className={`relative bg-chart-panel border border-chart-line/50 border-l-2 p-3 sm:p-4 mb-2.5 transition-colors ${
         isCurrent
           ? 'border-l-signal'
           : 'border-l-chart-line hover:border-l-chart-ink-dim'
       }`}
       style={isCurrent ? {
-        background: 'linear-gradient(90deg, hsl(36 60% 40% / 0.06) 0%, transparent 60%)',
-        boxShadow: 'inset 2px 0 12px hsl(36 95% 58% / 0.08)',
+        background: 'linear-gradient(90deg, hsl(var(--signal) / 0.06) 0%, transparent 60%)',
+        boxShadow: 'inset 2px 0 12px hsl(var(--signal) / 0.08)',
       } : undefined}
     >
       {isCurrent && (
@@ -48,7 +48,7 @@ export function StationCard({ station, onMaximize }: StationCardProps) {
       {/* Row 1: callsign + top metadata */}
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-2.5">
         <div className="flex items-center gap-2.5 min-w-0 flex-1">
-          <h3 className={`font-bold text-sm sm:text-[15px] uppercase tracking-wide truncate ${isCurrent ? 'text-chart-ink-bright ink-glow' : 'text-chart-ink-bright'}`}>
+          <h3 className={`font-bold text-sm sm:text-[15px] uppercase tracking-wide break-words ${isCurrent ? 'text-chart-ink-bright ink-glow' : 'text-chart-ink-bright'}`}>
             {station.name}
           </h3>
           {isLive && (
@@ -64,7 +64,7 @@ export function StationCard({ station, onMaximize }: StationCardProps) {
           )}
           {isPaused && (
             <span className="inline-flex items-center gap-1.5 border border-chart-ink-dim/30 px-2 py-0.5 text-[10px] tracking-[0.15em] uppercase text-chart-ink-dim whitespace-nowrap">
-              PAUSED
+              {status === 'ready' ? 'READY' : 'PAUSED'}
             </span>
           )}
           {hasError && (
@@ -73,7 +73,7 @@ export function StationCard({ station, onMaximize }: StationCardProps) {
             </span>
           )}
         </div>
-        <div className="text-[10px] sm:text-[11px] tracking-[0.08em] uppercase text-chart-ink-dim text-right ml-auto whitespace-nowrap">
+        <div className="hidden sm:block text-[10px] sm:text-[11px] tracking-[0.08em] uppercase text-chart-ink-dim text-right ml-auto whitespace-nowrap">
           {getLocator(station)}
           <span className="opacity-50 px-1.5">·</span>
           BAND&nbsp;{getBand(station)}
@@ -95,18 +95,19 @@ export function StationCard({ station, onMaximize }: StationCardProps) {
         </div>
       )}
 
+      <p className="text-xs text-chart-ink-dim mb-3 leading-relaxed">{getStationContext(station)}</p>
+
       {/* Row 2: play + data + actions */}
-      <div className="grid grid-cols-[auto_1fr_auto] gap-3 sm:gap-4 items-center">
+      <div className="grid grid-cols-[auto_minmax(0,1fr)] sm:grid-cols-[auto_minmax(0,1fr)_auto] gap-3 sm:gap-4 items-center">
         <button
-          onClick={() => playStation(station)}
-          disabled={isBuffering}
-          aria-label={isLive ? 'Stop' : 'Tune in'}
-          className={`w-10 h-10 border flex items-center justify-center transition-colors ${
+          onClick={() => isCurrent ? togglePlay() : void playStation(station)}
+          aria-label={isBuffering ? 'Cancel tuning' : isLive ? 'Pause signal' : `Tune in to ${station.name}`}
+          className={`w-11 h-11 border flex items-center justify-center transition-colors ${
             isLive
               ? 'bg-signal text-chart-bg border-signal'
               : 'border-chart-ink-dim text-chart-ink hover:border-signal hover:text-signal'
           } ${isBuffering ? 'animate-pulse' : ''}`}
-          style={isLive ? { boxShadow: '0 0 10px hsl(36 95% 58% / 0.4)' } : undefined}
+          style={isLive ? { boxShadow: '0 0 10px hsl(var(--signal) / 0.4)' } : undefined}
         >
           {isBuffering ? (
             <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
@@ -119,20 +120,20 @@ export function StationCard({ station, onMaximize }: StationCardProps) {
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 sm:gap-x-5 gap-y-0.5 text-[11px] tracking-[0.04em] min-w-0">
           <span className="text-chart-ink-dim uppercase">Origin</span>
-          <span className="text-chart-ink-dim uppercase">Listeners</span>
+          <span className="text-chart-ink-dim uppercase">Clicks / 24h</span>
           <span className="text-chart-ink-dim uppercase hidden sm:inline">Rate</span>
-          <span className="text-chart-ink-dim uppercase hidden sm:inline">Uptime</span>
+          <span className="text-chart-ink-dim uppercase hidden sm:inline">Checked</span>
           <span className="text-chart-ink truncate">{getOrigin(station)}</span>
-          <span className="text-chart-ink">{listenerCount.toLocaleString()}</span>
+          <span className="text-chart-ink">{recentClicks}</span>
           <span className="text-chart-ink hidden sm:inline">{getRate(station)}</span>
-          <span className="text-chart-ink hidden sm:inline">{getUptime(station)}</span>
+          <span className="text-chart-ink hidden sm:inline">{getChecked(station)}</span>
         </div>
 
-        <div className="flex gap-1.5 flex-shrink-0">
+        <div className="flex gap-1.5 flex-shrink-0 col-span-2 sm:col-span-1 justify-end">
           <button
             onClick={handleBookmark}
-            aria-label={bookmarked ? 'Remove from log' : 'Log contact'}
-            className={`w-10 h-10 border flex items-center justify-center transition-colors ${
+            aria-label={bookmarked ? 'Remove saved station' : 'Save station'}
+            className={`w-11 h-11 border flex items-center justify-center transition-colors ${
               bookmarked
                 ? 'border-chart-ink text-chart-ink-bright bg-chart-ink/[0.06]'
                 : 'border-chart-line/50 text-chart-ink-dim hover:text-chart-ink hover:border-chart-ink-dim'
@@ -142,14 +143,14 @@ export function StationCard({ station, onMaximize }: StationCardProps) {
           </button>
           <ShareMenu
             station={station}
-            iconClassName="w-10 h-10 border border-chart-line/50 text-chart-ink-dim hover:text-chart-ink hover:border-chart-ink-dim flex items-center justify-center"
+            iconClassName="w-11 h-11 border border-chart-line/50 text-chart-ink-dim hover:text-chart-ink hover:border-chart-ink-dim flex items-center justify-center"
             trigger={<Send size={12} />}
           />
           {onMaximize && (
             <button
               onClick={onMaximize}
               aria-label="Inspect station"
-              className="w-10 h-10 border border-chart-line/50 text-chart-ink-dim hover:text-chart-ink hover:border-chart-ink-dim flex items-center justify-center transition-colors"
+              className="w-11 h-11 border border-chart-line/50 text-chart-ink-dim hover:text-chart-ink hover:border-chart-ink-dim flex items-center justify-center transition-colors"
             >
               <Inspect size={12} />
             </button>

@@ -1,18 +1,17 @@
-import { useEffect } from 'react';
+import { useRef } from 'react';
+import { Dialog, FullscreenDialogContent, DialogTitle } from './ui/dialog';
 import { RadioStation } from '@/types/radio';
 import { useAudioStore } from '@/lib/audio-store';
 import { useBookmarks } from '@/hooks/use-bookmarks';
 import {
   generateStationDescription,
   getObscurityBadge,
-  getStationPopularity,
   getStreamQuality,
-  getTimeOnAir,
 } from '@/lib/radio-api';
 import { AudioVisualizer } from '@/components/audio-visualizer';
 import { ShareMenu } from './share-menu';
 import { Close, Log, LogOn, MapPin, Play, Send, Stop } from './icons';
-import { getBand, getCoords, getOrigin, getRate, getStationId, getUptime } from '@/lib/station-format';
+import { getBand, getCoords, getOrigin, getRate, getStationId, getChecked, getRecentClicks, getStationHomepage } from '@/lib/station-format';
 
 interface FullscreenStationProps {
   station: RadioStation;
@@ -20,23 +19,16 @@ interface FullscreenStationProps {
 }
 
 export function FullscreenStation({ station, onClose }: FullscreenStationProps) {
-  const { currentStation, isPlaying, isLoading, error, playStation, togglePlay } = useAudioStore();
+  const returnFocus = useRef<HTMLElement | null>(typeof document === 'undefined' ? null : document.activeElement as HTMLElement);
+  const { currentStation, isPlaying, isLoading, error, status: playbackStatus, playStation, togglePlay } = useAudioStore();
   const { isBookmarked, toggleBookmark } = useBookmarks();
 
   const isCurrentStation = currentStation?.stationuuid === station.stationuuid;
   const isLive = isCurrentStation && isPlaying;
   const bookmarked = isBookmarked(station.stationuuid);
+  const homepage = getStationHomepage(station);
   const obscurityBadge = getObscurityBadge(station);
   const streamQuality = getStreamQuality(station);
-
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-
-    window.addEventListener('keydown', handleEscape);
-    return () => window.removeEventListener('keydown', handleEscape);
-  }, [onClose]);
 
   const handlePrimary = () => {
     if (isCurrentStation) {
@@ -47,7 +39,8 @@ export function FullscreenStation({ station, onClose }: FullscreenStationProps) 
   };
 
   return (
-    <div className="fixed inset-0 bg-chart-bg z-[9999] w-screen h-dvh overflow-y-auto overscroll-contain">
+    <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}><FullscreenDialogContent aria-describedby={undefined} onCloseAutoFocus={(event) => { event.preventDefault(); returnFocus.current?.focus(); }}>
+      <DialogTitle className="sr-only">Station details: {station.name}</DialogTitle>
       <div className="sticky top-0 z-20 border-b border-chart-line/50 bg-chart-bg/95 backdrop-blur px-3 sm:px-6 py-3 flex items-center justify-between gap-3">
         <div className="min-w-0">
           <div className="font-display text-[22px] leading-none text-chart-ink-bright ink-glow tracking-[0.08em]">
@@ -61,7 +54,7 @@ export function FullscreenStation({ station, onClose }: FullscreenStationProps) 
         <button
           onClick={onClose}
           aria-label="Close station detail"
-          className="w-10 h-10 border border-chart-line text-chart-ink hover:border-chart-ink-bright hover:text-chart-ink-bright flex items-center justify-center transition-colors shrink-0"
+          className="w-11 h-11 border border-chart-line text-chart-ink hover:border-chart-ink-bright hover:text-chart-ink-bright flex items-center justify-center transition-colors shrink-0"
         >
           <Close size={16} />
         </button>
@@ -69,7 +62,7 @@ export function FullscreenStation({ station, onClose }: FullscreenStationProps) 
 
       <div className="relative min-h-[220px] border-b border-chart-line/50 overflow-hidden">
         <div className="absolute inset-0 opacity-45 pointer-events-none">
-          <AudioVisualizer mode="waterfall" height={260} />
+          <AudioVisualizer stationUuid={station.stationuuid} mode="waterfall" height={260} />
         </div>
         <div className="absolute inset-0 bg-gradient-to-b from-chart-bg/10 via-chart-bg/60 to-chart-bg" />
 
@@ -78,7 +71,7 @@ export function FullscreenStation({ station, onClose }: FullscreenStationProps) 
             <div className="min-w-0">
               <div className="flex flex-wrap gap-2 mb-3">
                 <Badge>{obscurityBadge.text}</Badge>
-                <Badge>{isLive ? 'LIVE SIGNAL' : isCurrentStation ? 'PAUSED' : 'READY'}</Badge>
+                <Badge>{isLive ? 'LIVE SIGNAL' : isCurrentStation && isLoading ? 'TUNING' : isCurrentStation && playbackStatus === 'failed' ? 'SIGNAL UNAVAILABLE' : isCurrentStation ? playbackStatus.toUpperCase() : 'READY'}</Badge>
                 <Badge>{streamQuality.quality}</Badge>
               </div>
               <h1 className="font-display text-[40px] sm:text-[56px] leading-none text-chart-ink-bright ink-glow tracking-[0.03em] uppercase break-words">
@@ -90,9 +83,9 @@ export function FullscreenStation({ station, onClose }: FullscreenStationProps) 
             </div>
 
             <div className="border border-chart-line/50 bg-chart-panel/80 p-3">
-              <AudioVisualizer mode="bars" height={54} />
+              <AudioVisualizer stationUuid={station.stationuuid} mode="bars" height={54} />
               <div className="mt-2">
-                <AudioVisualizer mode="dbfs" />
+                <span className="text-xs text-chart-ink-dim">Audio spectrum</span>
               </div>
             </div>
           </div>
@@ -103,22 +96,21 @@ export function FullscreenStation({ station, onClose }: FullscreenStationProps) 
         <div className="flex flex-wrap items-center gap-2 mb-5">
           <button
             onClick={handlePrimary}
-            disabled={isLoading}
-            className="h-9 px-4 bg-signal text-chart-bg border border-signal flex items-center gap-2 font-bold text-[11px] uppercase tracking-[0.14em] disabled:opacity-60"
+            className="h-11 px-4 bg-signal text-chart-bg border border-signal flex items-center gap-2 font-bold text-[11px] uppercase tracking-[0.14em] disabled:opacity-60"
           >
-            {isLoading ? (
+            {isCurrentStation && isLoading ? (
               <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
             ) : isLive ? (
               <Stop size={13} />
             ) : (
               <Play size={13} />
             )}
-            {isLive ? 'Pause signal' : 'Tune signal'}
+            {isCurrentStation && isLoading ? 'Cancel tuning' : isLive ? 'Pause signal' : 'Tune signal'}
           </button>
 
           <button
             onClick={() => toggleBookmark(station)}
-            className={`h-9 px-3 border flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] font-bold transition-colors ${
+            className={`h-11 px-3 border flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] font-bold transition-colors ${
               bookmarked
                 ? 'border-chart-ink-dim bg-chart-ink/[0.06] text-chart-ink-bright'
                 : 'border-chart-line text-chart-ink-dim hover:border-chart-ink-dim hover:text-chart-ink'
@@ -130,16 +122,16 @@ export function FullscreenStation({ station, onClose }: FullscreenStationProps) 
 
           <ShareMenu
             station={station}
-            iconClassName="h-9 px-3 border border-chart-line text-chart-ink-dim hover:border-chart-ink-dim hover:text-chart-ink flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] font-bold transition-colors"
+            iconClassName="h-11 px-3 border border-chart-line text-chart-ink-dim hover:border-chart-ink-dim hover:text-chart-ink flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] font-bold transition-colors"
             trigger={<><Send size={13} /><span>Share</span></>}
           />
 
-          {station.homepage && (
+          {homepage && (
             <a
-              href={station.homepage}
+              href={homepage}
               target="_blank"
               rel="noopener noreferrer"
-              className="h-9 px-3 border border-chart-line text-chart-ink-dim hover:border-chart-ink-dim hover:text-chart-ink flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] font-bold transition-colors"
+              className="h-11 px-3 border border-chart-line text-chart-ink-dim hover:border-chart-ink-dim hover:text-chart-ink flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] font-bold transition-colors"
             >
               <MapPin size={13} />
               Site
@@ -158,7 +150,7 @@ export function FullscreenStation({ station, onClose }: FullscreenStationProps) 
             <DetailItem label="Origin" value={getOrigin(station)} />
             <DetailItem label="Coordinates" value={getCoords(station)} />
             <DetailItem label="Language" value={station.language || 'Unknown'} />
-            <DetailItem label="Status" value={station.lastcheckok === 1 ? 'Verified online' : 'Unverified'} />
+            <DetailItem label="Status" value={isLive ? 'Receiving now' : station.activityKnown === false ? 'Unknown' : station.lastcheckok === 1 ? 'Passed last check' : 'Failed / unknown'} />
           </DetailPanel>
 
           <DetailPanel title="Audio">
@@ -169,10 +161,10 @@ export function FullscreenStation({ station, onClose }: FullscreenStationProps) 
           </DetailPanel>
 
           <DetailPanel title="Discovery">
-            <DetailItem label="Listeners" value={(station.clickcount || 0).toLocaleString()} />
-            <DetailItem label="Popularity" value={getStationPopularity(station)} />
-            <DetailItem label="Uptime" value={getUptime(station)} />
-            <DetailItem label="On air" value={getTimeOnAir(station)} />
+            <DetailItem label="Clicks / 24h" value={getRecentClicks(station)} />
+            <DetailItem label="Audience" value="Not measured" />
+            <DetailItem label="Checked" value={getChecked(station)} />
+            <p className="text-xs text-chart-ink-dim leading-relaxed">Directory clicks are not listener counts.</p>
           </DetailPanel>
 
           <DetailPanel title="Content">
@@ -183,7 +175,7 @@ export function FullscreenStation({ station, onClose }: FullscreenStationProps) 
           </DetailPanel>
         </div>
       </div>
-    </div>
+    </FullscreenDialogContent></Dialog>
   );
 }
 

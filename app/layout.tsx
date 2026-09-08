@@ -12,8 +12,8 @@ const jetBrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.unheardradio.io'),
   title: 'Unheard Radio - Discover Obscure Underground Radio Stations Worldwide',
-  description: 'Anti-algorithm radio discovery platform. Find the world\'s most obscure, underground radio stations with zero listeners. Stream live broadcasts from forgotten corners of the globe.',
-  keywords: 'radio, obscure radio, underground radio, radio discovery, live radio, streaming radio, zero listeners, anti-algorithm, radio browser, global radio, experimental radio, rare radio stations',
+  description: 'Anti-algorithm radio discovery platform. Find overlooked radio stations with very little recent directory activity. Stream live broadcasts from forgotten corners of the globe.',
+  keywords: 'radio, obscure radio, underground radio, radio discovery, live radio, streaming radio, anti-algorithm, radio browser, global radio, experimental radio, rare radio stations',
   authors: [{ name: 'Z13Labs' }],
   creator: 'Z13Labs',
   publisher: 'Unheard Radio',
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Unheard Radio - Discover Obscure Radio Stations',
-    description: 'Anti-algorithm radio discovery. Find stations with zero listeners.',
+    description: 'Anti-algorithm radio discovery. Explore quiet corners of the radio dial.',
     creator: '@z13labs',
   },
 }

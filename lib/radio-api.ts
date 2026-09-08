@@ -1,6 +1,6 @@
 import { RadioStation, Country, Genre, SearchFilters } from "@/types/radio";
 
-export async function fetchStations(filters: SearchFilters = {}): Promise<RadioStation[]> {
+export async function fetchStations(filters: SearchFilters = {}, signal?: AbortSignal): Promise<RadioStation[]> {
   const params = new URLSearchParams();
   
   if (filters.search) params.append('search', filters.search);
@@ -11,8 +11,9 @@ export async function fetchStations(filters: SearchFilters = {}): Promise<RadioS
   if (filters.offset) params.append('offset', filters.offset.toString());
   if (filters.randomSeed) params.append('randomSeed', filters.randomSeed);
   if (filters.farFromVisitor) params.append('farFromVisitor', 'true');
+  if (filters.atlasMode) params.append('atlasMode', 'true');
   
-  const response = await fetch(`/api/stations?${params}`);
+  const response = await fetch(`/api/stations?${params}`, { signal });
   if (!response.ok) {
     throw new Error('Failed to fetch stations');
   }
@@ -59,72 +60,13 @@ export async function trackStationClick(stationUuid: string): Promise<void> {
 }
 
 export function getObscurityBadge(station: RadioStation): { text: string; color: string } {
-  const clicks = station.clickcount || 0;
-  
-  if (clicks === 0) {
-    return { text: 'PHANTOM', color: 'signal' };
-  } else if (clicks < 5) {
-    return { text: 'ULTRA RARE', color: 'chart-ink-bright' };
-  } else if (clicks < 50) {
-    return { text: 'RARE', color: 'chart-ink' };
-  } else if (clicks < 500) {
-    return { text: 'HIDDEN GEM', color: 'chart-ink' };
-  } else {
-    return { text: 'DISCOVERED', color: 'chart-ink-dim' };
-  }
+  const clicks = station.clickcount;
+  if (station.activityKnown === false || !Number.isFinite(clicks)) return { text: 'ACTIVITY UNKNOWN', color: 'chart-ink-dim' };
+  return { text: clicks === 0 ? 'QUIET FREQUENCY' : clicks <= 5 ? 'LOW ACTIVITY' : 'ON THE DIAL', color: 'chart-ink' };
 }
 
 export function generateStationDescription(station: RadioStation): string {
-  // Generate informative description based on station data
-  const parts = [];
-  
-  if (station.tags) {
-    const primaryGenre = station.tags.split(',')[0].trim();
-    parts.push(`${primaryGenre} radio station`);
-  } else {
-    parts.push('Radio station');
-  }
-  
-  if (station.language && station.language !== 'unknown') {
-    parts.push(`broadcasting in ${station.language}`);
-  }
-  
-  const listeners = parseInt(String(station.clickcount || 0)) || 0;
-  if (listeners === 0) {
-    parts.push('with zero listeners - completely undiscovered');
-  } else if (listeners < 10) {
-    parts.push(`with ${listeners} listener${listeners === 1 ? '' : 's'} - extremely obscure`);
-  } else if (listeners < 50) {
-    parts.push(`with ${listeners} listeners - very obscure`);
-  }
-  
-  return parts.join(' ');
-}
-
-export function getTimeOnAir(station: RadioStation): string {
-  if (!station.lastchangetime) return 'Unknown';
-  
-  const lastChange = new Date(station.lastchangetime);
-  const now = new Date();
-  const diffInDays = Math.floor((now.getTime() - lastChange.getTime()) / (1000 * 60 * 60 * 24));
-  
-  if (diffInDays < 1) return 'Less than a day';
-  if (diffInDays < 30) return `${diffInDays} days`;
-  if (diffInDays < 365) return `${Math.floor(diffInDays / 30)} months`;
-  return `${Math.floor(diffInDays / 365)} years`;
-}
-
-export function getStationPopularity(station: RadioStation): string {
-  const clicks = station.clickcount || 0;
-  const trend = station.clicktrend || 0;
-  
-  if (clicks === 0) return 'Undiscovered';
-  if (clicks < 10) return 'Ultra rare';
-  if (clicks < 100) return 'Rare find';
-  if (clicks < 1000) return 'Underground';
-  
-  const trendText = trend > 0 ? ' (trending up)' : trend < 0 ? ' (trending down)' : '';
-  return `Popular${trendText}`;
+  return [station.tags?.split(',')[0]?.trim(), 'radio', station.language ? `in ${station.language}` : '', station.country ? `from ${station.country}` : ''].filter(Boolean).join(' ');
 }
 
 export function getStreamQuality(station: RadioStation): { quality: string; color: string } {

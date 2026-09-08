@@ -10,13 +10,14 @@ import { NowPlayingBar } from '@/components/now-playing-bar'
 import { FullscreenStation } from '@/components/fullscreen-station'
 import { RadioStation, SearchFilters } from '@/types/radio'
 import { useAudioStore } from '@/lib/audio-store'
-import { fetchStationByUuid, fetchStations } from '@/lib/radio-api'
-import { Discover, Filter, Log, Atlas, Info } from '@/components/icons'
+import { fetchStationByUuid } from '@/lib/radio-api'
+import { Discover, Filter, Log, Atlas, Info, Play } from '@/components/icons'
+
+import { useRadioRoulette } from '@/hooks/use-radio-roulette'
 
 const AtlasMap = dynamic(() => import('@/components/atlas/atlas-map'), { ssr: false })
 
 type Tab = 'discover' | 'search' | 'saved' | 'map' | 'about'
-type FirstSweepState = 'idle' | 'selecting' | 'tuned'
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<Tab>('map')
@@ -27,9 +28,10 @@ export default function Home() {
     randomSeed: Date.now().toString(36),
   })
   const [fullscreenStation, setFullscreenStation] = useState<RadioStation | null>(null)
-  const [firstSweep, setFirstSweep] = useState<FirstSweepState>('idle')
+  const roulette = useRadioRoulette()
+  const [linkError, setLinkError] = useState<string | null>(null)
 
-  const { currentStation, playStation } = useAudioStore()
+  const { currentStation, playStation, armStation } = useAudioStore()
 
   const { data: stats } = useQuery<{ stations: number; countries: number; languages: number }>({
     queryKey: ['/api/stats'],
@@ -42,7 +44,7 @@ export default function Home() {
     gcTime: 30 * 60 * 1000,
   })
 
-  // Deep link: ?station=<uuid> auto-plays that station via our API proxy.
+  // A shared station is armed for an explicit tap, preserving browser media permissions.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const uuid = params.get('station')
@@ -51,64 +53,17 @@ export default function Home() {
     let cancelled = false
     fetchStationByUuid(uuid)
       .then((station) => {
-        if (cancelled || !station) return
-        playStation(station)
+        if (cancelled) return
+        if (!station) { setLinkError('This shared station is no longer listed. Try a new signal.'); return }
+        armStation(station)
         setFullscreenStation(station)
         // Clean the URL so refresh doesn't re-trigger
         window.history.replaceState({}, '', window.location.pathname)
       })
-      .catch(() => { /* link broken, ignore */ })
+      .catch(() => { if (!cancelled) setLinkError('Could not load this shared station. Try a new signal.') })
 
     return () => { cancelled = true }
-  }, [playStation])
-
-  // First visit: let the Atlas sweep, choose from the obscure seeded pool,
-  // and attempt playback. Browsers that require a gesture leave the station
-  // armed in the player with a clear play control instead.
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    if (params.has('station')) return
-
-    let cancelled = false
-    setFirstSweep('selecting')
-
-    const selectStation = async () => {
-      try {
-        const stations = await fetchStations({
-          listenerFilter: 'zero',
-          limit: 20,
-          offset: 0,
-          randomSeed: `first-${Date.now().toString(36)}`,
-          farFromVisitor: true,
-        })
-        if (cancelled || stations.length === 0) {
-          setFirstSweep('idle')
-          return
-        }
-
-        // Keep the sweep legible rather than instantly replacing it with the
-        // player on a fast connection.
-        await new Promise((resolve) => window.setTimeout(resolve, 1400))
-        if (cancelled) return
-
-        setFirstSweep('tuned')
-        for (const station of stations) {
-          if (cancelled) return
-          const result = await playStation(station)
-          if (result === 'playing' || result === 'blocked') break
-          setFirstSweep('selecting')
-        }
-        window.setTimeout(() => {
-          if (!cancelled) setFirstSweep('idle')
-        }, 1200)
-      } catch {
-        if (!cancelled) setFirstSweep('idle')
-      }
-    }
-
-    void selectStation()
-    return () => { cancelled = true }
-  }, [playStation])
+  }, [armStation])
 
   const handleRefreshToDiscovery = (appliedFilters: SearchFilters) => {
     setSearchFilters(appliedFilters)
@@ -127,20 +82,21 @@ export default function Home() {
 
   const tabs = [
     { id: 'map' as Tab, icon: Atlas, label: 'ATLAS', num: '01' },
-    { id: 'discover' as Tab, icon: Discover, label: 'SCAN', num: '02' },
+    { id: 'discover' as Tab, icon: Discover, label: 'STATIONS', num: '02' },
     { id: 'search' as Tab, icon: Filter, label: 'FILTER', num: '03' },
-    { id: 'saved' as Tab, icon: Log, label: 'LOG', num: '04' },
-    { id: 'about' as Tab, icon: Info, label: 'NFO', num: '05' },
+    { id: 'saved' as Tab, icon: Log, label: 'SAVED', num: '04' },
+    { id: 'about' as Tab, icon: Info, label: 'ABOUT', num: '05' },
   ]
 
   return (
-    <div className="h-dvh overflow-hidden bg-chart-bg text-chart-ink font-mono flex flex-col">
+    <div className="radio-shell h-dvh overflow-hidden bg-chart-bg text-chart-ink font-mono flex flex-col">
+      <a href="#radio-main" className="skip-link">Skip to radio</a>
       <header className="shrink-0 border-b border-chart-line/50 px-3 sm:px-4 py-3 flex items-end justify-between gap-3">
-        <div className="border border-chart-ink-bright px-2.5 py-1 font-display text-[20px] sm:text-[22px] leading-none text-chart-ink-bright ink-glow tracking-[0.08em]">
-          UNHEARD&nbsp;//&nbsp;RADIO
+        <div className="border border-chart-line px-2.5 py-2 font-display whitespace-nowrap text-[16px] sm:text-[22px] leading-none text-chart-ink-bright ink-glow tracking-[0.08em]">
+          UNHEARD<span className="text-signal"> / </span>RADIO
         </div>
         <div className="text-right text-[10px] tracking-[0.12em] uppercase text-chart-ink-dim leading-relaxed">
-          <div>// Listening Post</div>
+          <div className="hidden sm:block">A receiver for the overlooked</div>
           <div className="hidden sm:block">
             <span className="text-chart-ink">{stats ? stats.stations.toLocaleString() : '…'}</span> stations
             <span className="opacity-50 px-1.5">·</span>
@@ -157,8 +113,8 @@ export default function Home() {
         </div>
       </header>
 
-      <nav className="shrink-0 border-b border-chart-line/50 overflow-x-auto">
-        <div className="flex min-w-max">
+      <nav aria-label="Radio views" className="shrink-0 border-b border-chart-line/50 overflow-x-auto">
+        <div className="grid grid-cols-5 sm:flex sm:min-w-max">
           {tabs.map((tab) => {
             const Icon = tab.icon
             const active = activeTab === tab.id
@@ -166,15 +122,16 @@ export default function Home() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-3 sm:px-4 py-2.5 sm:py-3 border-r border-chart-line/50 transition-colors text-[11px] tracking-[0.12em] uppercase whitespace-nowrap ${
+                aria-current={active ? 'page' : undefined}
+                className={`flex items-center justify-center min-h-11 gap-2 px-2 sm:px-4 py-2.5 sm:py-3 border-r border-chart-line/50 transition-colors text-[11px] tracking-[0.12em] uppercase whitespace-nowrap ${
                   active
                     ? 'text-chart-ink-bright bg-chart-ink/[0.06] ink-glow border-b-2 border-b-signal'
                     : 'text-chart-ink-dim hover:text-chart-ink'
                 }`}
                 title={tab.label}
               >
-                <Icon size={12} />
-                <span className="hidden sm:inline text-chart-line text-[9px]">{tab.num}</span>
+                <Icon size={12} className="hidden sm:block" />
+
                 <span>{tab.label}</span>
               </button>
             )
@@ -182,21 +139,45 @@ export default function Home() {
         </div>
       </nav>
 
-      <main className="flex flex-1 min-h-0 flex-col lg:flex-row">
+      <main id="radio-main" tabIndex={-1} className="flex flex-1 min-h-0 flex-col lg:flex-row">
         {activeTab === 'search' && (
-          <div className="w-full lg:w-80 shrink-0 border-b lg:border-b-0 lg:border-r border-chart-line/50 bg-chart-bg/50 max-h-[42vh] lg:max-h-none overflow-y-auto">
+          <div className="w-full lg:w-80 shrink-0 border-b lg:border-b-0 lg:border-r border-chart-line/50 bg-chart-bg/50 h-full overflow-y-auto">
             <SearchSidebar
+              initialFilters={searchFilters}
               onRefreshToDiscovery={handleRefreshToDiscovery}
               totalStations={stats?.stations ?? 0}
             />
           </div>
         )}
 
-        <div className="flex-1 min-h-0 relative overflow-hidden">
+        <div className={`flex-1 min-h-0 relative overflow-hidden ${activeTab === 'search' ? 'hidden lg:block' : ''}`}>
           {activeTab === 'discover' && <DiscoveryList filters={searchFilters} />}
           {activeTab === 'saved' && <BookmarkList />}
           {activeTab === 'map' && (
-            <AtlasMap onStationSelect={(station) => playStation(station)} />
+            <div className="atlas-view h-full flex flex-col overflow-y-auto">
+              <section className="tuning-console shrink-0 px-4 py-4 sm:px-7 sm:py-6 border-b border-chart-line">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+                  <div>
+                    <p className="hidden sm:block text-[11px] text-signal uppercase tracking-[0.18em] mb-2">The quiet end of the dial</p>
+                    <h1 className="text-xl sm:text-3xl font-medium text-chart-ink-bright tracking-tight">Somewhere, someone is broadcasting.</h1>
+                    <p className="hidden sm:block text-sm text-chart-ink-dim mt-2 leading-relaxed">Step outside your usual frequencies. Find a sound you weren’t looking for.</p>
+                  </div>
+                  <div className="shrink-0 sm:max-w-[260px]">
+                    <button className="receiver-button w-full" onClick={() => void roulette.tuneNext()} disabled={!roulette.canTune}>
+                      <Play size={14} /> Tune somewhere unexpected
+                    </button>
+                    <p className="text-[11px] text-chart-ink-dim mt-2 min-h-4" role="status">
+                      {roulette.isFetching ? 'Finding quiet signals…' : roulette.error ? 'The directory is unavailable.' : roulette.empty ? 'No fresh signals in this sweep.' : 'Few directory clicks. No repeats on Next.'}
+                    </p>
+                    {(roulette.error || roulette.empty) && <button className="text-xs underline underline-offset-4 text-chart-ink py-2" onClick={roulette.refresh}>Try a fresh sweep</button>}
+                  </div>
+                </div>
+                {linkError && <p role="alert" className="text-xs text-danger mt-3">{linkError}</p>}
+              </section>
+              <div className="relative flex-1 min-h-[180px]">
+                <AtlasMap onStationSelect={(station) => { void playStation(station) }} />
+              </div>
+            </div>
           )}
           {activeTab === 'search' && <DiscoveryList filters={searchFilters} />}
           {activeTab === 'about' && (
@@ -216,19 +197,15 @@ export default function Home() {
                   </p>
 
                   <p className="leading-relaxed">
-                    Our reverse-algorithm doesn&apos;t chase listeners—it finds the stations nobody else bothers with.
-                    The glitchy transmissions. The ghost signals. The offbeat gems broadcasting to empty rooms
-                    at 3 AM.
+                    We explore stations with very little recent activity in the RadioBrowser directory: at most five clicks in 24 hours and fifty directory votes. Those counts help us find overlooked entries; they do not measure how many people are listening.
                   </p>
 
                   <p className="leading-relaxed">
-                    This is anti-algorithm radio. Always live. Never normal.
+                    Live radio, with room for the unexpected.
                   </p>
 
                   <p className="leading-relaxed">
-                    Every station here is real, broadcasting right now from some forgotten corner of the world.
-                    No playlists. No recommendations. Just pure, unfiltered discovery of sounds you never
-                    knew existed.
+                    Streams are community-listed and checked by RadioBrowser. A passed check is a useful starting point, but a station can still go offline. If a signal cannot be received, try the next one. Your saved stations stay in this browser; recent history lasts for this visit.
                   </p>
                 </div>
 
@@ -249,24 +226,13 @@ export default function Home() {
               </div>
             </div>
           )}
-          {firstSweep !== 'idle' && (
-            <div className="atlas-boot-in absolute inset-0 z-40 flex items-center justify-center bg-chart-bg/55 backdrop-blur-[1px] pointer-events-none" aria-live="polite">
-              <div className="atlas-console-in border border-chart-line bg-chart-panel/95 px-5 py-4 text-center uppercase tracking-[0.14em] shadow-2xl">
-                <div className="mb-2 text-[10px] text-signal animate-pulse">● Atlas sweep active</div>
-                <div className="text-xs sm:text-sm text-chart-ink-bright">
-                  {firstSweep === 'selecting' ? 'Selecting station at random…' : 'Obscure signal acquired'}
-                </div>
-              </div>
-            </div>
-          )}
+
         </div>
       </main>
 
-      {currentStation && (
-        <div className="player-dock-in relative z-50 shrink-0">
-          <NowPlayingBar onMaximize={handleMaximizeStation} />
-        </div>
-      )}
+      <div className="relative z-50 shrink-0 border-t border-chart-line bg-chart-panel-2">
+        <NowPlayingBar onMaximize={handleMaximizeStation} onNext={() => void roulette.tuneNext()} canNext={roulette.canTune} />
+      </div>
 
       {fullscreenStation && (
         <FullscreenStation station={fullscreenStation} onClose={handleCloseFullscreen} />

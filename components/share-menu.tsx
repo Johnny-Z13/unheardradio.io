@@ -10,6 +10,7 @@ interface ShareMenuProps {
   className?: string
   iconClassName?: string
   trigger?: React.ReactNode
+  side?: 'above' | 'below'
 }
 
 function buildShareData(station: RadioStation) {
@@ -19,7 +20,7 @@ function buildShareData(station: RadioStation) {
   return { url, title, text, full: `${text} — ${url}` }
 }
 
-export function ShareMenu({ station, className, iconClassName, trigger }: ShareMenuProps) {
+export function ShareMenu({ station, className, iconClassName, trigger, side = 'below' }: ShareMenuProps) {
   const [open, setOpen] = useState(false)
   const [copied, setCopied] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -33,7 +34,7 @@ export function ShareMenu({ station, className, iconClassName, trigger }: ShareM
       }
     }
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false)
+      if (e.key === 'Escape') { setOpen(false); containerRef.current?.querySelector('button')?.focus(); }
     }
     document.addEventListener('mousedown', onClick)
     document.addEventListener('keydown', onKey)
@@ -89,6 +90,8 @@ export function ShareMenu({ station, className, iconClassName, trigger }: ShareM
       <button
         onClick={handleClick}
         title="Share"
+        aria-label="Share station"
+        aria-expanded={open}
         className={iconClassName ?? 'w-7 h-7 rounded-full border border-chart-line text-chart-ink-dim hover:border-chart-ink-dim hover:text-chart-ink transition-all flex items-center justify-center'}
       >
         {trigger ?? <SendIcon size={12} />}
@@ -97,8 +100,9 @@ export function ShareMenu({ station, className, iconClassName, trigger }: ShareM
       {open && (
         <div
           onClick={stop}
-          role="menu"
-          className="absolute right-0 top-full mt-2 z-[60] w-56 border border-chart-line bg-chart-panel-2 p-1 shadow-[0_4px_20px_hsl(215_30%_24%/0.12)]"
+          role="group"
+          aria-label="Share options"
+          className={`absolute right-0 ${side === 'above' ? 'bottom-full mb-2' : 'top-full mt-2'} z-[60] w-56 border border-chart-line bg-chart-panel-2 p-1 shadow-xl`}
         >
           <div className="flex items-center justify-between px-2 py-1.5 text-[10px] tracking-[0.15em] uppercase text-chart-ink-dim border-b border-chart-line/50 mb-1">
             <span>// Send to</span>

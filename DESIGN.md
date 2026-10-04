@@ -43,7 +43,7 @@ Typography remains JetBrains Mono throughout: 24–30px mixed-case introductory 
 
 Deep cuts have at most 5 RadioBrowser clicks in 24 hours and 50 directory votes. Both fields must be known. These thresholds indicate directory activity, never real-world audience size. Eligibility precedes ranking and country variety. Never broaden the thresholds silently to fill an empty result.
 
-Roulette uses prefetched candidates, avoids attempted UUIDs and equivalent streams during the visit, and prefers a new country. It tries at most two stations per action, at most two HTTPS URLs per station, six seconds per URL. Stop or a newer choice cancels older work. Click tracking happens only after actual playback begins. Back and Recent explicitly allow revisiting a station. History is not persisted; bookmarks remain browser-local.
+Roulette uses prefetched candidates, avoids attempted UUIDs and equivalent streams during the visit, and prefers a new country. It keeps trying fresh stations until playback starts or the pool is exhausted, at most two HTTPS URLs per station, six seconds per URL. Stop or a newer choice cancels older work; browser playback restrictions end the scan with a Play action. Click tracking happens only after actual playback begins. Back and Recent explicitly allow revisiting a station. History is not persisted; bookmarks remain browser-local.
 
 Ready, tuning, live, paused and failed states are visibly distinct. Autoplay restrictions show a ready state and a Play action. Shared links arm the station for a user tap. Last checked is a UTC directory check timestamp, not continuous uptime. Unknown saved metadata stays unknown.
 

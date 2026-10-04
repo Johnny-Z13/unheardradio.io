@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 import { fetchStations } from '@/lib/radio-api'
 import { nextSignal } from '@/lib/discovery'
 import { useAudioStore } from '@/lib/audio-store'
+import { playFirstAvailable } from '@/lib/playback-controller'
 
 export function useRadioRoulette() {
   const [seed, setSeed] = useState(() => Date.now().toString(36))
@@ -18,17 +19,15 @@ export function useRadioRoulette() {
   })
   const candidate = nextSignal(query.data || [], attempted, currentStation)
 
-  const tuneNext = async () => {
-    // Prefetched candidates preserve the media gesture on the first attempt.
-    // Every acquisition is bounded to two URLs; try two stations at most.
-    for (let attempt = 0; attempt < 2; attempt++) {
+  // Prefetched candidates preserve the media gesture on the first attempt.
+  // Failed stations are recorded by the store, so each retry selects a fresh signal.
+  const tuneNext = () => playFirstAvailable(
+    () => {
       const state = useAudioStore.getState()
-      const station = nextSignal(query.data || [], state.attempted, state.currentStation)
-      if (!station) return
-      const result = await state.playStation(station)
-      if (result !== 'failed') return
-    }
-  }
+      return nextSignal(query.data || [], state.attempted, state.currentStation)
+    },
+    (station) => useAudioStore.getState().playStation(station),
+  )
 
   return {
     tuneNext,

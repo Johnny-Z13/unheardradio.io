@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { createPlaybackController, type PlaybackStatus } from './playback-controller.ts'
+import { createPlaybackController, playFirstAvailable, type PlaybackStatus } from './playback-controller.ts'
 import type { RadioStation } from '../types/radio'
 
 class FakeAudio extends EventTarget {
@@ -105,4 +105,59 @@ test('a live stream that stalls reaches a recoverable failure', async () => {
   await new Promise((resolve) => setTimeout(resolve, 15))
   assert.equal(states.at(-1), 'failed')
   assert.equal(audio.paused, true)
+})
+
+test('roulette skips failed and timed-out stations until actual playback, beyond two attempts', async () => {
+  const { audio, controller, started } = setup(5)
+  const candidates = ['broken', 'timeout', 'working', 'unused'].map((id) => station(id))
+  audio.action = async () => {
+    if (audio.src.endsWith('broken')) throw new Error('Offline')
+    if (audio.src.endsWith('working')) audio.dispatchEvent(new Event('playing'))
+  }
+  assert.equal(await playFirstAvailable(() => candidates.shift() ?? null, controller.play), 'playing')
+  assert.deepEqual(audio.sources, ['https://radio.test/broken', 'https://radio.test/timeout', 'https://radio.test/working'])
+  assert.deepEqual(started, ['working'])
+  controller.pause()
+})
+
+test('roulette ends when every candidate fails or the pool is empty', async () => {
+  const { audio, controller, started } = setup()
+  const candidates = ['one', 'two', 'three'].map((id) => station(id))
+  audio.action = async () => { throw new Error('Offline') }
+  const scan = () => playFirstAvailable(() => candidates.shift() ?? null, controller.play)
+  assert.equal(await scan(), 'failed')
+  assert.equal(await scan(), 'failed')
+  assert.equal(audio.sources.length, 3)
+  assert.deepEqual(started, [])
+})
+
+test('roulette respects cancel while tuning instead of advancing', async () => {
+  const { audio, controller } = setup()
+  const candidates = ['one', 'two'].map((id) => station(id))
+  const scan = playFirstAvailable(() => candidates.shift() ?? null, controller.play)
+  controller.pause()
+  assert.equal(await scan, 'cancelled')
+  assert.deepEqual(audio.sources, ['https://radio.test/one'])
+})
+
+test('a newer selection cancels roulette without an older scan taking over', async () => {
+  const { audio, controller, started } = setup()
+  const candidates = ['one', 'two'].map((id) => station(id))
+  const scan = playFirstAvailable(() => candidates.shift() ?? null, controller.play)
+  const manual = controller.play(station('manual'))
+  audio.dispatchEvent(new Event('playing'))
+  assert.equal(await scan, 'cancelled')
+  assert.equal(await manual, 'playing')
+  assert.deepEqual(audio.sources, ['https://radio.test/one', 'https://radio.test/manual'])
+  assert.deepEqual(started, ['manual'])
+  controller.pause()
+})
+
+test('roulette stops for browser permission instead of skipping every station', async () => {
+  const { audio, controller } = setup()
+  const candidates = ['one', 'two'].map((id) => station(id))
+  audio.action = async () => { throw new DOMException('Gesture required', 'NotAllowedError') }
+  assert.equal(await playFirstAvailable(() => candidates.shift() ?? null, controller.play), 'blocked')
+  assert.deepEqual(audio.sources, ['https://radio.test/one'])
+  controller.pause()
 })

@@ -5,6 +5,18 @@ export type PlayResult = 'playing' | 'blocked' | 'failed' | 'cancelled' | 'pause
 type AudioPort = Pick<HTMLAudioElement, 'src' | 'play' | 'pause' | 'load' | 'removeAttribute' | 'addEventListener' | 'removeEventListener'>
 type State = { status: PlaybackStatus; error: string | null }
 
+/** Keep scanning after failed acquisition; playback, cancellation and permissions end the scan. */
+export async function playFirstAvailable(
+  nextStation: () => RadioStation | null,
+  playStation: (station: RadioStation) => Promise<PlayResult>,
+): Promise<PlayResult> {
+  for (let station = nextStation(); station; station = nextStation()) {
+    const result = await playStation(station)
+    if (result !== 'failed') return result
+  }
+  return 'failed'
+}
+
 /** One owner for the media element. Aborting an attempt removes all its listeners. */
 export function createPlaybackController(options: {
   getAudio: () => AudioPort

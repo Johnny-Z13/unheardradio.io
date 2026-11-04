@@ -96,7 +96,7 @@ export default function Privacy() {
               <div className="space-y-2">
                 <p>If you have any questions about this Privacy Policy, feel free to contact us at:</p>
                 <div className="text-chart-ink-dim">
-                  <p><strong>hello@z13labs.com</strong></p>
+                  <p><a href="mailto:hello@z13labs.com" className="text-chart-ink hover:text-chart-ink-dim underline">hello@z13labs.com</a></p>
                   <p><a href="https://unheardradio.io" className="text-chart-ink hover:text-chart-ink-dim underline">https://unheardradio.io</a></p>
                 </div>
               </div>

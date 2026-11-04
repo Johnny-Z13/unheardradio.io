@@ -218,7 +218,7 @@ export default function Home() {
                         Z13LABS
                       </a>
                     </p>
-                    <p>Contact: hello@z13labs.com</p>
+                    <p>Contact: <a href="mailto:hello@z13labs.com" className="text-chart-ink hover:text-chart-ink-dim underline">hello@z13labs.com</a></p>
                     <a href="/privacy" className="block text-chart-ink hover:text-chart-ink-dim underline">
                       Privacy Policy
                     </a>

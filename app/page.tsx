@@ -104,12 +104,12 @@ export default function Home() {
             <span className="text-chart-ink">{stats ? stats.countries : '…'}</span> countries
           </div>
           <a
-            href="https://www.z13labs.com"
+            href="https://www.z13labs.com/"
             target="_blank"
             rel="noopener noreferrer"
             className="block hover:text-chart-ink transition-colors"
           >
-            Made by Z13LABS
+            By Z13 Labs
           </a>
         </div>
       </header>
@@ -214,8 +214,8 @@ export default function Home() {
                   <div className="text-sm text-chart-ink-dim space-y-2">
                     <p>
                       Made by{' '}
-                      <a href="https://www.z13labs.com" target="_blank" rel="noopener noreferrer" className="text-chart-ink hover:text-chart-ink-dim underline">
-                        Z13LABS
+                      <a href="https://www.z13labs.com/" target="_blank" rel="noopener noreferrer" className="text-chart-ink hover:text-chart-ink-dim underline">
+                        Z13 Labs
                       </a>
                     </p>
                     <p>Contact: <a href="mailto:hello@z13labs.com" className="text-chart-ink hover:text-chart-ink-dim underline">hello@z13labs.com</a></p>
